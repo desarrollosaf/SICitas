@@ -8,6 +8,8 @@ import cookieParser from 'cookie-parser';
 import path from 'path';
 import { verifyToken } from '../middlewares/auth';
 import routeCitas from "../routes/citas";
+import routeCitasLicencias from "../routes/citasLicencias";
+import routeCitasIssemym from "../routes/citasIssemym";
 class Server {
 
     private app: Application
@@ -35,15 +37,16 @@ class Server {
         this.app.use(rcombos);
         this.app.use(routeUser);
         this.app.use(routeCitas);
-
+        this.app.use(routeCitasLicencias)
+        this.app.use(routeCitasIssemym)
     }
 
     
     midlewares(){
         this.app.use(express.json())
         this.app.use(cors({
-            // origin: 'http://localhost:4200',
-            origin: 'https://jornadasalud.congresoedomex.gob.mx',
+            origin: 'http://localhost:4200',
+            // origin: 'https://jornadasalud.congresoedomex.gob.mx',
             credentials: true
         }));
 

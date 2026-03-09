@@ -8,6 +8,8 @@ import SUsuario from '../models/saf/s_usuario';
 import dotenv from 'dotenv';
 import { dp_fum_datos_generales } from '../models/fun/dp_fum_datos_generales'
 import Cita from '../models/citas'
+import citasLicencia from '../models/citas_licencias'
+import citasIssemym from '../models/citas_issemym'
 
 export const ReadUser = async (req: Request, res: Response): Promise<any> => {
     const listUser = await User.findAll();
@@ -20,12 +22,10 @@ export const ReadUser = async (req: Request, res: Response): Promise<any> => {
 
 
 export const LoginUser = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
-    const { rfc, password } = req.body;
+    const { rfc, password, from } = req.body;
     let passwordValid = false;
     let user: any = null;
     let bandera = true;
-
-
 
 
     if (rfc.startsWith('VC')) {
@@ -109,7 +109,6 @@ export const LoginUser = async (req: Request, res: Response, next: NextFunction)
 
         const hash = user.password.replace(/^\$2y\$/, '$2b$');
         passwordValid = await bcrypt.compare(password, hash);
-
     }
 
 
@@ -119,24 +118,51 @@ export const LoginUser = async (req: Request, res: Response, next: NextFunction)
             msg: `Password Incorrecto => ${password}`
         })
     }
-    const totalCitas = await Cita.count();
-    const citaUser = await Cita.findOne({
-        where: { rfc: rfc }
-    });
-    if (totalCitas >= 500) {
-        if (!citaUser) {
-            return res.status(416).json({
-                msg: "Ya no hay lugares disponibles."
-            });
+
+    if(from == 'licencias'){
+        const totalCitas = await citasLicencia.count();
+        const citaUser = await citasLicencia.findOne({
+            where: { rfc: rfc }
+        });
+        if (totalCitas >= 500) {
+            if (!citaUser) {
+                return res.status(416).json({
+                    msg: "Ya no hay lugares disponibles."
+                });
+            }
+        }
+    }else if(from == 'issemym'){
+        const totalCitas = await citasIssemym.count();
+        const citaUser = await citasIssemym.findOne({
+            where: { rfc: rfc }
+        });
+        if (totalCitas >= 500) {
+            if (!citaUser) {
+                return res.status(416).json({
+                    msg: "Ya no hay lugares disponibles."
+                });
+            }
+        }
+    }else{
+        const totalCitas = await Cita.count();
+        const citaUser = await Cita.findOne({
+            where: { rfc: rfc }
+        });
+        if (totalCitas >= 500) {
+            if (!citaUser) {
+                return res.status(416).json({
+                    msg: "Ya no hay lugares disponibles."
+                });
+            }
         }
     }
+
 
     const accessToken = jwt.sign(
         { rfc: rfc },
         process.env.SECRET_KEY || 'TSE-Poder-legislativo',
         { expiresIn: '2h' }
     );
-
 
     res.cookie('accessToken', accessToken, {
         httpOnly: true,
@@ -145,8 +171,7 @@ export const LoginUser = async (req: Request, res: Response, next: NextFunction)
         maxAge: 2 * 60 * 60 * 1000,
         path: '/',
     });
-
-    return res.json({ user, bandera })
+    return res.json({ user, bandera, from })
 }
 
 export const getCurrentUser = (req: Request, res: Response) => {

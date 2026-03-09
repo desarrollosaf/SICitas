@@ -16,7 +16,14 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./views/pages/home/home.component').then((c) => c.HomeComponent)
   },
-
+  {
+    path: 'licencias',
+    loadComponent: () => import('./views/pages/licencias/licencias.component').then(c => c.LicenciasComponent)
+  },
+  {
+    path: 'credencializacion',
+    loadComponent: () => import('./views/pages/issemym/issemym.component').then(c => c.IssemymComponent)
+  },
   {
     path: '',
     component: BaseComponent,
@@ -27,6 +34,15 @@ export const routes: Routes = [
       {
         path: 'citas',
         loadComponent: () => import('./views/pages/citas/citas.component').then(c => c.CitasComponent)
+      },
+      {
+        path: 'citasLicencias',
+        //  loadChildren: () => import('./views/pages/citas/licencias/licencias.route')
+        loadComponent: () => import('./views/pages/citas/licencias/licencias.component').then(c => c.LicenciasComponent)
+      },
+      {
+        path: 'citasIssemym',
+        loadComponent: () => import('./views/pages/citas/issemym/issemym.component').then(c => c.IssemymComponent)
       },
       {
         path: 'reportes',

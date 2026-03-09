@@ -12,6 +12,11 @@ module.exports = {
         sede: 'Salón Benito Juárez',
         createdAt: new Date(),
         updatedAt: new Date()
+      },
+      {
+        sede: 'Estacionamiento de la dirección general de comunicación social',
+        createdAt: new Date(),
+        updatedAt: new Date()
       }
     ], {});
   },

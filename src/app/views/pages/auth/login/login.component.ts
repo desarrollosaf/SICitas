@@ -26,6 +26,7 @@ export class LoginComponent implements OnInit {
   Upassword: string = '';
   userRole$: Observable<string | undefined>;
   formLogin: FormGroup;
+  from: string = '';
 
   public _userService = inject(UserService);
 
@@ -34,6 +35,7 @@ export class LoginComponent implements OnInit {
     this.formLogin = this.fb.group({
       Urfc: [null, Validators.required],
       Upassword: [null, Validators.required],
+      from: null,
     },{
         validators: []
     });
@@ -42,6 +44,8 @@ export class LoginComponent implements OnInit {
 
   ngOnInit(): void {
     // get return url from route parameters or default to '/'
+    const navigation = this.router.getCurrentNavigation();
+    this.from = navigation?.extras?.state?.['from'] || history.state.from;
     this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
   }
 
@@ -50,18 +54,27 @@ export class LoginComponent implements OnInit {
     // console.log('envio login')
     const user: User = {
       rfc: form.value.Urfc,
-      password: form.value.Upassword
+      password: form.value.Upassword,
+      from: this.from
     };
 
     this._userService.login(user).subscribe({
       next: (response: any) => {
         const userData = response.user;
         const bandera = response.bandera;
+        const from = response.from;
         localStorage.setItem('isLoggedin', 'true'); 
         this._userService.setCurrentUser(userData);
         console.log(bandera)
         if (bandera) {
-          this.router.navigate(['/citas']);
+          console.log('from', from)
+          if( from == 'licencias'){
+            this.router.navigate(['/citasLicencias']);   
+          }else if( from == 'issemym'){
+            this.router.navigate(['/citasIssemym']); 
+          }else{
+             this.router.navigate(['/citas']);
+          }
         } else {
           // console.log('admin')
           this.router.navigate(['/reportes']);

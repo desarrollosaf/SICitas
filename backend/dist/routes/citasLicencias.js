@@ -1,0 +1,15 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const citasLicencias_1 = require("../controllers/citasLicencias");
+const router = (0, express_1.Router)();
+router.get("/api/citasLicencia/gethorarios/:fecha", citasLicencias_1.getHorariosDisponibles);
+router.post("/api/citasLicencia/savecita/", citasLicencias_1.savecita);
+router.get("/api/citasLicencia/citasagrupadas/", citasLicencias_1.getcitasagrupadas);
+router.get("/api/citasLicencia/getcitaservidor/:id", citasLicencias_1.getCita);
+router.get("/api/citasLicencia/getcitasfecha/:fecha/:rfc", citasLicencias_1.getcitasFecha);
+router.get("/api/citasLicencia/pdf/:fecha/:sedeId", citasLicencias_1.generarPDFCitas);
+router.get("/api/citasLicencia/exel/:fecha/:sedeId", citasLicencias_1.generarExcelCitas);
+router.get("/api/citasLicencia/exelgeneral/", citasLicencias_1.generalExcel);
+router.get("/api/citasLicencia/pdfAcuse/:rfc", citasLicencias_1.generarPdfAcuse);
+exports.default = router;

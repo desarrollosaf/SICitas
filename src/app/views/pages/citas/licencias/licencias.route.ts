@@ -1,0 +1,16 @@
+import { Routes } from "@angular/router";
+
+export default [
+    {
+        path: '',
+        loadComponent: () => import('./licencias.component').then(c => c.LicenciasComponent)
+    },
+    // {
+    //     path: 'servidores-publicos',
+    //     loadComponent: () => import('./servidores-publicos/servidores-publicos.component').then(c => c.ServidoresPublicosComponent)
+    // },
+    {
+        path: 'getcitaservidor',
+        
+    }
+] as Routes;
