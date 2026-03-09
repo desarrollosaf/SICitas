@@ -1,0 +1,16 @@
+{
+  "development": {
+     "username": "usr_vacunacion",
+     "password": "CFxV9IWBwUuu6KSFEUh0",
+     "database": "adminplem_vacunacion",
+     "host": "192.168.36.53",
+     "dialect": "mysql"
+  },
+  "production": {
+    "username": "root",
+    "password": "",
+    "database": "cuestionarios",
+    "host": "localhost",
+    "dialect": "mysql"
+  }
+}
