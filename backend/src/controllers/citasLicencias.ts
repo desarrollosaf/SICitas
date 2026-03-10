@@ -448,7 +448,7 @@ export async function generarPDFBuffer(data: PDFData): Promise<Buffer> {
     doc.on("error", reject);
 
     // ===== CONTENIDO DEL PDF =====
-    doc.image(path.join(__dirname, "../assets/salud_page_v.jpeg"), 0, 0, {
+    doc.image(path.join(__dirname, "../assets/fondo_page.jpg"), 0, 0, {
       width: doc.page.width,
       height: doc.page.height,
     });
@@ -482,7 +482,7 @@ export async function generarPDFBuffer(data: PDFData): Promise<Buffer> {
 
     doc.moveDown();
     doc.fontSize(11).text(
-      "Previo a acudir a su cita, se recomienda llegar al menos cinco minutos antes del horario programado, portar una identificación oficial y el comprobante de registro, así como vestir ropa cómoda y de preferencia con mangas cortas para facilitar la aplicación de la vacuna. Es importante no acudir en ayuno prolongado, mantenerse bien hidratado y comunicar al personal médico si presenta fiebre, síntomas de enfermedad o si recientemente ha recibido otra vacuna. En caso de presentar molestias leves como dolor, enrojecimiento o fiebre baja, se recomienda seguir las instrucciones proporcionadas por el personal médico y mantenerse en reposo. En caso de presentarse alguna duda, error o requerir asistencia relacionada con el acceso, comunícate a las extensiones 5506 y 5516 del Departamento de Desarrollo y Actualización Tecnológica.",
+      "En caso de presentarseos alguna duda, error o requerir asistencia relacionada con el acceso, comunícate a las extensiones 5506 y 5516 del Departamento de Desarrollo y Actualización Tecnológica.",
       { align: "justify" }
     );
 
@@ -492,9 +492,48 @@ export async function generarPDFBuffer(data: PDFData): Promise<Buffer> {
       { align: "justify" }
     );
     doc.moveDown();
+    doc.fontSize(11).text(
+      "Requisitos Servicio Público | “B” Colectivo",
+      { align: "justify" }
+    );
+    doc.moveDown();
+    doc.fontSize(11).text(
+      "Licencia | Primera vez o renovación",
+      { align: "justify" }
+    );
+    doc.moveDown();
     doc.fontSize(11).list(
       [
-        "Identificación oficial: Se aceptará únicamente credencial para votar (INE) vigente o gafete oficial expedido por la Dirección de Administración y Desarrollo de Personal. Deberán presentarse en original y copia.",
+        "1. Documento de identidad y mayoría de edad: Acta de nacimiento, carta de naturalización o forma migratoria vigente, y acreditar ser mayor de 18 años",
+        "2. CURP: Actualizada y certificada por RENAPO",
+        "3. Identificación oficial vigente con fotografía: INE, cédula profesional, cartilla/precartilla, pasaporte, matrícula consular o licencia del Edomex",
+        "4. Comprobante de domicilio: Original, no mayor a 3 meses (teléfono fijo, agua, luz, predial o constancia oficial), con datos completos de ubicación",
+        "5. Exámenes obligatorios: Reglamento de Tránsito del Edomex, médico, psicométrico y toxicológico",
+        "6. No antecedentes penales: Certificado o constancia vigente (máx. 1 mes).",
+        "7. Registro Nacional de Obligaciones Alimentarias: Certificado emitido por SNDIF (trámite gratuito)",
+        "8. Capacitación: Cumplir con el Programa de Capacitación para Operadores de Transporte Público del Edomex",
+        "9. Pago de derechos: Comprobante o pago directo en módulo con tarjeta"
+      ],
+      { bulletIndent: 20 }
+    );
+    doc.moveDown(1);
+    doc.fontSize(11).text(
+      "Duplicado",
+      { align: "justify" }
+    );
+    doc.moveDown();
+    doc.fontSize(11).list(
+      [
+        "1. Acta de robo o extravío debidamente requisitada",
+        "2. Identidad y mayoría de edad: Acta de nacimiento, carta de naturalización o forma migratoria vigente (mayor de 18 años)",
+        "3. CURP: Actualizada y certificada por RENAPO",
+        "4. Identificación oficial vigente con foto: INE, cédula profesional, cartilla/precartilla, pasaporte, matrícula consular o licencia del Edomex",
+        "5. Comprobante de domicilio: Original, no mayor a 3 meses, con datos completos",
+        "6. Exámenes obligatorios: Reglamento de Tránsito del Edomex, médico, psicométrico y toxicológico.",
+        "7. No antecedentes penales: Certificado o constancia vigente (máx. 1 mes)",
+        "8. Registro Nacional de Obligaciones Alimentarias: Certificado del SNDIF (gratuito)",
+        "9.  Capacitación: Programa para Operadores de Transporte Público del Edomex.",
+        "10. Pago de derechos: Comprobante o pago en módulo con tarjeta."
       ],
       { bulletIndent: 20 }
     );

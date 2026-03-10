@@ -477,37 +477,44 @@ export async function generarPDFBuffer(data: PDFData): Promise<Buffer> {
 
     doc.moveDown();
     doc.fontSize(11).text(
-      "Previo a acudir a su cita, se recomienda llegar al menos cinco minutos antes del horario programado, portar una identificación oficial y el comprobante de registro, así como vestir ropa cómoda y de preferencia con mangas cortas para facilitar la aplicación de la vacuna. Es importante no acudir en ayuno prolongado, mantenerse bien hidratado y comunicar al personal médico si presenta fiebre, síntomas de enfermedad o si recientemente ha recibido otra vacuna. En caso de presentar molestias leves como dolor, enrojecimiento o fiebre baja, se recomienda seguir las instrucciones proporcionadas por el personal médico y mantenerse en reposo. En caso de presentarse alguna duda, error o requerir asistencia relacionada con el acceso, comunícate a las extensiones 5506 y 5516 del Departamento de Desarrollo y Actualización Tecnológica.",
+      "De acuerdo al reglamento para la afiliación de Derechohabientes del Instituto de Seguridad Social del Estado de México y Municipios, que indica la vigencia de la credencialización. Artpiculo 7.- Los derechohabientes tienen la obligación de renovar la identificación institucional; para el caso de menores de edad, su renovación será cada cinco años hasta cumplir 18 años, en el caso de mayores de edad, será cada diez años. En caso de presentarse alguna duda, error o requerir asistencia relacionada con el acceso, comunícate a las extensiones 5506 y 5516 del Departamento de Desarrollo y Actualización Tecnológica.",
       { align: "justify" }
     );
 
     doc.moveDown();
     doc.fontSize(11).text(
-      "Para acceder a este beneficio, es indispensable presentar en el día y hora asignados la siguiente documentación:",
+      "Para acceder a este beneficio, es indispensable presentar en el día y hora asignados.",
+      { align: "justify" }
+    );
+    doc.moveDown();
+    doc.fontSize(11).text(
+      "Costos",
       { align: "justify" }
     );
     doc.moveDown();
     doc.fontSize(11).list(
       [
-        "Identificación oficial: Se aceptará únicamente credencial para votar (INE) vigente o gafete oficial expedido por la Dirección de Administración y Desarrollo de Personal. Deberán presentarse en original y copia.",
+        "Afiliación extemporánea - renovación $288.00",
+        "Reposición por robo o extravío $391.00",
+        "Carta testamentaria Sin costo"
       ],
       { bulletIndent: 20 }
     );
     doc.moveDown(1);
-    doc.fontSize(11).text(
-      "Si no se presenta alguno de estos documentos el día de la cita, no podrá realizar su examen y este se dará por perdido. Aviso de Privacidad",
-      { align: "justify" }
-    );
+    // doc.fontSize(11).text(
+    //   "Si no se presenta alguno de estos documentos el día de la cita, no podrá realizar su examen y este se dará por perdido. Aviso de Privacidad",
+    //   { align: "justify" }
+    // );
 
-    doc.moveDown();
-    doc.font("Helvetica-Bold").fontSize(10).text("Aviso de Privacidad", { align: "left" });
-    doc.font("Helvetica").fontSize(9).text("Consúltalo en:", { align: "left" });
-    doc.font("Helvetica")
-      .fontSize(9)
-      .text(
-        "https://legislacion.legislativoedomex.gob.mx/storage/documentos/avisosprivacidad/expediente-clinico.pdf",
-        { align: "left" }
-      );
+    // doc.moveDown();
+    // doc.font("Helvetica-Bold").fontSize(10).text("Aviso de Privacidad", { align: "left" });
+    // doc.font("Helvetica").fontSize(9).text("Consúltalo en:", { align: "left" });
+    // doc.font("Helvetica")
+    //   .fontSize(9)
+    //   .text(
+    //     "https://legislacion.legislativoedomex.gob.mx/storage/documentos/avisosprivacidad/expediente-clinico.pdf",
+    //     { align: "left" }
+    //   );
 
     doc.end();
   });

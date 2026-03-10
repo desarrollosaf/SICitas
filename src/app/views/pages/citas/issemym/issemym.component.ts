@@ -124,7 +124,7 @@ export class IssemymComponent {
     dayMaxEvents: true,
     validRange: {
       start: '2026-03-24',
-      end: '2026-03-25'
+      end: '2026-03-26'
     },
 
     dateClick: (info) => {
