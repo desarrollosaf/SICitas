@@ -29,7 +29,7 @@ HorarioCita.init(
   },
   {
     sequelize,
-    tableName: 'horarios_citas',
+    tableName: 'horarios_issemym',
     timestamps: true,
   }
 );

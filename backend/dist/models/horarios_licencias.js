@@ -25,7 +25,7 @@ HorarioCita.init({
     updatedAt: sequelize_1.DataTypes.DATE,
 }, {
     sequelize: cuestionariosConnection_1.default,
-    tableName: 'horarios_citas',
+    tableName: 'horarios_issemym',
     timestamps: true,
 });
 exports.default = HorarioCita;
