@@ -64,7 +64,7 @@ citasIssemym.init(
   },
   {
     sequelize,
-    tableName: 'citas',
+    tableName: 'citas_issemym',
     timestamps: true,
   }
 );

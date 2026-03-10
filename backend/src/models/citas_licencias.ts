@@ -64,7 +64,7 @@ citasLicencia.init(
   },
   {
     sequelize,
-    tableName: 'citas',
+    tableName: 'citas_licencias',
     timestamps: true,
   }
 );

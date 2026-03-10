@@ -142,7 +142,7 @@ export class LicenciasComponent {
         });
         this._citasService.getCitas(clickedDate).subscribe({
           next: (response: any) => {
-            const sedeFija = this.fechaCitaEnvio === '2026-02-24' ? 1 : (this.fechaCitaEnvio === '2025-11-05' ? 2 : null);
+            const sedeFija = this.fechaCitaEnvio === '2026-04-08' ? 3 : (this.fechaCitaEnvio === '2025-04-08' ? 2 : null);
 
             if (sedeFija) {
               this.horarios = (response.horarios || []).filter((horario: any) =>

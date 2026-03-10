@@ -51,7 +51,7 @@ citasLicencia.init({
     updatedAt: sequelize_1.DataTypes.DATE,
 }, {
     sequelize: cuestionariosConnection_1.default,
-    tableName: 'citas',
+    tableName: 'citas_licencias',
     timestamps: true,
 });
 // 👇 Asociaciones

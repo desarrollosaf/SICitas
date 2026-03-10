@@ -37,7 +37,6 @@ export const getHorariosDisponibles = async (req: Request, res: Response): Promi
     });
 
     const sedes = await Sede.findAll();
-
     const resultado: any[] = [];
 
     horariosDisponibles.forEach(h => {
@@ -61,7 +60,6 @@ export const getHorariosDisponibles = async (req: Request, res: Response): Promi
         });
       }
     });
-
     return res.json({ horarios: resultado });
 
   } catch (error) {
@@ -118,9 +116,6 @@ export const savecita = async (req: Request, res: Response): Promise<any> => {
       path: '1'
     });
 
-
-
-
     const horarios = await HorarioIssemym.findOne({
       where: { id: body.horario_id }
     });
@@ -155,8 +150,6 @@ export const savecita = async (req: Request, res: Response): Promise<any> => {
       }
     }
 
-
-
     // const pdfBuffer = await generarPDFBuffer({
     //   folio: cita.folio,
     //   nombreCompleto: nombreCompleto,
@@ -172,15 +165,14 @@ export const savecita = async (req: Request, res: Response): Promise<any> => {
     // });
 
     // Enviar el PDF como respuesta al usuario
-    /*res.setHeader("Content-Type", "application/pdf");
-    res.setHeader("Content-Disposition", `attachment; filename="Cita-${body.fecha_cita}.pdf"`);
-    res.send(pdfBuffer);*/
+    // res.setHeader("Content-Type", "application/pdf");
+    // res.setHeader("Content-Disposition", `attachment; filename="Cita-${body.fecha_cita}.pdf"`);
+    // res.send(pdfBuffer);
 
     return res.json({
       status: 200,
       msg: "Cita registrada correctamente",
     });
-
   } catch (error) {
     console.error('Error al guardar la cita:', error);
     return res.status(500).json({ msg: 'Error interno del servidor' });
@@ -257,7 +249,6 @@ export const getcitasagrupadas = async (req: Request, res: Response): Promise<an
 
 export const getCita = async (req: Request, res: Response): Promise<any> => {
   const { id } = req.params; // Este es el RFC
-console.log('controller ')
   try {
     // Traemos todas las citas asociadas al RFC
     const citasser = await citasIssemym.findAll({
@@ -270,12 +261,13 @@ console.log('controller ')
         },
         {
           model: HorarioIssemym,
-          as: "HorarioLicencia",
+          as: "HorarioIssemym",
           attributes: ["horario_inicio", "horario_fin"]
         }
       ],
       order: [["fecha_cita", "ASC"], ["horario_id", "ASC"]]
     });
+
     // Convertimos el resultado para incluir el rango horario
     const citasConHorario = citasser.map(cita => {
       const citaAny = cita as any; // Tipo flexible para TS
@@ -290,8 +282,8 @@ console.log('controller ')
         sede: citaAny.Sede?.sede || "Desconocida",
         sede_id: citaAny.Sede?.id || null,
         horario_id: cita.horario_id,
-        horario: citaAny.HorarioCita
-          ? `${citaAny.HorarioCita.horario_inicio} - ${citaAny.HorarioCita.horario_fin}`
+        horario: citaAny.HorarioIssemym
+          ? `${citaAny.HorarioIssemym.horario_inicio} - ${citaAny.HorarioIssemym.horario_fin}`
           : "Horario desconocido"
       };
     });
@@ -334,7 +326,7 @@ export const getcitasFecha = async (req: Request, res: Response): Promise<any> =
       raw: true
     });
 
-
+console.log('horarios   ' ,horarios)
     const citas = await citasIssemym.findAll({
       where: {
         fecha_cita: { [Op.eq]: fecha },
@@ -461,7 +453,7 @@ export async function generarPDFBuffer(data: PDFData): Promise<Buffer> {
       .fontSize(18)
       .font("Helvetica-Bold")
       .fillColor("#7d0037") // ✅ Aplica el color
-      .text("CAMPAÑA GRATUITA DE VACUNACIÓN", {
+      .text("JORNADA DE AFILIACIÓN Y CREDENCIALIZACIÓN DEL ISSEMYM", {
         align: "center",
       })
       .fillColor("black");
@@ -471,7 +463,7 @@ export async function generarPDFBuffer(data: PDFData): Promise<Buffer> {
     doc.font("Helvetica").fontSize(12).text(`Fecha cita: ${data.fecha}`, { align: "right" });
     doc.fontSize(12)
       .font("Helvetica")
-      .text(`Paciente: ${data.nombreCompleto} | Edad: ${data.edad} años` , { align: "left" })
+      .text(`Servidor público: ${data.nombreCompleto} | Edad: ${data.edad} años` , { align: "left" })
       .text(`CURP: ${data.curp}`, { align: "left" })
       .text(`Correo electrónico: ${data.correo} | Teléfono: ${data.telefono}`, { align: "left" })
       .text(`Ubicación: ${data.sede}`, { align: "left" })
@@ -479,7 +471,7 @@ export async function generarPDFBuffer(data: PDFData): Promise<Buffer> {
 
     doc.moveDown();
     doc.fontSize(11).text(
-      "El Voluntariado del Poder Legislativo del Estado de México organiza la Campaña gratuita de vacunación, contra la influenza.",
+      "El Voluntariado del Poder Legislativo del Estado de México organiza la jornada de afiliación y credencialización del ISSEMYM.",
       { align: "justify" }
     );
 
@@ -614,10 +606,6 @@ export const generarPdfAcuse = async (req: Request, res: Response) => {
       ],
       order: [["fecha_cita", "ASC"], ["horario_id", "ASC"]]
     });
-
-
-
-
 
     const Validacion = await dp_fum_datos_generales.findOne({
       where: { f_rfc: rfc },

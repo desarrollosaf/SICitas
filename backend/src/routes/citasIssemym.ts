@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getCita, getcitasagrupadas, getHorariosDisponibles, savecita, getcitasFecha, generarPDFCitas, generarExcelCitas, generalExcel, generarPdfAcuse } from "../controllers/citasLicencias";
+import { getCita, getcitasagrupadas, getHorariosDisponibles, savecita, getcitasFecha, generarPDFCitas, generarExcelCitas, generalExcel, generarPdfAcuse } from "../controllers/citasIssemym";
 
 const router = Router();
 

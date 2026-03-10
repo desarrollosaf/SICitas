@@ -118,9 +118,6 @@ export const savecita = async (req: Request, res: Response): Promise<any> => {
       path: '1'
     });
 
-
-
-
     const horarios = await HorarioLicencias.findOne({
       where: { id: body.horario_id }
     });
@@ -461,7 +458,7 @@ export async function generarPDFBuffer(data: PDFData): Promise<Buffer> {
       .fontSize(18)
       .font("Helvetica-Bold")
       .fillColor("#7d0037") // ✅ Aplica el color
-      .text("CAMPAÑA GRATUITA DE VACUNACIÓN", {
+      .text("LICENCIAS PARA CONDUCIR 2026", {
         align: "center",
       })
       .fillColor("black");
@@ -471,7 +468,7 @@ export async function generarPDFBuffer(data: PDFData): Promise<Buffer> {
     doc.font("Helvetica").fontSize(12).text(`Fecha cita: ${data.fecha}`, { align: "right" });
     doc.fontSize(12)
       .font("Helvetica")
-      .text(`Paciente: ${data.nombreCompleto} | Edad: ${data.edad} años` , { align: "left" })
+      .text(`Servidor público: ${data.nombreCompleto} | Edad: ${data.edad} años` , { align: "left" })
       .text(`CURP: ${data.curp}`, { align: "left" })
       .text(`Correo electrónico: ${data.correo} | Teléfono: ${data.telefono}`, { align: "left" })
       .text(`Ubicación: ${data.sede}`, { align: "left" })
@@ -479,7 +476,7 @@ export async function generarPDFBuffer(data: PDFData): Promise<Buffer> {
 
     doc.moveDown();
     doc.fontSize(11).text(
-      "El Voluntariado del Poder Legislativo del Estado de México organiza la Campaña gratuita de vacunación, contra la influenza.",
+      "El Voluntariado del Poder Legislativo del Estado de México organiza la Campaña licencias para conducir 2026.",
       { align: "justify" }
     );
 

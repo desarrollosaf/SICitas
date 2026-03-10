@@ -398,7 +398,7 @@ function generarPDFBuffer(data) {
                 .fontSize(18)
                 .font("Helvetica-Bold")
                 .fillColor("#7d0037") // ✅ Aplica el color
-                .text("CAMPAÑA GRATUITA DE VACUNACIÓN", {
+                .text("LICENCIAS PARA CONDUCIR 2026", {
                 align: "center",
             })
                 .fillColor("black");
@@ -407,13 +407,13 @@ function generarPDFBuffer(data) {
             doc.font("Helvetica").fontSize(12).text(`Fecha cita: ${data.fecha}`, { align: "right" });
             doc.fontSize(12)
                 .font("Helvetica")
-                .text(`Paciente: ${data.nombreCompleto} | Edad: ${data.edad} años`, { align: "left" })
+                .text(`Servidor público: ${data.nombreCompleto} | Edad: ${data.edad} años`, { align: "left" })
                 .text(`CURP: ${data.curp}`, { align: "left" })
                 .text(`Correo electrónico: ${data.correo} | Teléfono: ${data.telefono}`, { align: "left" })
                 .text(`Ubicación: ${data.sede}`, { align: "left" })
                 .text(`Horario: ${data.horario}`, { align: "left" });
             doc.moveDown();
-            doc.fontSize(11).text("El Voluntariado del Poder Legislativo del Estado de México organiza la Campaña gratuita de vacunación, contra la influenza.", { align: "justify" });
+            doc.fontSize(11).text("El Voluntariado del Poder Legislativo del Estado de México organiza la Campaña licencias para conducir 2026.", { align: "justify" });
             doc.moveDown();
             doc.fontSize(11).text("Previo a acudir a su cita, se recomienda llegar al menos cinco minutos antes del horario programado, portar una identificación oficial y el comprobante de registro, así como vestir ropa cómoda y de preferencia con mangas cortas para facilitar la aplicación de la vacuna. Es importante no acudir en ayuno prolongado, mantenerse bien hidratado y comunicar al personal médico si presenta fiebre, síntomas de enfermedad o si recientemente ha recibido otra vacuna. En caso de presentar molestias leves como dolor, enrojecimiento o fiebre baja, se recomienda seguir las instrucciones proporcionadas por el personal médico y mantenerse en reposo. En caso de presentarse alguna duda, error o requerir asistencia relacionada con el acceso, comunícate a las extensiones 5506 y 5516 del Departamento de Desarrollo y Actualización Tecnológica.", { align: "justify" });
             doc.moveDown();

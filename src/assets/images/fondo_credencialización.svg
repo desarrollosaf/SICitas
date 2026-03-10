@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Capa_1" data-name="Capa 1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1024 768">
+  <defs>
+    <clipPath id="clippath">
+      <rect y="0" width="1024" height="768" style="fill: none;"/>
+    </clipPath>
+    <linearGradient id="Degradado_sin_nombre_29" data-name="Degradado sin nombre 29" x1="509.24" y1="763.76" x2="512.66" y2="292.56" gradientUnits="userSpaceOnUse">
+      <stop offset=".02" stop-color="#696969"/>
+      <stop offset=".92" stop-color="#fff"/>
+    </linearGradient>
+    <linearGradient id="Degradado_sin_nombre_2" data-name="Degradado sin nombre 2" x1="-.5" y1="384" x2="1024.5" y2="384" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fff"/>
+      <stop offset="1" stop-color="#000"/>
+    </linearGradient>
+  </defs>
+  <g style="clip-path: url(#clippath);">
+    <rect width="1024" height="768" style="fill: url(#Degradado_sin_nombre_29); stroke: url(#Degradado_sin_nombre_2); stroke-miterlimit: 10;"/>
+    <g>
+      <g>
+        <g>
+          <path d="M979.1,296.59v97.78c0,9.65-7.08,17.48-15.82,17.48h-278.4c-8.74,0-15.82-7.82-15.82-17.48v-151.32c0-9.65,7.08-17.48,15.82-17.48h278.4c8.74,0,15.82,7.82,15.82,17.48v53.54" style="fill: #d8dfe1; opacity: .35;"/>
+          <path d="M847.27,384.4h-178.21v9.98c0,9.65,7.08,17.48,15.82,17.48h278.4c8.74,0,15.82-7.82,15.82-17.48v-63.48c-10.89,11.03-23,20.28-36.09,27.98-28.95,17.03-62.15,25.51-95.74,25.51Z" style="fill: #ba935c;"/>
+          <path d="M979.11,330.9v63.48c0,2.96-.67,5.77-1.85,8.22-2.67,5.51-7.92,9.26-13.97,9.26h-55.68c-112.16-13.5-238.54-27.47-238.54-27.47h178.21c33.6,0,66.78-8.47,95.74-25.5,2.53-1.49,5.03-3.03,7.49-4.65,3.61-2.36,7.14-4.86,10.58-7.49,6.32-4.82,12.34-10.09,18.03-15.85Z" style="fill: #93134a;"/>
+          <g>
+            <rect x="705.81" y="355.4" width="1.14" height="19.92" style="fill: #3f4242;"/>
+            <rect x="693.42" y="355.4" width="4.89" height="19.92" style="fill: #3f4242;"/>
+            <rect x="699.95" y="355.4" width="3.47" height="19.92" style="fill: #3f4242;"/>
+            <rect x="709.12" y="355.4" width="3.87" height="19.92" style="fill: #3f4242;"/>
+            <rect x="722.38" y="355.4" width="4.1" height="19.92" style="fill: #3f4242;"/>
+            <rect x="715.11" y="355.4" width="4.89" height="19.92" style="fill: #3f4242;"/>
+            <rect x="745.94" y="355.4" width="3.46" height="19.92" style="fill: #3f4242;"/>
+            <polygon points="742.61 355.4 742.61 355.4 739.17 355.4 739.17 375.32 742.28 375.32 742.28 375.32 743.43 375.32 743.43 355.4 742.61 355.4" style="fill: #3f4242;"/>
+            <rect x="728.76" y="355.4" width="7.57" height="19.92" style="fill: #3f4242;"/>
+          </g>
+          <g>
+            <path d="M758.06,274.46v58.67c0,4.03-2.98,7.34-6.86,7.86-.36.06-.72.09-1.09.09h-55.13c-.37,0-.73-.02-1.09-.09-3.88-.52-6.86-3.83-6.86-7.86v-58.67c0-4.38,3.55-7.95,7.95-7.95h55.13c4.39,0,7.95,3.56,7.95,7.95Z" style="fill: #d8dfe1;"/>
+            <g>
+              <path d="M751.21,340.99c-.36.06-.72.09-1.09.09h-55.13c-.37,0-.73-.02-1.09-.09-.01-.82.17-1.66.6-2.46,2.38-4.42,5.28-9.67,7.14-12.43.58-.85,1.06-1.47,1.38-1.74,2.06-1.72,11.48-4.94,13.73-5.71.32-.11.5-.16.5-.16l.04.02,5.31,2.63.06-.03,5.18-2.62s.02.01.08.02c.08.03.22.08.42.14.84.29,2.67.92,4.74,1.67,3.51,1.28,7.7,2.96,8.99,4.04.33.27.81.9,1.4,1.77,1.86,2.76,4.75,8,7.11,12.39.43.8.62,1.64.6,2.46Z" style="fill: #616160;"/>
+              <path d="M728.35,318.65l-3.74,2.41c-1.13.73-2.72.75-3.87.04l-3.98-2.45v-10.5h11.59v10.5Z" style="fill: #fff;"/>
+              <path d="M738.2,296.91c-1.41,7.39-6.57,17.63-15.72,17.63-10.55,0-14.28-10.21-15.72-17.59,9.36-.7,12.82-11.1,12.82-11.1,1.33,6.39,16.35,10.47,18.61,11.06Z" style="fill: #fadac6;"/>
+            </g>
+            <ellipse cx="722.65" cy="294.6" rx="17.33" ry="20.14" style="fill: #fff;"/>
+          </g>
+          <path d="M669.13,241.6h309.91c-.67-8.97-7.46-16.02-15.75-16.02h-278.4c-8.29,0-15.08,7.05-15.75,16.02Z" style="fill: #ba935c;"/>
+          <path d="M977.09,234.58c-2.7-5.37-7.86-9-13.81-9h-278.4c-5.95,0-11.12,3.64-13.81,9h306.02Z" style="fill: #93134a;"/>
+          <g>
+            <path d="M1079.77,358.41l46.46,40.89-58.23,66.17-4.71-4.15c-37.57.01-63.18-25.5-76.66-43.69-7.46-10.07-11.2-17.89-11.2-17.89l4.7-12.38,85.41-40.95c4.52,3.64,9.28,7.63,14.24,11.99Z" style="fill: #f6c29a;"/>
+            <path d="M988.85,420.55c13.98,17.88,38.84,40.79,74.43,40.77l4.71,4.15,12.39-14.08-15.69-13.81c-33.07,21.54-65.65-6.71-75.85-17.03Z" style="fill: #f3ac7d;"/>
+          </g>
+          <g>
+            <path d="M1066.38,346.42c-51.5-41.34-75.37-37.5-80.13-36.79v-.02s-6.01.45-6.01.45c0,0-.34.03-.96.07v34.64c26.8,10.76,63.3,25.74,62.64,27.31-1.04,2.46-47.18-9.74-47.18-9.74l-81-17.53c-11.93-2.62-23.85,4.36-27.41,16.03-2.77,9.06.23,18.52,6.92,24.41,2.3,2.02,5.02,3.62,8.11,4.64l86.12,27.74,11.94,3.85,32.72,19.96,48.49-83.03c-4.96-4.37-9.72-8.36-14.24-11.99Z" style="fill: #f6c29a;"/>
+            <polygon points="979.29 346.43 980.54 347.53 989.09 355.81 979.29 346.43 979.29 346.43" style="fill: #f3ac7d;"/>
+            <path d="M1041.08,372.07c.66-1.57-34.98-16.55-61.79-27.31v1.67l9.81,9.38c2.13,1.88,3.73,4.13,4.8,6.52,0,0,46.14,12.21,47.18,9.74Z" style="fill: #f3ac7d;"/>
+          </g>
+        </g>
+        <g>
+          <path d="M914.11,352.64c-8.35-1.83-16.71,3.05-19.2,11.23h0c-2.6,8.52,2.08,17.55,10.53,20.35l9.75,3.23c2.95.98,6.12-.76,6.88-3.77l5.66-22.38c.74-2.93-1.09-5.9-4.05-6.55l-9.57-2.1Z" style="fill: #fdf3ec;"/>
+          <path d="M894.91,363.87h0c-1.76,5.77-.17,11.78,3.66,15.93l.4-1.6c-2.79-3.99-3.8-9.17-2.27-14.18h0c1.35-4.43,4.42-7.88,8.27-9.84l.25-1c-4.8,1.66-8.74,5.51-10.32,10.69Z" style="fill: #fff;"/>
+          <path d="M920.79,370.95c-1.8,5.65-2.14,11.26-1.26,16.06,1.21-.7,2.16-1.86,2.53-3.33l5.66-22.38c.23-.93.19-1.85-.05-2.71-2.9,3.25-5.33,7.48-6.89,12.36Z" style="fill: #fff;"/>
+        </g>
+        <g>
+          <path d="M939.86,366.3l-5.8,20.15c-.2.7.2,1.43.9,1.63h0c.7.2,1.43-.2,1.63-.9l5.8-20.15c.2-.7-.2-1.43-.9-1.63h0c-.7-.2-1.43.2-1.63.9Z" style="fill: #f3ac7d;"/>
+          <path d="M947.34,368.27l-5.8,20.15c-.2.7.2,1.43.9,1.63h0c.7.2,1.43-.2,1.63-.9l5.8-20.15c.2-.7-.2-1.43-.9-1.63h0c-.7-.2-1.43.2-1.63.9Z" style="fill: #f3ac7d;"/>
+        </g>
+      </g>
+      <g>
+        <text transform="translate(767.1 271.37)" style="fill: #1d1d1b; font-family: RegestoGrotesk-Regular, &apos;Regesto Grotesk&apos;; font-size: 17.27px;"><tspan x="0" y="0" style="letter-spacing: 0em;">J</tspan><tspan x="8.38" y="0">OR</tspan><tspan x="31.64" y="0" style="letter-spacing: -.02em;">N</tspan><tspan x="42.41" y="0" style="letter-spacing: 0em;">A</tspan><tspan x="53.32" y="0" style="letter-spacing: -.04em;">D</tspan><tspan x="63.96" y="0">A DE </tspan></text>
+        <text transform="translate(767.1 312.54)" style="fill: #93134a; font-family: RegestoGrotesk-Black, &apos;Regesto Grotesk&apos;; font-size: 18.69px; font-weight: 800;"><tspan x="0" y="0">CREDENCI</tspan><tspan x="93.6" y="0" style="letter-spacing: 0em;">AL</tspan><tspan x="117.45" y="0" style="letter-spacing: 0em;">IZ</tspan><tspan x="133.99" y="0" style="letter-spacing: -.05em;">A</tspan><tspan x="146.7" y="0">CIÓN</tspan></text>
+        <text transform="translate(767.13 336.59)" style="fill: #1d1d1b; font-family: RegestoGrotesk-Black, &apos;Regesto Grotesk&apos;; font-size: 28.4px; font-weight: 800;"><tspan x="0" y="0">DEL I</tspan><tspan x="68.49" y="0" style="letter-spacing: 0em;">S</tspan><tspan x="86.97" y="0" style="letter-spacing: 0em;">S</tspan><tspan x="105.59" y="0">EM</tspan><tspan x="148.09" y="0" style="letter-spacing: 0em;">Y</tspan><tspan x="168.19" y="0">M</tspan></text>
+        <text transform="translate(767.1 295.56)" style="fill: #93134a; font-family: RegestoGrotesk-Black, &apos;Regesto Grotesk&apos;; font-size: 29.41px; font-weight: 800;"><tspan x="0" y="0" style="letter-spacing: 0em;">A</tspan><tspan x="21.33" y="0" style="letter-spacing: 0em;">F</tspan><tspan x="39.01" y="0">I</tspan><tspan x="46.76" y="0" style="letter-spacing: 0em;">L</tspan><tspan x="62.96" y="0">I</tspan><tspan x="70.71" y="0" style="letter-spacing: -.05em;">A</tspan><tspan x="90.72" y="0">CIÓN Y</tspan></text>
+      </g>
+    </g>
+  </g>
+</svg>

@@ -5,7 +5,6 @@ import { Router, RouterModule } from '@angular/router';
 import { FullCalendarComponent, FullCalendarModule } from '@fullcalendar/angular';
 import { NgbModal, NgbModalRef, NgbTooltipModule } from '@ng-bootstrap/ng-bootstrap';
 import { DatatableComponent, NgxDatatableModule } from '@siemens/ngx-datatable';
-import { CitasLicenciasService } from '../../../../service/citas-licencias.service';
 import { UserService } from '../../../../core/services/user.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import Swal from 'sweetalert2';
@@ -82,7 +81,6 @@ export class IssemymComponent {
     this._citasService.getcitaRFC(this.currentUser.rfc).subscribe({
       next: (response: any) => {
         this.datosCita = response
-        // console.log(this.datosCita);
         if (response.citas.length > 0) {
           this.mostrarCalendario = true;
         }
@@ -141,7 +139,7 @@ export class IssemymComponent {
         });
         this._citasService.getCitas(clickedDate).subscribe({
           next: (response: any) => {
-            const sedeFija = this.fechaCitaEnvio === '2026-02-24' ? 1 : (this.fechaCitaEnvio === '2025-11-05' ? 2 : null);
+            const sedeFija = this.fechaCitaEnvio == '2026-03-24' ? 3 : (this.fechaCitaEnvio == '2026-03-25' ? 3 : null);
 
             if (sedeFija) {
               this.horarios = (response.horarios || []).filter((horario: any) =>
@@ -190,6 +188,7 @@ export class IssemymComponent {
   };
 
   onHoraChange() {
+    console.log('AQUIII HORARIO')
     const horario = this.horarios.find(h => h.horario_id === this.horaSeleccionada2);
 
     if (this.sedeSeleccionada) {

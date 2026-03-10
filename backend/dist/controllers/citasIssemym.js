@@ -149,9 +149,9 @@ const savecita = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         //   citaId: cita.id
         // });
         // Enviar el PDF como respuesta al usuario
-        /*res.setHeader("Content-Type", "application/pdf");
-        res.setHeader("Content-Disposition", `attachment; filename="Cita-${body.fecha_cita}.pdf"`);
-        res.send(pdfBuffer);*/
+        // res.setHeader("Content-Type", "application/pdf");
+        // res.setHeader("Content-Disposition", `attachment; filename="Cita-${body.fecha_cita}.pdf"`);
+        // res.send(pdfBuffer);
         return res.json({
             status: 200,
             msg: "Cita registrada correctamente",
@@ -228,7 +228,6 @@ const getcitasagrupadas = (req, res) => __awaiter(void 0, void 0, void 0, functi
 exports.getcitasagrupadas = getcitasagrupadas;
 const getCita = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { id } = req.params; // Este es el RFC
-    console.log('controller ');
     try {
         // Traemos todas las citas asociadas al RFC
         const citasser = yield citas_issemym_1.default.findAll({
@@ -241,7 +240,7 @@ const getCita = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 },
                 {
                     model: horarios_issemym_1.default,
-                    as: "HorarioLicencia",
+                    as: "HorarioIssemym",
                     attributes: ["horario_inicio", "horario_fin"]
                 }
             ],
@@ -262,8 +261,8 @@ const getCita = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 sede: ((_a = citaAny.Sede) === null || _a === void 0 ? void 0 : _a.sede) || "Desconocida",
                 sede_id: ((_b = citaAny.Sede) === null || _b === void 0 ? void 0 : _b.id) || null,
                 horario_id: cita.horario_id,
-                horario: citaAny.HorarioCita
-                    ? `${citaAny.HorarioCita.horario_inicio} - ${citaAny.HorarioCita.horario_fin}`
+                horario: citaAny.HorarioIssemym
+                    ? `${citaAny.HorarioIssemym.horario_inicio} - ${citaAny.HorarioIssemym.horario_fin}`
                     : "Horario desconocido"
             };
         });
@@ -301,6 +300,7 @@ const getcitasFecha = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             order: [["id", "ASC"]],
             raw: true
         });
+        console.log('horarios   ', horarios);
         const citas = yield citas_issemym_1.default.findAll({
             where: Object.assign({ fecha_cita: { [sequelize_1.Op.eq]: fecha } }, sedeFilter),
             include: [
@@ -397,7 +397,7 @@ function generarPDFBuffer(data) {
                 .fontSize(18)
                 .font("Helvetica-Bold")
                 .fillColor("#7d0037") // ✅ Aplica el color
-                .text("CAMPAÑA GRATUITA DE VACUNACIÓN", {
+                .text("JORNADA DE AFILIACIÓN Y CREDENCIALIZACIÓN DEL ISSEMYM", {
                 align: "center",
             })
                 .fillColor("black");
@@ -406,13 +406,13 @@ function generarPDFBuffer(data) {
             doc.font("Helvetica").fontSize(12).text(`Fecha cita: ${data.fecha}`, { align: "right" });
             doc.fontSize(12)
                 .font("Helvetica")
-                .text(`Paciente: ${data.nombreCompleto} | Edad: ${data.edad} años`, { align: "left" })
+                .text(`Servidor público: ${data.nombreCompleto} | Edad: ${data.edad} años`, { align: "left" })
                 .text(`CURP: ${data.curp}`, { align: "left" })
                 .text(`Correo electrónico: ${data.correo} | Teléfono: ${data.telefono}`, { align: "left" })
                 .text(`Ubicación: ${data.sede}`, { align: "left" })
                 .text(`Horario: ${data.horario}`, { align: "left" });
             doc.moveDown();
-            doc.fontSize(11).text("El Voluntariado del Poder Legislativo del Estado de México organiza la Campaña gratuita de vacunación, contra la influenza.", { align: "justify" });
+            doc.fontSize(11).text("El Voluntariado del Poder Legislativo del Estado de México organiza la jornada de afiliación y credencialización del ISSEMYM.", { align: "justify" });
             doc.moveDown();
             doc.fontSize(11).text("Previo a acudir a su cita, se recomienda llegar al menos cinco minutos antes del horario programado, portar una identificación oficial y el comprobante de registro, así como vestir ropa cómoda y de preferencia con mangas cortas para facilitar la aplicación de la vacuna. Es importante no acudir en ayuno prolongado, mantenerse bien hidratado y comunicar al personal médico si presenta fiebre, síntomas de enfermedad o si recientemente ha recibido otra vacuna. En caso de presentar molestias leves como dolor, enrojecimiento o fiebre baja, se recomienda seguir las instrucciones proporcionadas por el personal médico y mantenerse en reposo. En caso de presentarse alguna duda, error o requerir asistencia relacionada con el acceso, comunícate a las extensiones 5506 y 5516 del Departamento de Desarrollo y Actualización Tecnológica.", { align: "justify" });
             doc.moveDown();
