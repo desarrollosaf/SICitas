@@ -29,7 +29,7 @@ HorarioCita.init(
   },
   {
     sequelize,
-    tableName: 'horarios_issemym',
+    tableName: 'horarios_licencias',
     timestamps: true,
   }
 );
