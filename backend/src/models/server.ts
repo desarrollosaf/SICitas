@@ -18,7 +18,7 @@ class Server {
 
     constructor(){
         this.app = express()
-        this.port = process.env.PORT || '3010'
+        this.port = process.env.PORT || '3019'
         this.midlewares();
         this.router();
         this.DBconnetc();
@@ -46,7 +46,7 @@ class Server {
         this.app.use(express.json())
         this.app.use(cors({
             // origin: 'http://localhost:4200',
-            origin: 'https://voluntariado.congresoedomex.gob.mx/citas',
+            origin: 'https://jornadasalud.congresoedomex.gob.mx',
             credentials: true
         }));
 

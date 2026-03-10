@@ -27,7 +27,7 @@ const citasIssemym_1 = __importDefault(require("../routes/citasIssemym"));
 class Server {
     constructor() {
         this.app = (0, express_1.default)();
-        this.port = process.env.PORT || '3010';
+        this.port = process.env.PORT || '3019';
         this.midlewares();
         this.router();
         this.DBconnetc();
@@ -50,7 +50,7 @@ class Server {
         this.app.use(express_1.default.json());
         this.app.use((0, cors_1.default)({
             // origin: 'http://localhost:4200',
-            origin: 'https://voluntariado.congresoedomex.gob.mx/citas',
+            origin: 'https://jornadasalud.congresoedomex.gob.mx',
             credentials: true
         }));
         this.app.use((0, cookie_parser_1.default)());
