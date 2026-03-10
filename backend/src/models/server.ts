@@ -45,8 +45,8 @@ class Server {
     midlewares(){
         this.app.use(express.json())
         this.app.use(cors({
-            origin: 'http://localhost:4200',
-            // origin: 'https://jornadasalud.congresoedomex.gob.mx',
+            // origin: 'http://localhost:4200',
+            origin: 'https://voluntariado.congresoedomex.gob.mx/citas',
             credentials: true
         }));
 

@@ -53,7 +53,7 @@ export class IssemymComponent {
   modalRef: NgbModalRef;
   viewState: 'lista' | 'enviar-link' | 'atender' = 'lista';
   mostrarCalendario = false;
-  highlightedDates: string[] = ['2026-03-24'];
+  highlightedDates: string[] = ['2026-03-24', '2026-03-25'];
   horarios: {
     horario_id: number;
     horario_texto: string;
