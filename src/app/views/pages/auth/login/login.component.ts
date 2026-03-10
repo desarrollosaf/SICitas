@@ -73,7 +73,7 @@ export class LoginComponent implements OnInit {
           }else if( from == 'issemym'){
             this.router.navigate(['/citasIssemym']); 
           }else{
-             this.router.navigate(['/citas']);
+             this.router.navigate(['/homeCitas']);
           }
         } else {
           // console.log('admin')

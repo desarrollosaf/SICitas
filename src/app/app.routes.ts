@@ -48,7 +48,11 @@ export const routes: Routes = [
         path: 'reportes',
         canActivateChild: [UserAccessGuard],
         loadChildren: () => import('./views/pages/reportes/reportes.route')
-      }
+      },
+      {
+        path: 'homeCitas',
+        loadComponent: () => import('./views/pages/citas/home/home.component').then(c => c.HomeComponent)
+      },
     ]
   },
   {

@@ -1,0 +1,39 @@
+.cartelLic{
+    position: relative;
+    background-image: url('../../../../../assets/images/cartel_licencias.png');
+    background-size:contain;
+    background-position: center;
+    background-repeat: no-repeat;
+    padding: 350px 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    &::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        // background: rgba(0, 0, 0, 0.4);
+        z-index: 0;
+    }
+}
+
+.cartelIssemym{
+    position: relative;
+    background-image: url('../../../../../assets/images/cartel_credencializacion.png');
+    background-size:contain;
+    background-position: center;
+    background-repeat: no-repeat;
+    padding: 350px 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    &::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        // background: rgba(0, 0, 0, 0.4);
+        z-index: 0;
+    }
+}
