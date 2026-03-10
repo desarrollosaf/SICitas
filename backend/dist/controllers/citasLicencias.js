@@ -413,17 +413,13 @@ function generarPDFBuffer(data) {
                 .text(`Ubicación: ${data.sede}`, { align: "left" })
                 .text(`Horario: ${data.horario}`, { align: "left" });
             doc.moveDown();
-            doc.fontSize(11).text("El Voluntariado del Poder Legislativo del Estado de México organiza la Campaña licencias para conducir 2026.", { align: "justify" });
-            doc.moveDown();
-            doc.fontSize(11).text("En caso de presentarseos alguna duda, error o requerir asistencia relacionada con el acceso, comunícate a las extensiones 5506 y 5516 del Departamento de Desarrollo y Actualización Tecnológica.", { align: "justify" });
+            doc.fontSize(11).text("El Voluntariado del Poder Legislativo del Estado de México organiza la Campaña licencias para conducir 2026. En caso de presentarseos alguna duda, error o requerir asistencia relacionada con el acceso, comunícate a las extensiones 5506 y 5516 del Departamento de Desarrollo y Actualización Tecnológica.", { align: "justify" });
             doc.moveDown();
             doc.fontSize(11).text("Para acceder a este beneficio, es indispensable presentar en el día y hora asignados la siguiente documentación:", { align: "justify" });
             doc.moveDown();
-            doc.fontSize(11).text("Requisitos Servicio Público | “B” Colectivo", { align: "justify" });
+            doc.fontSize(11).text("Requisitos Licencia | Primera vez o renovación", { align: "justify" });
             doc.moveDown();
-            doc.fontSize(11).text("Licencia | Primera vez o renovación", { align: "justify" });
-            doc.moveDown();
-            doc.fontSize(11).list([
+            doc.fontSize(10).list([
                 "1. Documento de identidad y mayoría de edad: Acta de nacimiento, carta de naturalización o forma migratoria vigente, y acreditar ser mayor de 18 años",
                 "2. CURP: Actualizada y certificada por RENAPO",
                 "3. Identificación oficial vigente con fotografía: INE, cédula profesional, cartilla/precartilla, pasaporte, matrícula consular o licencia del Edomex",
@@ -437,7 +433,7 @@ function generarPDFBuffer(data) {
             doc.moveDown(1);
             doc.fontSize(11).text("Duplicado", { align: "justify" });
             doc.moveDown();
-            doc.fontSize(11).list([
+            doc.fontSize(10).list([
                 "1. Acta de robo o extravío debidamente requisitada",
                 "2. Identidad y mayoría de edad: Acta de nacimiento, carta de naturalización o forma migratoria vigente (mayor de 18 años)",
                 "3. CURP: Actualizada y certificada por RENAPO",
@@ -449,14 +445,6 @@ function generarPDFBuffer(data) {
                 "9.  Capacitación: Programa para Operadores de Transporte Público del Edomex.",
                 "10. Pago de derechos: Comprobante o pago en módulo con tarjeta."
             ], { bulletIndent: 20 });
-            doc.moveDown(1);
-            doc.fontSize(11).text("Si no se presenta alguno de estos documentos el día de la cita, no podrá realizar su examen y este se dará por perdido. Aviso de Privacidad", { align: "justify" });
-            doc.moveDown();
-            doc.font("Helvetica-Bold").fontSize(10).text("Aviso de Privacidad", { align: "left" });
-            doc.font("Helvetica").fontSize(9).text("Consúltalo en:", { align: "left" });
-            doc.font("Helvetica")
-                .fontSize(9)
-                .text("https://legislacion.legislativoedomex.gob.mx/storage/documentos/avisosprivacidad/expediente-clinico.pdf", { align: "left" });
             doc.end();
         }));
     });
