@@ -79,7 +79,8 @@ export class ReportesComponent {
 
   descargandoPDF: number | null = null;
   descargandoExcel: number | null = null;
-  highlightedDates: string[] = ['2026-02-24'];
+  highlightedDates: string[] = [new Date().toISOString().split('T')[0]];
+
   @ViewChild('table') table: DatatableComponent;
   @ViewChild('fullcalendar') calendarComponent: FullCalendarComponent;
   @ViewChild('xlModal', { static: true }) xlModal!: TemplateRef<any>;
@@ -118,7 +119,7 @@ export class ReportesComponent {
   calendarOptions: CalendarOptions = {
     plugins: [dayGridPlugin, interactionPlugin],
     initialView: 'dayGridMonth',
-    initialDate: '2026-02-24',
+    initialDate: new Date().toISOString().split('T')[0],
     locale: 'es',
     eventClick: this.onEventClick.bind(this),
     buttonText: {
@@ -128,33 +129,34 @@ export class ReportesComponent {
       day: 'Día',
       list: 'Lista'
     },
-    selectable: true,
-    editable: false,
+    selectable: false,
+    editable: true,
     weekends: true,
     dayMaxEvents: true,
-    validRange: {
-      start: '2026-02-24',
-      end: '2026-02-24'
-    },
+    // validRange: {
+    //   start: '2026-02-24',
+    //   end: '2026-02-27'
+    // },
 
     dayCellDidMount: (info) => {
       const dateStr = info.date.toISOString().split('T')[0];
       const isEnabled = this.highlightedDates.includes(dateStr);
 
-      if (!isEnabled) {
-        info.el.style.backgroundColor = '#f0f0f0';
-        info.el.style.opacity = '0.4';
-        info.el.style.pointerEvents = 'none';
-      } else {
-        info.el.style.backgroundColor = '#d1e7dd';
+      // if (!isEnabled) {
+      //   info.el.style.backgroundColor = '#ffffff';
+      //   info.el.style.opacity = '0.4';
+      //   info.el.style.pointerEvents = 'none';
+      // } else {
+        info.el.style.backgroundColor = '#ffffff';
         info.el.style.border = '2px solid #0f5132';
         info.el.style.cursor = 'pointer';
-      }
+      // }
     }
   };
 
   ngOnInit(): void {
-    this.getAllCitas();
+    this.getEventos();
+    // this.getAllCitas();
     this.getHoy();
     this.actualizarFechaHora();
     setInterval(() => {
@@ -174,16 +176,16 @@ export class ReportesComponent {
   });
 }
   getHoy(){
-    /*this._citasService.getHoy().subscribe({
-      next: (response: any) => {
-        this.tatendidos = response.citas[0].atendidas;
-        this.tpendientes = response.citas[0].pendientes
-      },
-      error: (e: HttpErrorResponse) => {
-        const msg = e.error?.msg || 'Error desconocido'; 1
-        console.error('Error del servidor:', msg);
-      }
-    });*/
+    // this._citasService.getHoy().subscribe({
+    //   next: (response: any) => {
+    //     this.tatendidos = response.citas[0].atendidas;
+    //     this.tpendientes = response.citas[0].pendientes
+    //   },
+    //   error: (e: HttpErrorResponse) => {
+    //     const msg = e.error?.msg || 'Error desconocido'; 1
+    //     console.error('Error del servidor:', msg);
+    //   }
+    // });
   }
 
   getAllCitas() {
@@ -191,10 +193,7 @@ export class ReportesComponent {
       next: (response: any) => {
         // console.log(response.citas)
         if (response.citas.length > 0) {
-
           response.citas.forEach((cita: any) => {
-            // console.log(cita)
-            //const totalDia = cita.sedes.horarios.
             const fechaHora = `${cita.fecha_cita}T00:00:00`;
             const nuevoEvento = {
               title: `Ver citas, total: ${cita.total_citas}`,
@@ -275,7 +274,7 @@ export class ReportesComponent {
 
   this._citasService.getCitasFecha(this.fechaFormat, this.rfcUser).subscribe({
     next: (response: any) => {
-      // console.log('horarios citas:', response);
+      console.log('horarios citas:', response);
       this.data = {
         horarios: response.horarios
       };
@@ -502,5 +501,34 @@ descargarExcel(sedeID: number) {
 }
 
 
+getEventos(){
+  this._citasService.getEventos().subscribe({
+      next: (response: any) => {
+        let totalRegistros: 0;
+        response.eventos.forEach((cita: any) => {
+            if( cita.evento === 'Credencialización' && cita.m_citasI){
+              totalRegistros = cita.m_citasI.length;
+            }
+            if( cita.evento === 'Licencias' && cita.m_citasL){
+              totalRegistros = cita.m_citasL.length;
+            }
 
+            const fechaHora = `${cita.fecha_cita}T00:00:00`;
+            const nuevoEvento = {
+              title: `${totalRegistros} Citas ${cita.evento}`,
+              start: fechaHora,
+              allDay: false,
+              backgroundColor: '#dc3545',  // Rojo
+              borderColor: '#bd2130',
+              textColor: '#fff'
+            };
+            if (Array.isArray(this.calendarOptions.events)) {
+              this.calendarOptions.events = [...this.calendarOptions.events, nuevoEvento];
+            } else {
+              this.calendarOptions.events = [nuevoEvento];
+            }
+          });
+      }
+    });
+  }
 }

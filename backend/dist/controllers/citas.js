@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.generalExcel = exports.generarExcelCitas = exports.generarPdfAcuse = exports.generarPDFCitas = exports.getcitasFecha = exports.getCita = exports.getcitasagrupadas = exports.savecita = exports.getHorariosDisponibles = void 0;
+exports.getEventos = exports.generalExcel = exports.generarExcelCitas = exports.generarPdfAcuse = exports.generarPDFCitas = exports.getcitasFecha = exports.getCita = exports.getcitasagrupadas = exports.savecita = exports.getHorariosDisponibles = void 0;
 exports.generarPDFBuffer = generarPDFBuffer;
 const citas_1 = __importDefault(require("../models/citas"));
 const horarios_citas_1 = __importDefault(require("../models/horarios_citas")); // ✅ corregido
@@ -31,6 +31,11 @@ const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
 const pdf_utils_1 = require("./pdf.utils");
 const exceljs_1 = __importDefault(require("exceljs"));
+const citas_issemym_1 = __importDefault(require("../models/citas_issemym"));
+const horarios_issemym_1 = __importDefault(require("../models/horarios_issemym"));
+const eventos_1 = __importDefault(require("../models/eventos"));
+const citas_licencias_1 = __importDefault(require("../models/citas_licencias"));
+const horarios_licencias_1 = __importDefault(require("../models/horarios_licencias"));
 dp_datospersonales_1.dp_datospersonales.initModel(fun_1.default);
 dp_fum_datos_generales_1.dp_fum_datos_generales.initModel(fun_1.default);
 const getHorariosDisponibles = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -296,58 +301,107 @@ const getcitasFecha = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         else if (prefijo === "JSC") {
             sedeFilter = { sede_id: 1 };
         }
-        const horarios = yield horarios_citas_1.default.findAll({
-            order: [["id", "ASC"]],
-            raw: true
-        });
-        const citas = yield citas_1.default.findAll({
-            where: Object.assign({ fecha_cita: { [sequelize_1.Op.eq]: fecha } }, sedeFilter),
+        //tabla de citas
+        const eventos = yield eventos_1.default.findAll({
+            where: {
+                fecha_cita: fecha
+            },
             include: [
-                { model: sedes_1.default, as: "Sede", attributes: ["sede"] }
-            ],
-            order: [["horario_id", "ASC"]]
-        });
-        const resultado = {};
-        for (const h of horarios) {
-            const hora = `${h.horario_inicio} - ${h.horario_fin}`;
-            resultado[hora] = [];
-        }
-        for (const cita of citas) {
-            const horario = horarios.find(h => h.id === cita.horario_id);
-            if (horario) {
-                const hora = `${horario.horario_inicio} - ${horario.horario_fin}`;
-                resultado[hora].push(cita);
-            }
-        }
-        for (const cita of citas) {
-            if (cita.rfc) {
-                const datos = yield dp_fum_datos_generales_1.dp_fum_datos_generales.findOne({
-                    where: { f_rfc: cita.rfc },
-                    attributes: [
-                        [sequelize_2.Sequelize.literal(`CONCAT(f_nombre, ' ', f_primer_apellido, ' ', f_segundo_apellido)`), 'nombre_completo']
-                    ],
-                    raw: true
-                });
-                if (datos) {
-                    cita.setDataValue("datos_user", datos);
-                }
-                const usuario = yield s_usuario_1.default.findOne({
-                    where: { N_Usuario: cita.rfc },
-                    attributes: ["N_Usuario"],
+                {
+                    model: citas_issemym_1.default,
+                    as: "m_citasI",
+                    order: [["horario_id", "ASC"]],
                     include: [
-                        { model: t_dependencia_1.default, as: "dependencia", attributes: ["nombre_completo"] },
-                        { model: t_direccion_1.default, as: "direccion", attributes: ["nombre_completo"] },
-                        { model: t_departamento_1.default, as: "departamento", attributes: ["nombre_completo"] }
+                        {
+                            model: horarios_issemym_1.default,
+                            as: "HorarioIssemym",
+                            order: [["id", "ASC"]]
+                        },
+                        // {
+                        //   model: dp_fum_datos_generales, 
+                        //   as: 'm_sp'
+                        // }
                     ]
-                });
-                if (usuario) {
-                    cita.setDataValue("dependencia", usuario);
+                },
+                {
+                    model: citas_licencias_1.default,
+                    as: "m_citasL",
+                    order: [["horario_id", "ASC"]],
+                    include: [
+                        {
+                            model: horarios_licencias_1.default,
+                            as: "HorarioLicencia",
+                            order: [["id", "ASC"]]
+                        },
+                        // {
+                        //   model: dp_fum_datos_generales, 
+                        //   as: 'm_sp'
+                        // }
+                    ]
                 }
-            }
-        }
+            ]
+        });
+        //
+        // const horarios = await HorarioCita.findAll({
+        //   order: [["id", "ASC"]],
+        //   raw: true
+        // });
+        // const citas = await Cita.findAll({
+        //   where: {
+        //     fecha_cita: { [Op.eq]: fecha },
+        //     ...sedeFilter
+        //   },
+        //   include: [
+        //     { model: Sede, as: "Sede", attributes: ["sede"] }
+        //   ],
+        //   order: [["horario_id", "ASC"]]
+        // });
+        // const resultado: Record<string, any[]> = {};
+        // for (const h of horarios) {
+        //   const hora = `${h.horario_inicio} - ${h.horario_fin}`;
+        //   resultado[hora] = [];
+        // }
+        // for (const cita of citas) {
+        //   const horario = horarios.find(h => h.id === cita.horario_id);
+        //   if (horario) {
+        //     const hora = `${horario.horario_inicio} - ${horario.horario_fin}`;
+        //     resultado[hora].push(cita);
+        //   }
+        // }
+        // if (horario) {
+        //   const hora = `${horario.horario_inicio} - ${horario.horario_fin}`;
+        //   resultado[hora].push(cita);
+        // }
+        // }
+        // for (const cita of citas) {
+        //   if (cita.rfc) {
+        //     const datos = await dp_fum_datos_generales.findOne({
+        //       where: { f_rfc: cita.rfc },
+        //       attributes: [
+        //         [Sequelize.literal(`CONCAT(f_nombre, ' ', f_primer_apellido, ' ', f_segundo_apellido)`), 'nombre_completo']
+        //       ],
+        //       raw: true
+        //     });
+        //     if (datos) {
+        //       cita.setDataValue("datos_user", datos);
+        //     }
+        //     const usuario = await SUsuario.findOne({
+        //       where: { N_Usuario: cita.rfc },
+        //       attributes: ["N_Usuario"],
+        //       include: [
+        //         { model: Dependencia, as: "dependencia", attributes: ["nombre_completo"] },
+        //         { model: Direccion, as: "direccion", attributes: ["nombre_completo"] },
+        //         { model: Departamento, as: "departamento", attributes: ["nombre_completo"] }
+        //       ]
+        //     });
+        //     if (usuario) {
+        //       cita.setDataValue("dependencia", usuario);
+        //     }
+        //   }
+        // }
         return res.json({
             msg: "Horarios con citas agrupadas",
-            horarios: resultado
+            horarios: eventos
         });
     }
     catch (error) {
@@ -768,3 +822,47 @@ const generalExcel = (req, res) => __awaiter(void 0, void 0, void 0, function* (
     }
 });
 exports.generalExcel = generalExcel;
+const getEventos = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const eventos = yield eventos_1.default.findAll({
+        include: [
+            {
+                model: citas_issemym_1.default,
+                as: "m_citasI",
+                required: false,
+                include: [
+                    {
+                        model: sedes_1.default,
+                        as: "Sede"
+                    },
+                    {
+                        model: horarios_issemym_1.default,
+                        as: "HorarioIssemym"
+                    }
+                ]
+            },
+            {
+                model: citas_licencias_1.default,
+                as: "m_citasL",
+                required: false,
+                include: [
+                    {
+                        model: sedes_1.default,
+                        as: "Sede"
+                    },
+                    {
+                        model: horarios_licencias_1.default,
+                        as: "HorarioLicencia"
+                    }
+                ]
+            }
+        ]
+    });
+    // const resultado = eventos.map(ev => ({
+    //     fecha_cita: ev.fecha_cita,
+    //     total_issemym: ev.m_citasI?.length,
+    //     total_licencias: ev.m_citasL?.length,
+    return res.json({
+        eventos: eventos
+    });
+});
+exports.getEventos = getEventos;

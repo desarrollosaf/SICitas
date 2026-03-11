@@ -12,4 +12,5 @@ router.get("/api/citas/pdf/:fecha/:sedeId", citas_1.generarPDFCitas);
 router.get("/api/citas/exel/:fecha/:sedeId", citas_1.generarExcelCitas);
 router.get("/api/citas/exelgeneral/", citas_1.generalExcel);
 router.get("/api/citas/pdfAcuse/:rfc", citas_1.generarPdfAcuse);
+router.get("/api/citas/getEventos/", citas_1.getEventos);
 exports.default = router;

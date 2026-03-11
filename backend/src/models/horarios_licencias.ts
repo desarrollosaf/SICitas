@@ -1,7 +1,7 @@
 import { Model, DataTypes, CreationOptional } from 'sequelize';
 import sequelize from '../database/cuestionariosConnection';
 
-class HorarioCita extends Model {
+class HorarioLicencia extends Model {
   declare id: CreationOptional<number>;
   declare horario_inicio: string;
   declare horario_fin: string;
@@ -9,7 +9,7 @@ class HorarioCita extends Model {
   declare updatedAt: CreationOptional<Date>;
 }
 
-HorarioCita.init(
+HorarioLicencia.init(
   {
     id: {
       type: DataTypes.INTEGER,
@@ -34,4 +34,4 @@ HorarioCita.init(
   }
 );
 
-export default HorarioCita;
+export default HorarioLicencia;

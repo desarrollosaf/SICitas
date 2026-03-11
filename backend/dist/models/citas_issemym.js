@@ -57,4 +57,5 @@ citasIssemym.init({
 // 👇 Asociaciones
 citasIssemym.belongsTo(horarios_issemym_1.default, { foreignKey: "horario_id", as: "HorarioIssemym" });
 citasIssemym.belongsTo(sedes_1.default, { foreignKey: 'sede_id', as: 'Sede' });
+// citasIssemym.belongsTo(dp_fum_datos_generales, {foreignKey:'rfc',targetKey: 'f_rfc', as: 'm_sp'});
 exports.default = citasIssemym;

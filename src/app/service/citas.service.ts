@@ -55,4 +55,7 @@ export class CitasService {
     });
   }
 
+  getEventos(): Observable<string> {
+    return this.http.get<string>(`${this.myAppUrl}${this.myAPIUrl}/getEventos`)
+  }
 }

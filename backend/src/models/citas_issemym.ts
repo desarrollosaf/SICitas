@@ -2,6 +2,7 @@ import { Model, DataTypes, CreationOptional, ForeignKey } from 'sequelize';
 import sequelize from '../database/cuestionariosConnection';
 import HorarioIssemym from './horarios_issemym';
 import Sede from './sedes';
+import { dp_fum_datos_generales } from './fun/dp_fum_datos_generales';
 
 class citasIssemym extends Model {
   declare id: CreationOptional<number>;
@@ -72,6 +73,7 @@ citasIssemym.init(
 // 👇 Asociaciones
 citasIssemym.belongsTo(HorarioIssemym, { foreignKey: "horario_id", as: "HorarioIssemym" });
 citasIssemym.belongsTo(Sede, { foreignKey: 'sede_id', as: 'Sede' });
+// citasIssemym.belongsTo(dp_fum_datos_generales, {foreignKey:'rfc',targetKey: 'f_rfc', as: 'm_sp'});
 
 export default citasIssemym;
 

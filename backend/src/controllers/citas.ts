@@ -17,6 +17,13 @@ import fs from 'fs';
 import path from 'path';
 import { generarReporteCitasPDF } from "./pdf.utils";
 import ExcelJS from "exceljs";
+import citasIssemym from "../models/citas_issemym";
+import HorarioIssemym from "../models/horarios_issemym";
+import agendaEventos from "../models/eventos";
+import models from "..";
+import citasLicencia from "../models/citas_licencias";
+import HorarioLicencia from "../models/horarios_licencias";
+import { count } from "console";
 
 
 dp_datospersonales.initModel(sequelizefun);
@@ -328,72 +335,124 @@ export const getcitasFecha = async (req: Request, res: Response): Promise<any> =
       sedeFilter = { sede_id: 1 };
     }
 
-
-    const horarios = await HorarioCita.findAll({
-      order: [["id", "ASC"]],
-      raw: true
-    });
-
-
-    const citas = await Cita.findAll({
-      where: {
-        fecha_cita: { [Op.eq]: fecha },
-        ...sedeFilter
-      },
-      include: [
-        { model: Sede, as: "Sede", attributes: ["sede"] }
-      ],
-      order: [["horario_id", "ASC"]]
-    });
-
-
-    const resultado: Record<string, any[]> = {};
-
-    for (const h of horarios) {
-      const hora = `${h.horario_inicio} - ${h.horario_fin}`;
-      resultado[hora] = [];
-    }
-
-    for (const cita of citas) {
-      const horario = horarios.find(h => h.id === cita.horario_id);
-      if (horario) {
-        const hora = `${horario.horario_inicio} - ${horario.horario_fin}`;
-        resultado[hora].push(cita);
-      }
-    }
-
-
-    for (const cita of citas) {
-      if (cita.rfc) {
-        const datos = await dp_fum_datos_generales.findOne({
-          where: { f_rfc: cita.rfc },
-          attributes: [
-            [Sequelize.literal(`CONCAT(f_nombre, ' ', f_primer_apellido, ' ', f_segundo_apellido)`), 'nombre_completo']
-          ],
-          raw: true
-        });
-        if (datos) {
-          cita.setDataValue("datos_user", datos);
-        }
-
-        const usuario = await SUsuario.findOne({
-          where: { N_Usuario: cita.rfc },
-          attributes: ["N_Usuario"],
+    //tabla de citas
+    const eventos = await agendaEventos.findAll({
+      where:{
+        fecha_cita: fecha
+      }, 
+      include:[
+        {
+          model: citasIssemym, 
+          as: "m_citasI",
+          order: [["horario_id", "ASC"]], 
           include: [
-            { model: Dependencia, as: "dependencia", attributes: ["nombre_completo"] },
-            { model: Direccion, as: "direccion", attributes: ["nombre_completo"] },
-            { model: Departamento, as: "departamento", attributes: ["nombre_completo"] }
+            {
+              model: HorarioIssemym, 
+              as: "HorarioIssemym",
+              order: [["id", "ASC"]]
+            }, 
+            // {
+            //   model: dp_fum_datos_generales, 
+            //   as: 'm_sp'
+            // }
           ]
-        });
-        if (usuario) {
-          cita.setDataValue("dependencia", usuario);
+        }, 
+        {
+          model: citasLicencia, 
+          as: "m_citasL",
+          order: [["horario_id", "ASC"]],
+          include: [
+            {
+              model: HorarioLicencia, 
+              as: "HorarioLicencia",
+              order: [["id", "ASC"]]
+            }, 
+            // {
+            //   model: dp_fum_datos_generales, 
+            //   as: 'm_sp'
+            // }
+          ]
         }
-      }
-    }
+      ]
+    })
+
+    //
+
+
+
+
+    // const horarios = await HorarioCita.findAll({
+    //   order: [["id", "ASC"]],
+    //   raw: true
+    // });
+
+
+    // const citas = await Cita.findAll({
+    //   where: {
+    //     fecha_cita: { [Op.eq]: fecha },
+    //     ...sedeFilter
+    //   },
+    //   include: [
+    //     { model: Sede, as: "Sede", attributes: ["sede"] }
+    //   ],
+    //   order: [["horario_id", "ASC"]]
+    // });
+
+
+    // const resultado: Record<string, any[]> = {};
+
+    // for (const h of horarios) {
+    //   const hora = `${h.horario_inicio} - ${h.horario_fin}`;
+    //   resultado[hora] = [];
+    // }
+
+    // for (const cita of citas) {
+    //   const horario = horarios.find(h => h.id === cita.horario_id);
+    //   if (horario) {
+    //     const hora = `${horario.horario_inicio} - ${horario.horario_fin}`;
+    //     resultado[hora].push(cita);
+    //   }
+    // }
+
+     
+      // if (horario) {
+      //   const hora = `${horario.horario_inicio} - ${horario.horario_fin}`;
+      //   resultado[hora].push(cita);
+      // }
+    // }
+
+
+    // for (const cita of citas) {
+    //   if (cita.rfc) {
+    //     const datos = await dp_fum_datos_generales.findOne({
+    //       where: { f_rfc: cita.rfc },
+    //       attributes: [
+    //         [Sequelize.literal(`CONCAT(f_nombre, ' ', f_primer_apellido, ' ', f_segundo_apellido)`), 'nombre_completo']
+    //       ],
+    //       raw: true
+    //     });
+    //     if (datos) {
+    //       cita.setDataValue("datos_user", datos);
+    //     }
+
+    //     const usuario = await SUsuario.findOne({
+    //       where: { N_Usuario: cita.rfc },
+    //       attributes: ["N_Usuario"],
+    //       include: [
+    //         { model: Dependencia, as: "dependencia", attributes: ["nombre_completo"] },
+    //         { model: Direccion, as: "direccion", attributes: ["nombre_completo"] },
+    //         { model: Departamento, as: "departamento", attributes: ["nombre_completo"] }
+    //       ]
+    //     });
+    //     if (usuario) {
+    //       cita.setDataValue("dependencia", usuario);
+    //     }
+    //   }
+    // }
 
     return res.json({
       msg: "Horarios con citas agrupadas",
-      horarios: resultado
+      horarios: eventos
     });
 
   } catch (error) {
@@ -911,4 +970,50 @@ export const generalExcel = async (req: Request, res: Response) => {
     res.status(500).json({ error: "Error generando Excel" });
   }
 };
+
+export const getEventos = async(req: Request, res: Response): Promise<any> => {
+  const eventos = await agendaEventos.findAll({
+    include: [
+      {
+        model: citasIssemym,
+        as: "m_citasI",
+        required: false,
+        include: [
+          {
+            model: Sede, 
+            as: "Sede"
+          },
+          {
+            model: HorarioIssemym, 
+            as: "HorarioIssemym"
+          }
+        ]
+      }, 
+      {
+        model: citasLicencia,
+        as: "m_citasL",
+        required: false,
+        include: [
+          {
+            model: Sede, 
+            as: "Sede"
+          },
+          {
+            model: HorarioLicencia, 
+            as: "HorarioLicencia"
+          }
+        ]
+      }
+    ]
+  })
+
+  // const resultado = eventos.map(ev => ({
+  //     fecha_cita: ev.fecha_cita,
+  //     total_issemym: ev.m_citasI?.length,
+  //     total_licencias: ev.m_citasL?.length,
+
+  return res.json({
+      eventos: eventos
+  });
+}
 

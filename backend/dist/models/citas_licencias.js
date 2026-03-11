@@ -57,4 +57,5 @@ citasLicencia.init({
 // 👇 Asociaciones
 citasLicencia.belongsTo(horarios_licencias_1.default, { foreignKey: "horario_id", as: "HorarioLicencia" });
 citasLicencia.belongsTo(sedes_1.default, { foreignKey: 'sede_id', as: 'Sede' });
+// citasLicencia.belongsTo(dp_fum_datos_generales, {foreignKey:'rfc',targetKey: 'f_rfc', as: 'm_sp'});
 exports.default = citasLicencia;
