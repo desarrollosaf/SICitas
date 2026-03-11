@@ -37,7 +37,7 @@ dp_fum_datos_generales_1.dp_fum_datos_generales.initModel(fun_1.default);
 const getHorariosDisponibles = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { fecha } = req.params;
-        const limite = 2;
+        const limite = 1;
         const citas = yield citas_licencias_2.default.findAll({
             where: { fecha_cita: fecha },
         });
@@ -74,7 +74,7 @@ const savecita = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     try {
         const { body } = req;
-        const limite = 3;
+        const limite = 1;
         const citaExistente = yield citas_licencias_2.default.findOne({
             where: { rfc: body.rfc }
         });

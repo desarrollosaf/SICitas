@@ -26,7 +26,7 @@ dp_fum_datos_generales.initModel(sequelizefun);
 export const getHorariosDisponibles = async (req: Request, res: Response): Promise<any> => {
   try {
     const { fecha } = req.params;
-    const limite = 2;
+    const limite = 1;
 
     const citas = await citasIssemym.findAll({
       where: { fecha_cita: fecha },
@@ -73,7 +73,7 @@ export const getHorariosDisponibles = async (req: Request, res: Response): Promi
 export const savecita = async (req: Request, res: Response): Promise<any> => {
   try {
     const { body } = req;
-    const limite = 3;
+    const limite = 1;
 
 
     const citaExistente = await citasIssemym.findOne({
