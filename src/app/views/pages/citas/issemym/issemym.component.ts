@@ -157,8 +157,17 @@ export class IssemymComponent {
               this.sedeSeleccionada = null;
               this.sedesDisponibles2 = [];
             }
-
             // console.log(this.horarios);
+            if (!this.horarios || this.horarios.length === 0) {
+              Swal.fire({
+                icon: 'warning',
+                title: 'Sin horarios disponibles',
+                text: 'Ya no hay horarios disponibles para esta fecha.',
+                showConfirmButton: false,
+                timer:2000,
+              });
+              return;
+        }
           },
           error: (e: HttpErrorResponse) => {
             const msg = e.error?.msg || 'Error desconocido';
