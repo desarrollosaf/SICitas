@@ -159,6 +159,7 @@ export class IssemymComponent {
             }
             // console.log(this.horarios);
             if (!this.horarios || this.horarios.length === 0) {
+              this.modalService.dismissAll();
               Swal.fire({
                 icon: 'warning',
                 title: 'Sin horarios disponibles',
