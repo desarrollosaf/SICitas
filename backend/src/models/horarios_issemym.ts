@@ -35,5 +35,4 @@ HorarioIssemym.init(
   }
 );
 
-// HorarioIssemym.hasOne(citasIssemym, { foreignKey: "horario_id", as: "m_citaI" });
 export default HorarioIssemym;

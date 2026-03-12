@@ -274,7 +274,6 @@ export class ReportesComponent {
 
   this._citasService.getCitasFecha(this.fechaFormat, this.rfcUser).subscribe({
     next: (response: any) => {
-      // console.log('aqui llegaaa', response.horarios[0])
       this.data = {
         horarios: response.horarios[0]
       };
@@ -288,7 +287,7 @@ export class ReportesComponent {
     }
   });
 
-  // this.abrirModal(1);
+  this.abrirModal(1);
 }
 
 

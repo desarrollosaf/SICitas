@@ -118,38 +118,35 @@
         
         <div *ngIf="data.horarios as eventos" class="scrollable-modal-content">
             <strong>Citas {{eventos.evento}} del día: {{ fechaFormateadaM }}</strong><br><br>
-            <div *ngFor="let hora of eventos.horarios | keyvalue "> 
+            <div *ngFor="let hora of eventos.horarios | keyvalue  "> 
                 <div class="card mb-2">
                     <div class="card-header d-flex justify-content-between align-items-center"
-                        [ngClass]="{ 'bg-success text-white': hora.value.length> 0 }">
-                        <strong>{{ hora.value }}</strong>
-                        <!-- <span
-                            [ngClass]="{ 'text-white': hora.value.length > 0, 'text-muted': hora.value.length === 0 }"
-                            class="text-muted">
-                            ({{ hora.value.length }} citas)
-                        </span> -->
-                        <button class="btn btn-sm btn-outline-primary" (click)="toggleHorario(hora.key)">
-                            {{ isVisible(hora.key) ? 'Ocultar' : 'Ver' }}
-                        </button>
-                    </div>
-
-                    <div class="card-body" *ngIf="isVisible(hora.key)">
-                        <div *ngIf="hora.value.length > 0; else sinCitas">
-                            <!-- <div *ngFor="let cita of horario.value" class="border rounded p-2 mb-2">
-                                <p><strong>Nombre:</strong> {{ cita.datos_user.nombre_completo }}</p>
-                                <p><strong>Contacto:</strong> {{ cita.correo }} | {{ cita.telefono }}</p>
-                                <p><strong>Sede:</strong> {{ cita.Sede.sede }}</p>
-                            </div> -->
-                            <p><strong>Sede:</strong>g</p>
-                        </div>
-                        <ng-template #sinCitas>
-                            <p class="text-muted">Sin datos</p>
-                        </ng-template>
-                    </div>
+                        [ngClass]="{ 'bg-success text-white': 1 }">
+                    <strong>{{ hora.value.rango }}</strong>
+                    <!-- <span
+                        [ngClass]="{ 'text-white': hora.value.length > 0, 'text-muted': hora.value.length === 0 }"
+                        class="text-muted">
+                        ({{ hora.value.length }} citas)
+                    </span> -->
+                    <button class="btn btn-sm btn-outline-primary" (click)="toggleHorario(hora.key)">
+                        {{ isVisible(hora.key) ? 'Ocultar' : 'Ver' }}
+                    </button>
                 </div>
-             </div>
-         </div>
-    <!-- </div> -->
+
+                <div class="card-body" *ngIf="isVisible(hora.key)">
+                    <div *ngIf="hora.value.rfc != 'undefined' ; else sinCitas">
+                        <div class="border rounded p-2 mb-2">
+                            <p><strong>Nombre:</strong> {{ hora.value.nombre}}</p>
+                            <p><strong>RFC:</strong> {{ hora.value.rfc }} </p>
+                        </div>
+                    </div>
+                    <ng-template #sinCitas>
+                        <p class="text-muted">Sin datos</p>
+                    </ng-template>
+                </div>
+            </div>
+        </div>
+    </div>
     </div>
     <div class="modal-footer">
         <button type="button" id="focus-target" class="btn btn-secondary"
