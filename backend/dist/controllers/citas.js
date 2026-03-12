@@ -605,32 +605,63 @@ const generarPdfAcuse = (req, res) => __awaiter(void 0, void 0, void 0, function
 });
 exports.generarPdfAcuse = generarPdfAcuse;
 const generarExcelCitas = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c, _d, _e, _f;
+    var _a, _b, _c, _d, _e, _f, _g, _h;
     try {
         const { fecha, sedeId } = req.params;
         // const horarios = await HorarioCita.findAll({
         //   order: [["id", "ASC"]],
         //   raw: true
         // });
-        const horarios = yield horarios_issemym_1.default.findAll({
-            order: [["id", "ASC"]],
-            raw: true
-        });
-        const citas = yield citas_issemym_1.default.findAll({
+        let citas;
+        let sedeNombre;
+        let horarios;
+        const eve = yield eventos_1.default.findOne({
             where: {
-                fecha_cita: { [sequelize_1.Op.eq]: fecha },
-            },
-            include: [
-                {
-                    model: sedes_1.default,
-                    as: "Sede",
-                    attributes: ["sede"]
-                }
-            ],
-            order: [["horario_id", "ASC"]],
-            raw: false
+                fecha_cita: fecha
+            }
         });
-        const sedeNombre = ((_b = (_a = citas[0]) === null || _a === void 0 ? void 0 : _a.Sede) === null || _b === void 0 ? void 0 : _b.sede) || "SIN SEDE";
+        if ((eve === null || eve === void 0 ? void 0 : eve.evento) === 'Credencialización') {
+            horarios = yield horarios_issemym_1.default.findAll({
+                order: [["id", "ASC"]],
+                raw: true
+            });
+            citas = (yield citas_issemym_1.default.findAll({
+                where: {
+                    fecha_cita: { [sequelize_1.Op.eq]: fecha },
+                },
+                include: [
+                    {
+                        model: sedes_1.default,
+                        as: "Sede",
+                        attributes: ["sede"]
+                    }
+                ],
+                order: [["horario_id", "ASC"]],
+                raw: false
+            }));
+            sedeNombre = ((_b = (_a = citas[0]) === null || _a === void 0 ? void 0 : _a.Sede) === null || _b === void 0 ? void 0 : _b.sede) || "SIN SEDE";
+        }
+        else if ((eve === null || eve === void 0 ? void 0 : eve.evento) === 'Licencias') {
+            horarios = yield horarios_licencias_1.default.findAll({
+                order: [["id", "ASC"]],
+                raw: true
+            });
+            citas = (yield citas_licencias_1.default.findAll({
+                where: {
+                    fecha_cita: { [sequelize_1.Op.eq]: fecha },
+                },
+                include: [
+                    {
+                        model: sedes_1.default,
+                        as: "Sede",
+                        attributes: ["sede"]
+                    }
+                ],
+                order: [["horario_id", "ASC"]],
+                raw: false
+            }));
+            sedeNombre = ((_d = (_c = citas[0]) === null || _c === void 0 ? void 0 : _c.Sede) === null || _d === void 0 ? void 0 : _d.sede) || "SIN SEDE";
+        }
         for (const cita of citas) {
             if (cita.rfc) {
                 const datos = yield dp_fum_datos_generales_1.dp_fum_datos_generales.findOne({
@@ -684,15 +715,15 @@ const generarExcelCitas = (req, res) => __awaiter(void 0, void 0, void 0, functi
             }
             else {
                 for (const cita of citasHorario) {
-                    const nombre = ((_c = cita.datos_user) === null || _c === void 0 ? void 0 : _c.nombre_completo) || "Nombre desconocido";
-                    const correo = (_d = cita.correo) !== null && _d !== void 0 ? _d : "Sin correo";
-                    const telefono = (_e = cita.telefono) !== null && _e !== void 0 ? _e : "Sin teléfono";
+                    const nombre = ((_e = cita.datos_user) === null || _e === void 0 ? void 0 : _e.nombre_completo) || "Nombre desconocido";
+                    const correo = (_f = cita.correo) !== null && _f !== void 0 ? _f : "Sin correo";
+                    const telefono = (_g = cita.telefono) !== null && _g !== void 0 ? _g : "Sin teléfono";
                     sheet.addRow([hora, nombre, correo, telefono]);
                 }
             }
         }
         // Ajustar ancho columnas automáticamente
-        (_f = sheet.columns) === null || _f === void 0 ? void 0 : _f.forEach(column => {
+        (_h = sheet.columns) === null || _h === void 0 ? void 0 : _h.forEach(column => {
             if (column && typeof column.eachCell === "function") {
                 let maxLength = 0;
                 column.eachCell({ includeEmpty: true }, cell => {

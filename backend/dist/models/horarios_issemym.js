@@ -28,5 +28,4 @@ HorarioIssemym.init({
     tableName: 'horarios_issemym',
     timestamps: true,
 });
-// HorarioIssemym.hasOne(citasIssemym, { foreignKey: "horario_id", as: "m_citaI" });
 exports.default = HorarioIssemym;

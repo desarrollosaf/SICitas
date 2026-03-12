@@ -716,30 +716,63 @@ export const generarExcelCitas = async (req: Request, res: Response) => {
     //   order: [["id", "ASC"]],
     //   raw: true
     // });
-    const horarios = await HorarioIssemym.findAll({
-      order: [["id", "ASC"]],
-      raw: true
-    });
+    let citas: any;
+    let sedeNombre: any;
+    let horarios: any;
+    const eve = await agendaEventos.findOne({
+      where:{
+        fecha_cita: fecha
+      }
+    })
+
+    if(eve?.evento === 'Credencialización'){
+        horarios = await HorarioIssemym.findAll({
+          order: [["id", "ASC"]],
+          raw: true
+        });
 
 
-    const citas = await citasIssemym.findAll({
-      where: {
-        fecha_cita: { [Op.eq]: fecha },
-      },
-      include: [
-        {
-          model: Sede,
-          as: "Sede",
-          attributes: ["sede"]
-        }
-      ],
-      order: [["horario_id", "ASC"]],
-      raw: false
-    }) as (Cita & { Sede?: { sede: string }, usuario?: any })[];
+        citas = await citasIssemym.findAll({
+          where: {
+            fecha_cita: { [Op.eq]: fecha },
+          },
+          include: [
+            {
+              model: Sede,
+              as: "Sede",
+              attributes: ["sede"]
+            }
+          ],
+          order: [["horario_id", "ASC"]],
+          raw: false
+        }) as (Cita & { Sede?: { sede: string }, usuario?: any })[];
+        sedeNombre = citas[0]?.Sede?.sede || "SIN SEDE";
+  
+    }else if(eve?.evento === 'Licencias'){
+        horarios = await HorarioLicencia.findAll({
+          order: [["id", "ASC"]],
+          raw: true
+        });
 
-    const sedeNombre = citas[0]?.Sede?.sede || "SIN SEDE";
 
+        citas = await citasLicencia.findAll({
+          where: {
+            fecha_cita: { [Op.eq]: fecha },
+          },
+          include: [
+            {
+              model: Sede,
+              as: "Sede",
+              attributes: ["sede"]
+            }
+          ],
+          order: [["horario_id", "ASC"]],
+          raw: false
+        }) as (Cita & { Sede?: { sede: string }, usuario?: any })[];
 
+        sedeNombre = citas[0]?.Sede?.sede || "SIN SEDE";
+    }
+    
     for (const cita of citas) {
       if (cita.rfc) {
         const datos = await dp_fum_datos_generales.findOne({
