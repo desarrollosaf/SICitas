@@ -55,7 +55,7 @@
     </div>
     <div class="modal-body w-100">
         <div class="mb-3">
-            <strong>Citas del día: {{ fechaFormateadaM }}</strong><br><br>
+            <!-- <strong>Citas del día: {{ fechaFormateadaM }}</strong><br><br> -->
 
             <!-- <div class="d-flex align-items-center flex-wrap gap-2 mb-2">
                 <strong style="min-width: 180px">Edificio San Rafel 108:</strong>
@@ -115,13 +115,23 @@
         </div>
 
         <br>
-        
+          <button class="btn btn-sm btn-success d-flex align-items-center" (click)="descargarExcel(3)"
+                    [disabled]="descargandoExcel === 1">
+                    <ng-container *ngIf="descargandoExcel === 1; else iconoExcel1">
+                        <span class="spinner-border spinner-border-sm me-1" role="status"
+                            style="width: 1rem; height: 1rem;"></span>
+                        Descargando...
+                    </ng-container>
+                    <ng-template #iconoExcel1>
+                        <i class="bi bi-file-earmark-excel me-1"></i> Excel
+                    </ng-template>
+                </button>
         <div *ngIf="data.horarios as eventos" class="scrollable-modal-content">
             <strong>Citas {{eventos.evento}} del día: {{ fechaFormateadaM }}</strong><br><br>
             <div *ngFor="let hora of eventos.horarios | keyvalue  "> 
                 <div class="card mb-2">
                     <div class="card-header d-flex justify-content-between align-items-center"
-                        [ngClass]="{ 'bg-success text-white': 1 }">
+                        [ngClass]="{ 'bg-success text-white': hora.value.rfc != 'undefined' }">
                     <strong>{{ hora.value.rango }}</strong>
                     <!-- <span
                         [ngClass]="{ 'text-white': hora.value.length > 0, 'text-muted': hora.value.length === 0 }"
@@ -138,6 +148,7 @@
                         <div class="border rounded p-2 mb-2">
                             <p><strong>Nombre:</strong> {{ hora.value.nombre}}</p>
                             <p><strong>RFC:</strong> {{ hora.value.rfc }} </p>
+                            <p><strong>Contacto:</strong> {{ hora.value.num }} </p>
                         </div>
                     </div>
                     <ng-template #sinCitas>

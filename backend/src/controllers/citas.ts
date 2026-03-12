@@ -372,7 +372,8 @@ export const getcitasFecha = async (req: Request, res: Response): Promise<any> =
             obj.horarios.push({
                 rango: `${hora.horario_inicio} - ${hora.horario_fin}`,
                 nombre: `${datosg?.f_nombre} ${datosg?.f_primer_apellido} ${datosg?.f_segundo_apellido}`,
-                rfc: `${datosg?.f_rfc}`
+                rfc: `${datosg?.f_rfc}`,
+                num: `${cita.telefono}`
               });
           }else{
               obj.horarios.push({ 
@@ -405,7 +406,8 @@ export const getcitasFecha = async (req: Request, res: Response): Promise<any> =
         obj.horarios.push({
             rango: `${hora.horario_inicio} - ${hora.horario_fin}`,
             nombre: `${datosg?.f_nombre} ${datosg?.f_primer_apellido} ${datosg?.f_segundo_apellido}`,
-            rfc: `${datosg?.f_rfc}`
+            rfc: `${datosg?.f_rfc}`,
+            num: `${cita.telefono}`
           });
         }else{
           obj.horarios.push({
@@ -710,15 +712,19 @@ export const generarExcelCitas = async (req: Request, res: Response) => {
   try {
     const { fecha, sedeId } = req.params;
 
-    const horarios = await HorarioCita.findAll({
+    // const horarios = await HorarioCita.findAll({
+    //   order: [["id", "ASC"]],
+    //   raw: true
+    // });
+    const horarios = await HorarioIssemym.findAll({
       order: [["id", "ASC"]],
       raw: true
     });
 
-    const citas = await Cita.findAll({
+
+    const citas = await citasIssemym.findAll({
       where: {
         fecha_cita: { [Op.eq]: fecha },
-        sede_id: sedeId
       },
       include: [
         {
@@ -778,7 +784,8 @@ export const generarExcelCitas = async (req: Request, res: Response) => {
     sheet.addRow([]);
 
     // Encabezados
-    sheet.addRow(["Horario", "Nombre", "Dependencia", "Direccion", "Departamento", "Correo", "Teléfono"]);
+    // sheet.addRow(["Horario", "Nombre", "Dependencia", "Direccion", "Departamento", "Correo", "Teléfono"]);
+        sheet.addRow(["Horario", "Nombre", "Correo", "Teléfono"]);
     const headerRow = sheet.getRow(3); // Fila 3 porque hay título y fila vacía
     headerRow.font = { bold: true };
     headerRow.alignment = { horizontal: "center" };

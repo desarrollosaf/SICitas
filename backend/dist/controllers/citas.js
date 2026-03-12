@@ -332,7 +332,8 @@ const getcitasFecha = (req, res) => __awaiter(void 0, void 0, void 0, function* 
                         obj.horarios.push({
                             rango: `${hora.horario_inicio} - ${hora.horario_fin}`,
                             nombre: `${datosg === null || datosg === void 0 ? void 0 : datosg.f_nombre} ${datosg === null || datosg === void 0 ? void 0 : datosg.f_primer_apellido} ${datosg === null || datosg === void 0 ? void 0 : datosg.f_segundo_apellido}`,
-                            rfc: `${datosg === null || datosg === void 0 ? void 0 : datosg.f_rfc}`
+                            rfc: `${datosg === null || datosg === void 0 ? void 0 : datosg.f_rfc}`,
+                            num: `${cita.telefono}`
                         });
                     }
                     else {
@@ -362,7 +363,8 @@ const getcitasFecha = (req, res) => __awaiter(void 0, void 0, void 0, function* 
                         obj.horarios.push({
                             rango: `${hora.horario_inicio} - ${hora.horario_fin}`,
                             nombre: `${datosg === null || datosg === void 0 ? void 0 : datosg.f_nombre} ${datosg === null || datosg === void 0 ? void 0 : datosg.f_primer_apellido} ${datosg === null || datosg === void 0 ? void 0 : datosg.f_segundo_apellido}`,
-                            rfc: `${datosg === null || datosg === void 0 ? void 0 : datosg.f_rfc}`
+                            rfc: `${datosg === null || datosg === void 0 ? void 0 : datosg.f_rfc}`,
+                            num: `${cita.telefono}`
                         });
                     }
                     else {
@@ -606,14 +608,17 @@ const generarExcelCitas = (req, res) => __awaiter(void 0, void 0, void 0, functi
     var _a, _b, _c, _d, _e, _f;
     try {
         const { fecha, sedeId } = req.params;
-        const horarios = yield horarios_citas_1.default.findAll({
+        // const horarios = await HorarioCita.findAll({
+        //   order: [["id", "ASC"]],
+        //   raw: true
+        // });
+        const horarios = yield horarios_issemym_1.default.findAll({
             order: [["id", "ASC"]],
             raw: true
         });
-        const citas = yield citas_1.default.findAll({
+        const citas = yield citas_issemym_1.default.findAll({
             where: {
                 fecha_cita: { [sequelize_1.Op.eq]: fecha },
-                sede_id: sedeId
             },
             include: [
                 {
@@ -665,7 +670,8 @@ const generarExcelCitas = (req, res) => __awaiter(void 0, void 0, void 0, functi
         // Dejar una fila vacía
         sheet.addRow([]);
         // Encabezados
-        sheet.addRow(["Horario", "Nombre", "Dependencia", "Direccion", "Departamento", "Correo", "Teléfono"]);
+        // sheet.addRow(["Horario", "Nombre", "Dependencia", "Direccion", "Departamento", "Correo", "Teléfono"]);
+        sheet.addRow(["Horario", "Nombre", "Correo", "Teléfono"]);
         const headerRow = sheet.getRow(3); // Fila 3 porque hay título y fila vacía
         headerRow.font = { bold: true };
         headerRow.alignment = { horizontal: "center" };
