@@ -300,7 +300,6 @@ const getcitasFecha = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             order: [["id", "ASC"]],
             raw: true
         });
-        console.log('horarios   ', horarios);
         const citas = yield citas_issemym_1.default.findAll({
             where: Object.assign({ fecha_cita: { [sequelize_1.Op.eq]: fecha } }, sedeFilter),
             include: [

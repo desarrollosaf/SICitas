@@ -54,10 +54,10 @@
         <button type="button" class="btn-close" (click)="modal.close('by: close icon')" aria-label="Close"></button>
     </div>
     <div class="modal-body w-100">
-        <div class="mb-3">
-            <strong>Citas del día: {{ fechaFormateadaM }}</strong><br><br>
+        <!-- <div class="mb-3"> -->
+            <!-- <strong>Citas del día: {{ fechaFormateadaM }}</strong><br><br> -->
 
-            <div class="d-flex align-items-center flex-wrap gap-2 mb-2">
+            <!-- <div class="d-flex align-items-center flex-wrap gap-2 mb-2">
                 <strong style="min-width: 180px">Edificio San Rafel 108:</strong>
 
                 <button class="btn btn-sm btn-danger d-flex align-items-center" (click)="descargarPDF(1)"
@@ -83,7 +83,7 @@
                         <i class="bi bi-file-earmark-excel me-1"></i> Excel
                     </ng-template>
                 </button>
-            </div>
+            </div> -->
 
             <!-- <div class="d-flex align-items-center flex-wrap gap-2 mb-2">
                 <strong style="min-width: 180px">Salón Benito Juárez:</strong>
@@ -112,42 +112,44 @@
                     </ng-template>
                 </button>
             </div> -->
-        </div>
+        <!-- </div> -->
 
         <br>
-        <div *ngIf="data?.horarios as horarios" class="scrollable-modal-content">
-            <div *ngFor="let horario of horarios | keyvalue">
+        
+        <div *ngIf="data.horarios as eventos" class="scrollable-modal-content">
+            <strong>Citas {{eventos.evento}} del día: {{ fechaFormateadaM }}</strong><br><br>
+            <div *ngFor="let hora of eventos.horarios | keyvalue "> 
                 <div class="card mb-2">
                     <div class="card-header d-flex justify-content-between align-items-center"
-                        [ngClass]="{ 'bg-success text-white': horario.value.length > 0 }">
-                        <strong>{{ horario.key }}</strong>
-                        <span
-                            [ngClass]="{ 'text-white': horario.value.length > 0, 'text-muted': horario.value.length === 0 }"
+                        [ngClass]="{ 'bg-success text-white': hora.value.length> 0 }">
+                        <strong>{{ hora.value }}</strong>
+                        <!-- <span
+                            [ngClass]="{ 'text-white': hora.value.length > 0, 'text-muted': hora.value.length === 0 }"
                             class="text-muted">
-                            ({{ horario.value.length }} citas)
-                        </span>
-                        <button class="btn btn-sm btn-outline-primary" (click)="toggleHorario(horario.key)">
-                            {{ isVisible(horario.key) ? 'Ocultar' : 'Ver' }}
+                            ({{ hora.value.length }} citas)
+                        </span> -->
+                        <button class="btn btn-sm btn-outline-primary" (click)="toggleHorario(hora.key)">
+                            {{ isVisible(hora.key) ? 'Ocultar' : 'Ver' }}
                         </button>
                     </div>
 
-                    <div class="card-body" *ngIf="isVisible(horario.key)">
-                        <div *ngIf="horario.value.length > 0; else sinCitas">
-                            <div *ngFor="let cita of horario.value" class="border rounded p-2 mb-2">
+                    <div class="card-body" *ngIf="isVisible(hora.key)">
+                        <div *ngIf="hora.value.length > 0; else sinCitas">
+                            <!-- <div *ngFor="let cita of horario.value" class="border rounded p-2 mb-2">
                                 <p><strong>Nombre:</strong> {{ cita.datos_user.nombre_completo }}</p>
                                 <p><strong>Contacto:</strong> {{ cita.correo }} | {{ cita.telefono }}</p>
                                 <p><strong>Sede:</strong> {{ cita.Sede.sede }}</p>
-                            </div>
+                            </div> -->
+                            <!-- <p><strong>Sede:</strong>g</p> -->
                         </div>
                         <ng-template #sinCitas>
                             <p class="text-muted">Sin datos</p>
                         </ng-template>
                     </div>
                 </div>
-            </div>
-        </div>
-
-
+             </div>
+         </div>
+    <!-- </div> -->
     </div>
     <div class="modal-footer">
         <button type="button" id="focus-target" class="btn btn-secondary"

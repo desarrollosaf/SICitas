@@ -1,5 +1,6 @@
 import { Model, DataTypes, CreationOptional } from 'sequelize';
 import sequelize from '../database/cuestionariosConnection';
+import citasIssemym from './citas_issemym';
 
 class HorarioIssemym extends Model {
   declare id: CreationOptional<number>;
@@ -34,4 +35,5 @@ HorarioIssemym.init(
   }
 );
 
+HorarioIssemym.hasOne(citasIssemym, { foreignKey: "horario_id", as: "m_citaI" });
 export default HorarioIssemym;

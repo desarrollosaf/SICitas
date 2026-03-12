@@ -274,11 +274,11 @@ export class ReportesComponent {
 
   this._citasService.getCitasFecha(this.fechaFormat, this.rfcUser).subscribe({
     next: (response: any) => {
-      console.log('horarios citas:', response);
+      // console.log('aqui llegaaa', response.horarios[0])
       this.data = {
-        horarios: response.horarios
+        horarios: response.horarios[0]
       };
-      // console.log(this.data)
+      // 
 
     },
     error: (e: HttpErrorResponse) => {
@@ -288,7 +288,7 @@ export class ReportesComponent {
     }
   });
 
-  this.abrirModal(1);
+  // this.abrirModal(1);
 }
 
 

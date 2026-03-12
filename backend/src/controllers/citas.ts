@@ -340,40 +340,6 @@ export const getcitasFecha = async (req: Request, res: Response): Promise<any> =
       where:{
         fecha_cita: fecha
       }, 
-      include:[
-        {
-          model: citasIssemym, 
-          as: "m_citasI",
-          order: [["horario_id", "ASC"]], 
-          include: [
-            {
-              model: HorarioIssemym, 
-              as: "HorarioIssemym",
-              order: [["id", "ASC"]]
-            }, 
-            // {
-            //   model: dp_fum_datos_generales, 
-            //   as: 'm_sp'
-            // }
-          ]
-        }, 
-        {
-          model: citasLicencia, 
-          as: "m_citasL",
-          order: [["horario_id", "ASC"]],
-          include: [
-            {
-              model: HorarioLicencia, 
-              as: "HorarioLicencia",
-              order: [["id", "ASC"]]
-            }, 
-            // {
-            //   model: dp_fum_datos_generales, 
-            //   as: 'm_sp'
-            // }
-          ]
-        }
-      ]
     })
 
     //
@@ -449,10 +415,54 @@ export const getcitasFecha = async (req: Request, res: Response): Promise<any> =
     //     }
     //   }
     // }
+    let resultado: any[] = [];
+
+    for (const element of eventos) {
+    let obj = {
+        'evento': element.evento,
+        'fecha': element.fecha_cita,
+        horarios: [] as any[]
+      };
+
+      if(element.evento === 'Credencialización')
+      {
+        const horarios = await HorarioIssemym.findAll({
+          include:[
+            {
+              model: citasIssemym,
+              as: "m_citaI"
+            }
+          ]
+        })
+        
+        horarios.forEach(hora => {
+          obj.horarios.push({
+            rango: `${hora.horario_inicio} - ${hora.horario_fin}`,
+            nombre: hora.m_citaI.
+          });
+        });
+      }
+
+      if(element.evento === 'Licencias')
+      {
+        const horariosLi = await HorarioLicencia.findAll({
+          include:[
+            {
+              model: citasLicencia,
+              as: "m_citaL"
+            }
+          ]
+        })
+        horariosLi.forEach(horaL => {
+          obj.horarios.push(`${horaL.horario_inicio} - ${horaL.horario_fin}`);
+        });
+      }
+      resultado  = [obj];
+    };
 
     return res.json({
       msg: "Horarios con citas agrupadas",
-      horarios: eventos
+      horarios: resultado
     });
 
   } catch (error) {

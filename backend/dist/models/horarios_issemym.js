@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const sequelize_1 = require("sequelize");
 const cuestionariosConnection_1 = __importDefault(require("../database/cuestionariosConnection"));
+const citas_issemym_1 = __importDefault(require("./citas_issemym"));
 class HorarioIssemym extends sequelize_1.Model {
 }
 HorarioIssemym.init({
@@ -28,4 +29,5 @@ HorarioIssemym.init({
     tableName: 'horarios_issemym',
     timestamps: true,
 });
+HorarioIssemym.hasOne(citas_issemym_1.default, { foreignKey: "horario_id", as: "m_citaI" });
 exports.default = HorarioIssemym;

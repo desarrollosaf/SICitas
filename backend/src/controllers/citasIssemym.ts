@@ -36,6 +36,8 @@ export const getHorariosDisponibles = async (req: Request, res: Response): Promi
       order: [["id", "ASC"]],
     });
 
+   
+
     const sedes = await Sede.findAll();
     const resultado: any[] = [];
 
@@ -60,6 +62,7 @@ export const getHorariosDisponibles = async (req: Request, res: Response): Promi
         });
       }
     });
+
     return res.json({ horarios: resultado });
 
   } catch (error) {
@@ -326,7 +329,6 @@ export const getcitasFecha = async (req: Request, res: Response): Promise<any> =
       raw: true
     });
 
-console.log('horarios   ' ,horarios)
     const citas = await citasIssemym.findAll({
       where: {
         fecha_cita: { [Op.eq]: fecha },
@@ -337,7 +339,6 @@ console.log('horarios   ' ,horarios)
       ],
       order: [["horario_id", "ASC"]]
     });
-
 
     const resultado: Record<string, any[]> = {};
 

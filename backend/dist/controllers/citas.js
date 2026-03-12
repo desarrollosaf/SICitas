@@ -306,40 +306,6 @@ const getcitasFecha = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             where: {
                 fecha_cita: fecha
             },
-            include: [
-                {
-                    model: citas_issemym_1.default,
-                    as: "m_citasI",
-                    order: [["horario_id", "ASC"]],
-                    include: [
-                        {
-                            model: horarios_issemym_1.default,
-                            as: "HorarioIssemym",
-                            order: [["id", "ASC"]]
-                        },
-                        // {
-                        //   model: dp_fum_datos_generales, 
-                        //   as: 'm_sp'
-                        // }
-                    ]
-                },
-                {
-                    model: citas_licencias_1.default,
-                    as: "m_citasL",
-                    order: [["horario_id", "ASC"]],
-                    include: [
-                        {
-                            model: horarios_licencias_1.default,
-                            as: "HorarioLicencia",
-                            order: [["id", "ASC"]]
-                        },
-                        // {
-                        //   model: dp_fum_datos_generales, 
-                        //   as: 'm_sp'
-                        // }
-                    ]
-                }
-            ]
         });
         //
         // const horarios = await HorarioCita.findAll({
@@ -399,9 +365,48 @@ const getcitasFecha = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         //     }
         //   }
         // }
+        let resultado = [];
+        for (const element of eventos) {
+            let obj = {
+                'evento': element.evento,
+                'fecha': element.fecha_cita,
+                horarios: []
+            };
+            if (element.evento === 'Credencialización') {
+                const horarios = yield horarios_issemym_1.default.findAll({
+                    include: [
+                        {
+                            model: citas_issemym_1.default,
+                            as: "m_citaI"
+                        }
+                    ]
+                });
+                horarios.forEach(hora => {
+                    obj.horarios.push({
+                        rango: `${hora.horario_inicio} - ${hora.horario_fin}`,
+                        nombre: hora.m_citaI.
+                    });
+                });
+            }
+            if (element.evento === 'Licencias') {
+                const horariosLi = yield horarios_licencias_1.default.findAll({
+                    include: [
+                        {
+                            model: citas_licencias_1.default,
+                            as: "m_citaL"
+                        }
+                    ]
+                });
+                horariosLi.forEach(horaL => {
+                    obj.horarios.push(`${horaL.horario_inicio} - ${horaL.horario_fin}`);
+                });
+            }
+            resultado = [obj];
+        }
+        ;
         return res.json({
             msg: "Horarios con citas agrupadas",
-            horarios: eventos
+            horarios: resultado
         });
     }
     catch (error) {
