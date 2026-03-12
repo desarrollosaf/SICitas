@@ -373,18 +373,11 @@ const getcitasFecha = (req, res) => __awaiter(void 0, void 0, void 0, function* 
                 horarios: []
             };
             if (element.evento === 'Credencialización') {
-                const horarios = yield horarios_issemym_1.default.findAll({
-                    include: [
-                        {
-                            model: citas_issemym_1.default,
-                            as: "m_citaI"
-                        }
-                    ]
-                });
+                const horarios = yield horarios_issemym_1.default.findAll();
                 horarios.forEach(hora => {
                     obj.horarios.push({
                         rango: `${hora.horario_inicio} - ${hora.horario_fin}`,
-                        nombre: hora.m_citaI.
+                        // nombre: hora.m_citaI.
                     });
                 });
             }

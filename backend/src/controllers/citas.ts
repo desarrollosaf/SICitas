@@ -426,19 +426,12 @@ export const getcitasFecha = async (req: Request, res: Response): Promise<any> =
 
       if(element.evento === 'Credencialización')
       {
-        const horarios = await HorarioIssemym.findAll({
-          include:[
-            {
-              model: citasIssemym,
-              as: "m_citaI"
-            }
-          ]
-        })
+        const horarios = await HorarioIssemym.findAll()
         
         horarios.forEach(hora => {
           obj.horarios.push({
             rango: `${hora.horario_inicio} - ${hora.horario_fin}`,
-            nombre: hora.m_citaI.
+            // nombre: hora.m_citaI.
           });
         });
       }
