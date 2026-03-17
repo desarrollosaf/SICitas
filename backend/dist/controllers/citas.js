@@ -471,25 +471,55 @@ const generarPDFCitas = (req, res) => __awaiter(void 0, void 0, void 0, function
     var _a, _b;
     try {
         const { fecha, sedeId } = req.params;
-        const horarios = yield horarios_citas_1.default.findAll({
-            order: [["id", "ASC"]],
-            raw: true
-        });
-        const citas = yield citas_1.default.findAll({
+        let citas;
+        let horarios;
+        const eventos = yield eventos_1.default.findOne({
             where: {
-                fecha_cita: { [sequelize_1.Op.eq]: fecha },
-                sede_id: sedeId
-            },
-            include: [
-                {
-                    model: sedes_1.default,
-                    as: "Sede",
-                    attributes: ["sede"]
-                }
-            ],
-            order: [["horario_id", "ASC"]],
-            raw: false
+                fecha_cita: fecha
+            }
         });
+        if ((eventos === null || eventos === void 0 ? void 0 : eventos.evento) === 'Credencialización') {
+            horarios = yield horarios_issemym_1.default.findAll({
+                order: [["id", "ASC"]],
+                raw: true
+            });
+            citas = (yield citas_issemym_1.default.findAll({
+                where: {
+                    fecha_cita: { [sequelize_1.Op.eq]: fecha },
+                    sede_id: sedeId
+                },
+                include: [
+                    {
+                        model: sedes_1.default,
+                        as: "Sede",
+                        attributes: ["sede"]
+                    }
+                ],
+                order: [["horario_id", "ASC"]],
+                raw: false
+            }));
+        }
+        else if ((eventos === null || eventos === void 0 ? void 0 : eventos.evento) === 'Licencias') {
+            horarios = yield horarios_licencias_1.default.findAll({
+                order: [["id", "ASC"]],
+                raw: true
+            });
+            citas = (yield citas_licencias_1.default.findAll({
+                where: {
+                    fecha_cita: { [sequelize_1.Op.eq]: fecha },
+                    sede_id: sedeId
+                },
+                include: [
+                    {
+                        model: sedes_1.default,
+                        as: "Sede",
+                        attributes: ["sede"]
+                    }
+                ],
+                order: [["horario_id", "ASC"]],
+                raw: false
+            }));
+        }
         // Obtener nombre de sede (o valor por defecto)
         const sedeNombre = ((_b = (_a = citas[0]) === null || _a === void 0 ? void 0 : _a.Sede) === null || _b === void 0 ? void 0 : _b.sede) || "SIN SEDE";
         // Obtener datos extra (nombre completo de usuario)
@@ -507,7 +537,6 @@ const generarPDFCitas = (req, res) => __awaiter(void 0, void 0, void 0, function
                 }
             }
         }
-        console.log(citas);
         function formatearFecha(fechaStr) {
             const [año, mes, dia] = fechaStr.split("-").map(Number);
             const fechaObj = new Date(año, mes - 1, dia); // mes-1 porque en JS enero = 0

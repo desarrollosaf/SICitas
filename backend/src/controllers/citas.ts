@@ -555,28 +555,58 @@ export async function generarPDFBuffer(data: PDFData): Promise<Buffer> {
 export const generarPDFCitas = async (req: Request, res: Response) => {
   try {
     const { fecha, sedeId } = req.params;
-
-    const horarios = await HorarioCita.findAll({
-      order: [["id", "ASC"]],
-      raw: true
-    });
-
-    const citas = await Cita.findAll({
+    let citas: any;
+    let horarios: any;
+    const eventos = await agendaEventos.findOne({
       where: {
-        fecha_cita: { [Op.eq]: fecha },
-        sede_id: sedeId
-      },
-      include: [
-        {
-          model: Sede,
-          as: "Sede",
-          attributes: ["sede"]
-        }
-      ],
-      order: [["horario_id", "ASC"]],
-      raw: false
-    }) as (Cita & { Sede?: { sede: string }, usuario?: any })[];
+        fecha_cita: fecha
+      }
+    })
 
+    if(eventos?.evento === 'Credencialización'){
+      horarios = await HorarioIssemym.findAll({
+        order: [["id", "ASC"]],
+        raw: true
+      });
+
+
+      citas = await citasIssemym.findAll({
+        where: {
+          fecha_cita: { [Op.eq]: fecha },
+          sede_id: sedeId
+        },
+        include: [
+          {
+            model: Sede,
+            as: "Sede",
+            attributes: ["sede"]
+          }
+        ],
+        order: [["horario_id", "ASC"]],
+        raw: false
+      }) as (Cita & { Sede?: { sede: string }, usuario?: any })[];
+    }else if(eventos?.evento === 'Licencias'){
+      horarios = await HorarioLicencia.findAll({
+        order: [["id", "ASC"]],
+        raw: true
+      });
+      citas = await citasLicencia.findAll({
+        where: {
+          fecha_cita: { [Op.eq]: fecha },
+          sede_id: sedeId
+        },
+        include: [
+          {
+            model: Sede,
+            as: "Sede",
+            attributes: ["sede"]
+          }
+        ],
+        order: [["horario_id", "ASC"]],
+        raw: false
+      }) as (Cita & { Sede?: { sede: string }, usuario?: any })[];
+    }
+    
     // Obtener nombre de sede (o valor por defecto)
     const sedeNombre = citas[0]?.Sede?.sede || "SIN SEDE";
 
@@ -595,7 +625,7 @@ export const generarPDFCitas = async (req: Request, res: Response) => {
         }
       }
     }
-    console.log(citas)
+ 
     function formatearFecha(fechaStr: string) {
       const [año, mes, dia] = fechaStr.split("-").map(Number);
       const fechaObj = new Date(año, mes - 1, dia); // mes-1 porque en JS enero = 0
