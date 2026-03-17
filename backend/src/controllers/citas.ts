@@ -343,17 +343,19 @@ export const getcitasFecha = async (req: Request, res: Response): Promise<any> =
     })
 
     let resultado: any[] = [];
-
+    let horarios = [] as any[];  
     for (const element of eventos) {
     let obj = {
         'evento': element.evento,
         'fecha': element.fecha_cita,
-        horarios: [] as any[]
+        horarios: horarios
       };
 
       if(element.evento === 'Credencialización')
       {
-        const horarios = await HorarioIssemym.findAll()
+        const horarios = await HorarioIssemym.findAll({
+          order: [['horario_inicio', 'ASC']]
+        })
         
         for (const hora of horarios) {
           const cita = await citasIssemym.findOne({
@@ -364,23 +366,25 @@ export const getcitasFecha = async (req: Request, res: Response): Promise<any> =
           })
 
           if(cita){
-            const datosg = await dp_datospersonales.findOne({
+            const datosg = await dp_fum_datos_generales.findOne({
               where:{
                 f_rfc: cita?.rfc
               }
             })
+        
             obj.horarios.push({
                 rango: `${hora.horario_inicio} - ${hora.horario_fin}`,
                 nombre: `${datosg?.f_nombre} ${datosg?.f_primer_apellido} ${datosg?.f_segundo_apellido}`,
                 rfc: `${datosg?.f_rfc}`,
                 num: `${cita.telefono}`
               });
+            
           }else{
-              obj.horarios.push({ 
-                rango: `${hora.horario_inicio} - ${hora.horario_fin}`,
-                nombre: null,
-                rfc: null
-              });
+            obj.horarios.push({ 
+              rango: `${hora.horario_inicio} - ${hora.horario_fin}`,
+              nombre: null,
+              rfc: null
+            });
           }
         }
       }
@@ -418,7 +422,7 @@ export const getcitasFecha = async (req: Request, res: Response): Promise<any> =
         }
       };
     }
-    resultado  = [obj];
+    resultado = [obj];
   };
 
     return res.json({

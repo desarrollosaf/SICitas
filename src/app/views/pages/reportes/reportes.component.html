@@ -141,27 +141,22 @@
 
         <div *ngIf="data.horarios as eventos" class="scrollable-modal-content">
             <strong>Citas {{eventos.evento}} del día: {{ fechaFormateadaM }}</strong><br><br>
-            <div *ngFor="let hora of eventos.horarios | keyvalue  "> 
+            <div *ngFor="let hora of eventos.horarios"> 
                 <div class="card mb-2">
                     <div class="card-header d-flex justify-content-between align-items-center"
-                        [ngClass]="{ 'bg-success text-white': hora.value.rfc != 'undefined' }">
-                    <strong>{{ hora.value.rango }}</strong>
-                    <!-- <span
-                        [ngClass]="{ 'text-white': hora.value.length > 0, 'text-muted': hora.value.length === 0 }"
-                        class="text-muted">
-                        ({{ hora.value.length }} citas)
-                    </span> -->
-                    <button class="btn btn-sm btn-outline-primary" (click)="toggleHorario(hora.key)">
-                        {{ isVisible(hora.key) ? 'Ocultar' : 'Ver' }}
+                        [ngClass]="{ 'bg-success text-white': hora.rfc !== null }">
+                    <strong>{{ hora.rango }}</strong>
+                    <button class="btn btn-sm btn-outline-primary" (click)="toggleHorario(hora.rango)">
+                        {{ isVisible(hora.rango) ? 'Ocultar' : 'Ver' }}
                     </button>
                 </div>
 
-                <div class="card-body" *ngIf="isVisible(hora.key)">
-                    <div *ngIf="hora.value.rfc != 'undefined' ; else sinCitas">
+                <div class="card-body" *ngIf="isVisible(hora.rango)">
+                    <div *ngIf="hora.rfc !== null ; else sinCitas">
                         <div class="border rounded p-2 mb-2">
-                            <p><strong>Nombre:</strong> {{ hora.value.nombre}}</p>
-                            <p><strong>RFC:</strong> {{ hora.value.rfc }} </p>
-                            <p><strong>Contacto:</strong> {{ hora.value.num }} </p>
+                            <p><strong>Nombre:</strong> {{ hora.nombre}}</p>
+                            <p><strong>RFC:</strong> {{ hora.rfc }} </p>
+                            <p><strong>Contacto:</strong> {{ hora.num }} </p>
                         </div>
                     </div>
                     <ng-template #sinCitas>

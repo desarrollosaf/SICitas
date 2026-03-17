@@ -308,14 +308,17 @@ const getcitasFecha = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             },
         });
         let resultado = [];
+        let horarios = [];
         for (const element of eventos) {
             let obj = {
                 'evento': element.evento,
                 'fecha': element.fecha_cita,
-                horarios: []
+                horarios: horarios
             };
             if (element.evento === 'Credencialización') {
-                const horarios = yield horarios_issemym_1.default.findAll();
+                const horarios = yield horarios_issemym_1.default.findAll({
+                    order: [['horario_inicio', 'ASC']]
+                });
                 for (const hora of horarios) {
                     const cita = yield citas_issemym_1.default.findOne({
                         where: {
@@ -324,7 +327,7 @@ const getcitasFecha = (req, res) => __awaiter(void 0, void 0, void 0, function* 
                         }
                     });
                     if (cita) {
-                        const datosg = yield dp_datospersonales_1.dp_datospersonales.findOne({
+                        const datosg = yield dp_fum_datos_generales_1.dp_fum_datos_generales.findOne({
                             where: {
                                 f_rfc: cita === null || cita === void 0 ? void 0 : cita.rfc
                             }
