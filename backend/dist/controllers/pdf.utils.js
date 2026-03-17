@@ -18,7 +18,7 @@ const path_1 = __importDefault(require("path"));
 function generarReporteCitasPDF(fechap, sede, horarios, citas) {
     return __awaiter(this, void 0, void 0, function* () {
         return new Promise((resolve, reject) => {
-            var _a, _b, _c;
+            var _a, _b, _c, _d;
             const doc = new pdfkit_1.default({ size: "A4", margin: 50 });
             const chunks = [];
             doc.on("data", (chunk) => chunks.push(chunk));
@@ -63,11 +63,13 @@ function generarReporteCitasPDF(fechap, sede, horarios, citas) {
                     citasTexto = "— Sin citas —";
                 }
                 else {
+                    console.log('citas', citasHorario);
                     for (const cita of citasHorario) {
                         const nombre = ((_a = cita.datos_user) === null || _a === void 0 ? void 0 : _a.nombre_completo) || "Nombre desconocido";
-                        const correo = (_b = cita.correo) !== null && _b !== void 0 ? _b : "Sin correo";
-                        const telefono = (_c = cita.telefono) !== null && _c !== void 0 ? _c : "Sin teléfono";
-                        citasTexto += `• ${nombre} | Correo: ${correo} | Tel: ${telefono}\n`;
+                        const curp = ((_b = cita.datos_user) === null || _b === void 0 ? void 0 : _b.f_curp) || "Sin curp";
+                        const correo = (_c = cita.correo) !== null && _c !== void 0 ? _c : "Sin correo";
+                        const telefono = (_d = cita.telefono) !== null && _d !== void 0 ? _d : "Sin teléfono";
+                        citasTexto += `• ${nombre} |CURP: ${curp} | Correo: ${correo} | Tel: ${telefono}\n`;
                     }
                 }
                 // Calcular altura de la fila ajustada

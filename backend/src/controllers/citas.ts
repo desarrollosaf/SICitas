@@ -616,7 +616,7 @@ export const generarPDFCitas = async (req: Request, res: Response) => {
         const datos = await dp_fum_datos_generales.findOne({
           where: { f_rfc: cita.rfc },
           attributes: [
-            [Sequelize.literal(`CONCAT(f_nombre, ' ', f_primer_apellido, ' ', f_segundo_apellido)`), 'nombre_completo']
+            [Sequelize.literal(`CONCAT(f_nombre, ' ', f_primer_apellido, ' ', f_segundo_apellido)`), 'nombre_completo'], 'f_curp'
           ],
           raw: true
         });

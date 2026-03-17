@@ -62,11 +62,13 @@ export async function generarReporteCitasPDF(
       if (citasHorario.length === 0) {
         citasTexto = "— Sin citas —";
       } else {
+        console.log('citas', citasHorario);
         for (const cita of citasHorario) {
           const nombre = cita.datos_user?.nombre_completo || "Nombre desconocido";
+          const curp = cita.datos_user?.f_curp || "Sin curp";
           const correo = cita.correo ?? "Sin correo";
           const telefono = cita.telefono ?? "Sin teléfono";
-          citasTexto += `• ${nombre} | Correo: ${correo} | Tel: ${telefono}\n`;
+          citasTexto += `• ${nombre} |CURP: ${curp} | Correo: ${correo} | Tel: ${telefono}\n`;
         }
       }
 

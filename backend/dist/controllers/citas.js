@@ -528,7 +528,7 @@ const generarPDFCitas = (req, res) => __awaiter(void 0, void 0, void 0, function
                 const datos = yield dp_fum_datos_generales_1.dp_fum_datos_generales.findOne({
                     where: { f_rfc: cita.rfc },
                     attributes: [
-                        [sequelize_2.Sequelize.literal(`CONCAT(f_nombre, ' ', f_primer_apellido, ' ', f_segundo_apellido)`), 'nombre_completo']
+                        [sequelize_2.Sequelize.literal(`CONCAT(f_nombre, ' ', f_primer_apellido, ' ', f_segundo_apellido)`), 'nombre_completo'], 'f_curp'
                     ],
                     raw: true
                 });
