@@ -277,8 +277,6 @@ export class ReportesComponent {
       this.data = {
         horarios: response.horarios[0]
       };
-      // 
-
     },
     error: (e: HttpErrorResponse) => {
       const msg = e.error?.msg || 'Error desconocido';
@@ -289,15 +287,10 @@ export class ReportesComponent {
 
   this.abrirModal(1);
 }
-
-
   verEnviarLink(row: any) {
     this.selectedRow = row;
     this.viewState = 'enviar-link';
   }
-
-
-
 
   toggleHorario(horario: string): void {
     this.visibleHorarios[horario] = !this.visibleHorarios[horario];

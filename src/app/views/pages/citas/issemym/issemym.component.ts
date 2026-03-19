@@ -52,7 +52,7 @@ export class IssemymComponent {
   modalRef: NgbModalRef;
   viewState: 'lista' | 'enviar-link' | 'atender' = 'lista';
   mostrarCalendario = false;
-  highlightedDates: string[] = ['2026-03-24', '2026-03-25'];
+  highlightedDates: string[] = ['2026-04-13', '2026-04-14'];
   horarios: {
     horario_id: number;
     horario_texto: string;
@@ -109,7 +109,7 @@ export class IssemymComponent {
   calendarOptions: CalendarOptions = {
     plugins: [dayGridPlugin, interactionPlugin],
     initialView: 'dayGridMonth',
-    initialDate: '2026-03-24',
+    initialDate: '2026-04-13',
     locale: 'es',
     buttonText: {
       today: 'Hoy',
@@ -123,8 +123,8 @@ export class IssemymComponent {
     weekends: true,
     dayMaxEvents: true,
     validRange: {
-      start: '2026-03-24',
-      end: '2026-03-26'
+      start: '2026-04-13',
+      end: '2026-04-15'
     },
 
     dateClick: (info) => {
@@ -139,7 +139,7 @@ export class IssemymComponent {
         });
         this._citasService.getCitas(clickedDate).subscribe({
           next: (response: any) => {
-            const sedeFija = this.fechaCitaEnvio == '2026-03-24' ? 3 : (this.fechaCitaEnvio == '2026-03-25' ? 3 : null);
+            const sedeFija = this.fechaCitaEnvio == '2026-04-13' ? 3 : (this.fechaCitaEnvio == '2026-04-14' ? 3 : null);
 
             if (sedeFija) {
               this.horarios = (response.horarios || []).filter((horario: any) =>
@@ -198,7 +198,6 @@ export class IssemymComponent {
   };
 
   onHoraChange() {
-    console.log('AQUIII HORARIO')
     const horario = this.horarios.find(h => h.horario_id === this.horaSeleccionada2);
 
     if (this.sedeSeleccionada) {
@@ -377,7 +376,7 @@ export class IssemymComponent {
     } else if (this.fechaCitaEnvio === '2025-11-05') {
       this.sedeSeleccionada = 2;
     } else {
-      this.sedeSeleccionada = null;
+      this.sedeSeleccionada = 3;
     }
 
     if (this.sedeSeleccionada) {
