@@ -123,8 +123,8 @@ export class IssemymComponent {
     weekends: true,
     dayMaxEvents: true,
     validRange: {
-      start: '2026-04-13',
-      end: '2026-04-15'
+      start: '2026-04-15',
+      end: '2026-04-17'
     },
 
     dateClick: (info) => {
@@ -139,7 +139,7 @@ export class IssemymComponent {
         });
         this._citasService.getCitas(clickedDate).subscribe({
           next: (response: any) => {
-            const sedeFija = this.fechaCitaEnvio == '2026-04-13' ? 3 : (this.fechaCitaEnvio == '2026-04-14' ? 3 : null);
+            const sedeFija = this.fechaCitaEnvio == '2026-04-15' ? 3 : (this.fechaCitaEnvio == '2026-04-16' ? 3 : null);
 
             if (sedeFija) {
               this.horarios = (response.horarios || []).filter((horario: any) =>
