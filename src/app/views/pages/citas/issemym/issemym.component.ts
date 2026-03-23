@@ -52,7 +52,7 @@ export class IssemymComponent {
   modalRef: NgbModalRef;
   viewState: 'lista' | 'enviar-link' | 'atender' = 'lista';
   mostrarCalendario = false;
-  highlightedDates: string[] = ['2026-04-13', '2026-04-14'];
+  highlightedDates: string[] = ['2026-04-15', '2026-04-16'];
   horarios: {
     horario_id: number;
     horario_texto: string;
@@ -109,7 +109,7 @@ export class IssemymComponent {
   calendarOptions: CalendarOptions = {
     plugins: [dayGridPlugin, interactionPlugin],
     initialView: 'dayGridMonth',
-    initialDate: '2026-04-13',
+    initialDate: '2026-04-15',
     locale: 'es',
     buttonText: {
       today: 'Hoy',
