@@ -12,9 +12,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.generarPdfAcuse = exports.savecita = exports.getHorariosDisponibles = exports.getCita = void 0;
+exports.generarPdfAcuse = exports.savecita = exports.getCita = void 0;
 exports.generarPDFBufferSalud = generarPDFBufferSalud;
-const horarios_salud_1 = __importDefault(require("../models/horarios_salud"));
 const citas_salud_1 = __importDefault(require("../models/citas_salud"));
 const dp_fum_datos_generales_1 = require("../models/fun/dp_fum_datos_generales");
 const s_usuario_1 = __importDefault(require("../models/saf/s_usuario"));
@@ -27,14 +26,7 @@ const getCita = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         // Traemos todas las citas asociadas al RFC
         const citasser = yield citas_salud_1.default.findAll({
             where: { rfc: id },
-            include: [
-                {
-                    model: horarios_salud_1.default,
-                    as: "HorarioSalud",
-                    attributes: ["horario_inicio", "horario_fin"]
-                }
-            ],
-            order: [["fecha_cita", "ASC"], ["horario_id", "ASC"]]
+            order: [["fecha_cita", "ASC"]]
         });
         // Convertimos el resultado para incluir el rango horario
         const citasConHorario = citasser.map(cita => {
@@ -47,10 +39,6 @@ const getCita = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 telefono: cita.telefono,
                 folio: cita.folio,
                 path: cita.path,
-                horario_id: cita.horario_id,
-                horario: citaAny.HorarioIssemym
-                    ? `${citaAny.HorarioIssemym.horario_inicio} - ${citaAny.HorarioIssemym.horario_fin}`
-                    : "Horario desconocido"
             };
         });
         const usuario = yield s_usuario_1.default.findAll({
@@ -72,31 +60,6 @@ const getCita = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     }
 });
 exports.getCita = getCita;
-const getHorariosDisponibles = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const { fecha } = req.params;
-        const limite = 1;
-        const citas = yield citas_salud_1.default.findAll({
-            where: { fecha_cita: fecha },
-        });
-        const horariosDisponibles = yield horarios_salud_1.default.findAll({
-            order: [["id", "ASC"]],
-        });
-        const resultado = [];
-        horariosDisponibles.forEach(h => {
-            resultado.push({
-                horario_id: h.id,
-                horario_texto: `${h.horario_inicio} - ${h.horario_fin}`
-            });
-        });
-        return res.json({ horarios: resultado });
-    }
-    catch (error) {
-        console.error(error);
-        return res.status(500).json({ error: "Error al obtener horarios disponibles" });
-    }
-});
-exports.getHorariosDisponibles = getHorariosDisponibles;
 const savecita = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { body } = req;
@@ -105,9 +68,9 @@ const savecita = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             where: { rfc: body.rfc }
         });
         if (citaExistente) {
-            return res.status(400).json({
-                status: 400,
-                msg: "Ya existe una cita registrada con ese RFC"
+            return res.json({
+                status: 201,
+                msg: "Ya existe una cita registrada con ese RFC",
             });
         }
         const cantidadCitas = yield citas_salud_1.default.count({
@@ -115,10 +78,10 @@ const savecita = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 fecha_cita: body.fecha_cita
             }
         });
-        if (cantidadCitas <= limite) {
-            return res.status(400).json({
-                status: 400,
-                msg: "La fecha seleccionada ya no tiene lugares disponibles."
+        if (cantidadCitas >= limite) {
+            return res.json({
+                status: 202,
+                msg: "La fecha seleccionada ya no tiene lugares disponibles.",
             });
         }
         const folio = Math.floor(10000000 + Math.random() * 90000000);
@@ -165,19 +128,11 @@ const savecita = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 });
 exports.savecita = savecita;
 const generarPdfAcuse = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b;
     try {
         const { rfc } = req.params;
         const cita = yield citas_salud_1.default.findOne({
             where: { rfc: rfc },
-            include: [
-                {
-                    model: horarios_salud_1.default,
-                    as: "HorarioSalud",
-                    attributes: ["horario_inicio", "horario_fin"]
-                }
-            ],
-            order: [["fecha_cita", "ASC"], ["horario_id", "ASC"]]
+            order: [["fecha_cita", "ASC"]]
         });
         const Validacion = yield dp_fum_datos_generales_1.dp_fum_datos_generales.findOne({
             where: { f_rfc: rfc },
@@ -206,7 +161,6 @@ const generarPdfAcuse = (req, res) => __awaiter(void 0, void 0, void 0, function
         if (!cita) {
             return res.status(404).json({ error: "No se encontró la cita" });
         }
-        const citaHora = ((_a = cita === null || cita === void 0 ? void 0 : cita.HorarioSalud) === null || _a === void 0 ? void 0 : _a.horario_inicio) + '-' + ((_b = cita === null || cita === void 0 ? void 0 : cita.HorarioSalud) === null || _b === void 0 ? void 0 : _b.horario_fin);
         const pdfBuffer = yield generarPDFBufferSalud({
             folio: cita.folio,
             nombreCompleto: nombreCompleto,
@@ -216,7 +170,6 @@ const generarPdfAcuse = (req, res) => __awaiter(void 0, void 0, void 0, function
             curp: curp1,
             fecha: cita.fecha_cita,
             telefono: cita.telefono,
-            horario: citaHora,
             citaId: cita.id
         });
         res.setHeader("Content-Type", "application/pdf");
@@ -281,8 +234,7 @@ function generarPDFBufferSalud(data) {
                 .text(`Servidor público: ${data.nombreCompleto} | Edad: ${data.edad} años`, { align: "left" })
                 .text(`CURP: ${data.curp}`, { align: "left" })
                 .text(`Correo electrónico: ${data.correo} | Teléfono: ${data.telefono}`, { align: "left" })
-                .text(`Ubicación: Av. Hidalgo #1012, Barrio San Benardino, Toluca, México.`, { align: "left" })
-                .text(`Horario: ${data.horario}`, { align: "left" });
+                .text(`Ubicación: Av. Hidalgo #1012, Barrio San Benardino, Toluca, México.`, { align: "left" });
             doc.moveDown();
             doc.fontSize(11).text("El sindicato del Poder Legislativo del Estado de México organiza la jornada de salud y prevención SUTEyM 2026.", { align: "justify" });
             doc.moveDown();

@@ -71,7 +71,6 @@
                     <div class="modal-body w-100">
                         <div class="p-2 text-white text-muted bg-light">
                             <strong>Agendar cita</strong>
-
                         </div>
                         <br>
                         <!-- Indicaciones -->
@@ -80,7 +79,7 @@
                               <div class="jornada-list">
                                 <li>Examen de laboratorio (glucosa, colesterol y triglicéridos);</li>
                                 <li> Somatometría (tomaa de peso y talla);</li>
-                                <li> Papanicolau;</li>
+                                <li> Papanicolaou;</li>
                                 <li> Exploración de mama;</li>
                                 <li> Antígeno prostático (unicamente para hombres mayores de 40 años);</li>
                                 <li> Medicina general;</li>
@@ -100,7 +99,6 @@
                                 <li> Ocho días despúes del último día de menstruación</li>
                             </div><br>
                             
-                           
                             <p>
                                 En caso de presentarse alguna duda, error o requerir asistencia relacionada con el acceso, comunícate 
                                 a las extensiones 5506 y 5516 del Departamento de Desarrollo y Actualización Tecnológica.
@@ -141,8 +139,6 @@
                             </div>
                         </div>
 
-
-
                         <button class="btn btn-primary mt-3" (click)="guardarSeleccion()"
                             [disabled]="!correoUsuario || !telefonoUsuario || !credencial || !ayuno || !aseo || enviandoRegistro === 1">
                             <ng-container *ngIf="enviandoRegistro === 1; else iconoGuardar">
@@ -154,8 +150,6 @@
                             </ng-template>
 
                         </button>
-
-
                     </div>
                     <div class="modal-footer">
                         <button type="button" id="focus-target" class="btn btn-secondary"
@@ -163,8 +157,6 @@
                     </div>
                 </ng-template>
             </div>
-
-
         </div>
     </div>
 </div>

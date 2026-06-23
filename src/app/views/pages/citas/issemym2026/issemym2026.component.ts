@@ -265,32 +265,22 @@ export class Issemym2026Component {
           });
           this.mostrarCalendario = true;
           this.modalRef.close();
-        }
-
-      },
-      error: (e: HttpErrorResponse) => {
-        this.enviandoRegistro = null;
-        if (e.status == 400) {
+        }else if (response.status == 201 || response.status == 202) {
           Swal.fire({
             position: 'center',
-            icon: 'error',
-            title: "¡Atención!",
-            text: "Ya tienes una cita activa",
+            icon: 'warning',
+            title: '¡Atención!',
+            text: response.msg,
             showConfirmButton: false,
             timer: 5000
           });
-          if (this.modalRef) {
-            this.modalRef.close('');
-          }
-        } else {
+        }
+      }, error: (e: HttpErrorResponse) => {
           const msg = e.error?.msg || 'Error desconocido';
           console.error('Error del servidor:', msg);
-        }
       }
     });
-
   }
-
 
 
   onEventClick(arg: any): void {

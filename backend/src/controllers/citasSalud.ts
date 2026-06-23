@@ -20,14 +20,7 @@ export const getCita = async (req: Request, res: Response): Promise<any> => {
     // Traemos todas las citas asociadas al RFC
     const citasser = await citasSalud.findAll({
       where: { rfc: id },
-      include: [
-        {
-          model: HorariosSalud,
-          as: "HorarioSalud",
-          attributes: ["horario_inicio", "horario_fin"]
-        }
-      ],
-      order: [["fecha_cita", "ASC"], ["horario_id", "ASC"]]
+      order: [["fecha_cita", "ASC"]]
     });
 
     // Convertimos el resultado para incluir el rango horario
@@ -41,10 +34,6 @@ export const getCita = async (req: Request, res: Response): Promise<any> => {
         telefono: cita.telefono,
         folio: cita.folio,
         path: cita.path,
-        horario_id: cita.horario_id,
-        horario: citaAny.HorarioIssemym
-          ? `${citaAny.HorarioIssemym.horario_inicio} - ${citaAny.HorarioIssemym.horario_fin}`
-          : "Horario desconocido"
       };
     });
 
@@ -68,53 +57,21 @@ export const getCita = async (req: Request, res: Response): Promise<any> => {
   }
 }
 
-export const getHorariosDisponibles = async (req: Request, res: Response): Promise<any> => {
-  try {
-    const { fecha } = req.params;
-    const limite = 1;
-
-    const citas = await citasSalud.findAll({
-      where: { fecha_cita: fecha },
-    });
-
-    const horariosDisponibles = await HorariosSalud.findAll({
-      order: [["id", "ASC"]],
-    });
-
-    const resultado: any[] = [];
-
-    horariosDisponibles.forEach(h => {
-
-        resultado.push({
-          horario_id: h.id,
-          horario_texto: `${h.horario_inicio} - ${h.horario_fin}`
-        })
-    });
-
-    return res.json({ horarios: resultado });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: "Error al obtener horarios disponibles" });
-  }
-};
-
-
 
 export const savecita = async (req: Request, res: Response): Promise<any> => {
   try {
     const { body } = req;
     const limite = 120;
 
-
     const citaExistente = await citasSalud.findOne({
       where: { rfc: body.rfc }
     });
 
     if (citaExistente) {
-      return res.status(400).json({
-        status: 400,
-        msg: "Ya existe una cita registrada con ese RFC"
-      });
+        return res.json({
+        status: 201,
+        msg: "Ya existe una cita registrada con ese RFC",
+        });
     }
 
     const cantidadCitas = await citasSalud.count({
@@ -123,13 +80,12 @@ export const savecita = async (req: Request, res: Response): Promise<any> => {
       }
     });
 
-    if (cantidadCitas <= limite) {
-      return res.status(400).json({
-        status: 400,
-        msg: "La fecha seleccionada ya no tiene lugares disponibles."
-      });
+    if (cantidadCitas >= limite) {
+        return res.json({
+        status: 202,
+        msg: "La fecha seleccionada ya no tiene lugares disponibles.",
+        });
     }
-
 
     const folio: number = Math.floor(10000000 + Math.random() * 90000000);
 
@@ -188,14 +144,7 @@ export const generarPdfAcuse = async (req: Request, res: Response) => {
 
     const cita = await citasSalud.findOne({
       where: { rfc: rfc },
-      include: [
-        {
-          model: HorariosSalud,
-          as: "HorarioSalud",
-          attributes: ["horario_inicio", "horario_fin"]
-        }
-      ],
-      order: [["fecha_cita", "ASC"], ["horario_id", "ASC"]]
+      order: [["fecha_cita", "ASC"]]
     });
 
     const Validacion = await dp_fum_datos_generales.findOne({
@@ -231,8 +180,6 @@ export const generarPdfAcuse = async (req: Request, res: Response) => {
       return res.status(404).json({ error: "No se encontró la cita" });
     }
 
-
-    const citaHora =  cita?.HorarioSalud?.horario_inicio + '-' + cita?.HorarioSalud?.horario_fin;
     const pdfBuffer = await generarPDFBufferSalud({
       folio: cita.folio,
       nombreCompleto: nombreCompleto,
@@ -242,7 +189,6 @@ export const generarPdfAcuse = async (req: Request, res: Response) => {
       curp: curp1,
       fecha: cita.fecha_cita,
       telefono: cita.telefono,
-      horario: citaHora,
       citaId: cita.id
     });
     res.setHeader("Content-Type", "application/pdf");
@@ -266,7 +212,6 @@ interface PDFData {
   curp: string;
   fecha: string;
   telefono: string;
-  horario: string;
   citaId: number; // <-- ID de la cita para actualizar
 }
 
@@ -328,8 +273,7 @@ export async function generarPDFBufferSalud(data: PDFData): Promise<Buffer> {
       .text(`Servidor público: ${data.nombreCompleto} | Edad: ${data.edad} años` , { align: "left" })
       .text(`CURP: ${data.curp}`, { align: "left" })
       .text(`Correo electrónico: ${data.correo} | Teléfono: ${data.telefono}`, { align: "left" })
-      .text(`Ubicación: Av. Hidalgo #1012, Barrio San Benardino, Toluca, México.`, { align: "left" })
-      .text(`Horario: ${data.horario}`, { align: "left" });
+      .text(`Ubicación: Av. Hidalgo #1012, Barrio San Benardino, Toluca, México.`, { align: "left" });
 
     doc.moveDown();
     doc.fontSize(11).text(

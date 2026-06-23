@@ -424,18 +424,14 @@ export const getcitasFecha = async (req: Request, res: Response): Promise<any> =
         }
       };
     }
-
     if(element.evento === 'Salud')
       {
-        const horariosLi = await HorariosSalud.findAll()
-
-        for (const hora of horariosLi) {
-          const cita = await citasSalud.findOne({
-            where:{
-              horario_id: hora.id,
-              fecha_cita: fecha
-            }
-          })
+        const citas = await citasSalud.findAll({
+          where: {
+            fecha_cita: fecha
+          }
+        })
+        for (const cita of citas) {
           if(cita){
             const datosg = await dp_datospersonales.findOne({
               where:{
@@ -444,17 +440,10 @@ export const getcitasFecha = async (req: Request, res: Response): Promise<any> =
             })
           
         obj.horarios.push({
-            rango: `${hora.horario_inicio} - ${hora.horario_fin}`,
             nombre: `${datosg?.f_nombre} ${datosg?.f_primer_apellido} ${datosg?.f_segundo_apellido}`,
             rfc: `${datosg?.f_rfc}`,
             num: `${cita.telefono}`,
             correo: `${cita.correo}`
-          });
-        }else{
-          obj.horarios.push({
-            rango: `${hora.horario_inicio} - ${hora.horario_fin}`,
-            nombre: null,
-            rfc: null
           });
         }
       };
@@ -646,11 +635,17 @@ export const generarPDFCitas = async (req: Request, res: Response) => {
         order: [["horario_id", "ASC"]],
         raw: false
       }) as (Cita & { Sede?: { sede: string }, usuario?: any })[];
+    }else if(eventos?.evento === 'Salud'){
+  
+      citas = await citasSalud.findAll({
+        where: {
+          fecha_cita: { [Op.eq]: fecha },
+        },
+        order: [["createdAt", "ASC"]],
+        raw: false
+      }) as (Cita & { usuario?: any })[];
     }
     
-    // Obtener nombre de sede (o valor por defecto)
-    const sedeNombre = citas[0]?.Sede?.sede || "SIN SEDE";
-
     // Obtener datos extra (nombre completo de usuario)
     for (const cita of citas) {
       if (cita.rfc) {
@@ -678,7 +673,7 @@ export const generarPDFCitas = async (req: Request, res: Response) => {
       return fechaObj.toLocaleDateString("es-ES", opciones);
     }
     const fechap = formatearFecha(fecha);
-    const pdfBuffer = await generarReporteCitasPDF(fechap, sedeNombre, horarios, citas);
+    const pdfBuffer = await generarReporteCitasPDF(fechap, citas);
 
     // Retornar el PDF
     res.setHeader("Content-Type", "application/pdf");
@@ -842,6 +837,15 @@ export const generarExcelCitas = async (req: Request, res: Response) => {
         }) as (Cita & { Sede?: { sede: string }, usuario?: any })[];
 
         sedeNombre = citas[0]?.Sede?.sede || "SIN SEDE";
+    }else if(eve?.evento === 'Salud'){
+        citas = await citasSalud.findAll({
+          where: {
+            fecha_cita: { [Op.eq]: fecha },
+          },
+        
+          order: [["createdAt", "ASC"]],
+          raw: false
+        }) as (Cita & { usuario?: any })[];
     }
     
     for (const cita of citas) {
@@ -877,7 +881,7 @@ export const generarExcelCitas = async (req: Request, res: Response) => {
     const sheet = workbook.addWorksheet("Reporte de Citas");
 
     // Agregar título general arriba
-    const titulo = `Citas de la sede ${sedeNombre} - ${fecha}`;
+    const titulo = `Citas ${fecha}`;
     sheet.addRow([titulo]);
     const titleRow = sheet.getRow(1);
     titleRow.font = { size: 14, bold: true };
@@ -889,30 +893,21 @@ export const generarExcelCitas = async (req: Request, res: Response) => {
 
     // Encabezados
     // sheet.addRow(["Horario", "Nombre", "Dependencia", "Direccion", "Departamento", "Correo", "Teléfono"]);
-        sheet.addRow(["Horario", "Nombre", "Correo", "Teléfono"]);
-    const headerRow = sheet.getRow(3); // Fila 3 porque hay título y fila vacía
+        sheet.addRow(["Nombre", "Correo", "Teléfono"]);
+    const headerRow = sheet.getRow(2); // Fila 3 porque hay título y fila vacía
     headerRow.font = { bold: true };
     headerRow.alignment = { horizontal: "center" };
 
     // Datos
-    for (const h of horarios) {
-      const hora = `${h.horario_inicio} - ${h.horario_fin}`;
-      const citasHorario = citas.filter(c => c.horario_id === h.id);
+    for (const cita of citas) {
+      const nombre =
+        (cita as any).datos_user?.nombre_completo || "Nombre desconocido";
+      const correo = cita.correo ?? "Sin correo";
+      const telefono = cita.telefono ?? "Sin teléfono";
 
-      if (citasHorario.length === 0) {
-        sheet.addRow([hora, "— Sin citas —", "", ""]);
-      } else {
-        for (const cita of citasHorario) {
-          const nombre =
-            (cita as any).datos_user?.nombre_completo || "Nombre desconocido";
-          const correo = cita.correo ?? "Sin correo";
-          const telefono = cita.telefono ?? "Sin teléfono";
-
-          sheet.addRow([hora, nombre, correo, telefono]);
-        }
-      }
+      sheet.addRow([nombre, correo, telefono]);
     }
-
+      
     // Ajustar ancho columnas automáticamente
     sheet.columns?.forEach(column => {
       if (column && typeof column.eachCell === "function") {
@@ -1058,15 +1053,15 @@ export const getEventos = async(req: Request, res: Response): Promise<any> => {
         model: citasSalud,
         as: "m_citasS",
         required: false,
-        include: [
-          {
-            model: HorariosSalud, 
-            as: "HorarioSalud"
-          }
-        ]
       }
     ]
   })
+
+  // const resultado = eventos.map(ev => ({
+  //     fecha_cita: ev.fecha_cita,
+  //     total_issemym: ev.m_citasI?.length,
+  //     total_licencias: ev.m_citasL?.length,
+
   return res.json({
       eventos: eventos
   });

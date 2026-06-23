@@ -2,7 +2,6 @@ import { Model, DataTypes, CreationOptional, ForeignKey } from 'sequelize';
 import sequelize from '../database/cuestionariosConnection';
 
 import { dp_fum_datos_generales } from './fun/dp_fum_datos_generales';
-import HorariosSalud from './horarios_salud';
 
 class citasSalud extends Model {
   declare id: CreationOptional<number>;
@@ -14,7 +13,6 @@ class citasSalud extends Model {
   declare path: string | null;
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
-  declare HorarioSalud?: import('./horarios_salud').default;
 }
 
 citasSalud.init(
