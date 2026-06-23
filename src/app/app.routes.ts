@@ -53,6 +53,10 @@ export const routes: Routes = [
         path: 'homeCitas',
         loadComponent: () => import('./views/pages/citas/home/home.component').then(c => c.HomeComponent)
       },
+      {
+      path: 'citasSalud',
+      loadChildren: () => import('./views/pages/citas/issemym2026/issemym26.route').then(c => c.default)
+    },
     ]
   },
   {

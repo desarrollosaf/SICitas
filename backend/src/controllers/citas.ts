@@ -24,6 +24,8 @@ import models from "..";
 import citasLicencia from "../models/citas_licencias";
 import HorarioLicencia from "../models/horarios_licencias";
 import { count } from "console";
+import citasSalud from "../models/citas_salud";
+import HorariosSalud from "../models/horarios_salud";
 
 
 dp_datospersonales.initModel(sequelizefun);
@@ -412,6 +414,41 @@ export const getcitasFecha = async (req: Request, res: Response): Promise<any> =
             nombre: `${datosg?.f_nombre} ${datosg?.f_primer_apellido} ${datosg?.f_segundo_apellido}`,
             rfc: `${datosg?.f_rfc}`,
             num: `${cita.telefono}`
+          });
+        }else{
+          obj.horarios.push({
+            rango: `${hora.horario_inicio} - ${hora.horario_fin}`,
+            nombre: null,
+            rfc: null
+          });
+        }
+      };
+    }
+
+    if(element.evento === 'Salud')
+      {
+        const horariosLi = await HorariosSalud.findAll()
+
+        for (const hora of horariosLi) {
+          const cita = await citasSalud.findOne({
+            where:{
+              horario_id: hora.id,
+              fecha_cita: fecha
+            }
+          })
+          if(cita){
+            const datosg = await dp_datospersonales.findOne({
+              where:{
+                f_rfc: cita?.rfc
+              }
+            })
+          
+        obj.horarios.push({
+            rango: `${hora.horario_inicio} - ${hora.horario_fin}`,
+            nombre: `${datosg?.f_nombre} ${datosg?.f_primer_apellido} ${datosg?.f_segundo_apellido}`,
+            rfc: `${datosg?.f_rfc}`,
+            num: `${cita.telefono}`,
+            correo: `${cita.correo}`
           });
         }else{
           obj.horarios.push({
@@ -1018,43 +1055,18 @@ export const getEventos = async(req: Request, res: Response): Promise<any> => {
   const eventos = await agendaEventos.findAll({
     include: [
       {
-        model: citasIssemym,
-        as: "m_citasI",
+        model: citasSalud,
+        as: "m_citasS",
         required: false,
         include: [
           {
-            model: Sede, 
-            as: "Sede"
-          },
-          {
-            model: HorarioIssemym, 
-            as: "HorarioIssemym"
-          }
-        ]
-      }, 
-      {
-        model: citasLicencia,
-        as: "m_citasL",
-        required: false,
-        include: [
-          {
-            model: Sede, 
-            as: "Sede"
-          },
-          {
-            model: HorarioLicencia, 
-            as: "HorarioLicencia"
+            model: HorariosSalud, 
+            as: "HorarioSalud"
           }
         ]
       }
     ]
   })
-
-  // const resultado = eventos.map(ev => ({
-  //     fecha_cita: ev.fecha_cita,
-  //     total_issemym: ev.m_citasI?.length,
-  //     total_licencias: ev.m_citasL?.length,
-
   return res.json({
       eventos: eventos
   });

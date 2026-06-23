@@ -24,10 +24,11 @@ const auth_1 = require("../middlewares/auth");
 const citas_1 = __importDefault(require("../routes/citas"));
 const citasLicencias_1 = __importDefault(require("../routes/citasLicencias"));
 const citasIssemym_1 = __importDefault(require("../routes/citasIssemym"));
+const citasSalud_1 = __importDefault(require("../routes/citasSalud"));
 class Server {
     constructor() {
         this.app = (0, express_1.default)();
-        this.port = process.env.PORT || '3019';
+        this.port = process.env.PORT || '3010';
         this.midlewares();
         this.router();
         this.DBconnetc();
@@ -45,12 +46,13 @@ class Server {
         this.app.use(citas_1.default);
         this.app.use(citasLicencias_1.default);
         this.app.use(citasIssemym_1.default);
+        this.app.use(citasSalud_1.default);
     }
     midlewares() {
         this.app.use(express_1.default.json());
         this.app.use((0, cors_1.default)({
-            // origin: 'http://localhost:4200',
-            origin: 'https://jornadasalud.congresoedomex.gob.mx',
+            origin: 'http://localhost:4200',
+            // origin: 'https://jornadasalud.congresoedomex.gob.mx',
             credentials: true
         }));
         this.app.use((0, cookie_parser_1.default)());

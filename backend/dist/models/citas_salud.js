@@ -5,22 +5,35 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const sequelize_1 = require("sequelize");
 const cuestionariosConnection_1 = __importDefault(require("../database/cuestionariosConnection"));
-const citas_issemym_1 = __importDefault(require("./citas_issemym"));
-const citas_licencias_1 = __importDefault(require("./citas_licencias"));
-const citas_salud_1 = __importDefault(require("./citas_salud"));
-class agendaEventos extends sequelize_1.Model {
+class citasSalud extends sequelize_1.Model {
 }
-agendaEventos.init({
+citasSalud.init({
     id: {
         type: sequelize_1.DataTypes.INTEGER,
         autoIncrement: true,
         primaryKey: true,
     },
+    rfc: {
+        type: sequelize_1.DataTypes.STRING,
+        allowNull: true,
+    },
     fecha_cita: {
         type: sequelize_1.DataTypes.DATEONLY,
         allowNull: false,
     },
-    evento: {
+    correo: {
+        type: sequelize_1.DataTypes.STRING,
+        allowNull: true,
+    },
+    telefono: {
+        type: sequelize_1.DataTypes.STRING,
+        allowNull: true,
+    },
+    folio: {
+        type: sequelize_1.DataTypes.STRING,
+        allowNull: true,
+    },
+    path: {
         type: sequelize_1.DataTypes.STRING,
         allowNull: true,
     },
@@ -28,22 +41,7 @@ agendaEventos.init({
     updatedAt: sequelize_1.DataTypes.DATE,
 }, {
     sequelize: cuestionariosConnection_1.default,
-    tableName: 'agenda_eventos',
+    tableName: 'citas_salud',
     timestamps: true,
 });
-agendaEventos.hasMany(citas_issemym_1.default, {
-    foreignKey: "fecha_cita",
-    sourceKey: "fecha_cita",
-    as: "m_citasI"
-});
-agendaEventos.hasMany(citas_licencias_1.default, {
-    foreignKey: "fecha_cita",
-    sourceKey: "fecha_cita",
-    as: "m_citasL"
-});
-agendaEventos.hasMany(citas_salud_1.default, {
-    foreignKey: "fecha_cita",
-    sourceKey: "fecha_cita",
-    as: "m_citasS"
-});
-exports.default = agendaEventos;
+exports.default = citasSalud;

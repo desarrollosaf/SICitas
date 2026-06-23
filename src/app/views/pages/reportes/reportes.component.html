@@ -127,7 +127,7 @@
                 </ng-template>
             </button>
             
-            <button class="btn btn-sm btn-danger d-flex align-items-center" (click)="descargarPDF(3)"
+            <button class="btn btn-sm btn-danger d-flex align-items-center" (click)="descargarPDF(4)"
                 [disabled]="descargandoPDF === 2">
                 <ng-container *ngIf="descargandoPDF === 2; else iconoPDF2">
                     <span class="spinner-border spinner-border-sm me-1" role="status"
@@ -157,6 +157,7 @@
                             <p><strong>Nombre:</strong> {{ hora.nombre}}</p>
                             <p><strong>RFC:</strong> {{ hora.rfc }} </p>
                             <p><strong>Contacto:</strong> {{ hora.num }} </p>
+                            <p><strong>Correo:</strong> {{ hora.correo }} </p>
                         </div>
                     </div>
                     <ng-template #sinCitas>

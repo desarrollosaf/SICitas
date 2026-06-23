@@ -36,6 +36,8 @@ const horarios_issemym_1 = __importDefault(require("../models/horarios_issemym")
 const eventos_1 = __importDefault(require("../models/eventos"));
 const citas_licencias_1 = __importDefault(require("../models/citas_licencias"));
 const horarios_licencias_1 = __importDefault(require("../models/horarios_licencias"));
+const citas_salud_1 = __importDefault(require("../models/citas_salud"));
+const horarios_salud_1 = __importDefault(require("../models/horarios_salud"));
 dp_datospersonales_1.dp_datospersonales.initModel(fun_1.default);
 dp_fum_datos_generales_1.dp_fum_datos_generales.initModel(fun_1.default);
 const getHorariosDisponibles = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -368,6 +370,39 @@ const getcitasFecha = (req, res) => __awaiter(void 0, void 0, void 0, function* 
                             nombre: `${datosg === null || datosg === void 0 ? void 0 : datosg.f_nombre} ${datosg === null || datosg === void 0 ? void 0 : datosg.f_primer_apellido} ${datosg === null || datosg === void 0 ? void 0 : datosg.f_segundo_apellido}`,
                             rfc: `${datosg === null || datosg === void 0 ? void 0 : datosg.f_rfc}`,
                             num: `${cita.telefono}`
+                        });
+                    }
+                    else {
+                        obj.horarios.push({
+                            rango: `${hora.horario_inicio} - ${hora.horario_fin}`,
+                            nombre: null,
+                            rfc: null
+                        });
+                    }
+                }
+                ;
+            }
+            if (element.evento === 'Salud') {
+                const horariosLi = yield horarios_salud_1.default.findAll();
+                for (const hora of horariosLi) {
+                    const cita = yield citas_salud_1.default.findOne({
+                        where: {
+                            horario_id: hora.id,
+                            fecha_cita: fecha
+                        }
+                    });
+                    if (cita) {
+                        const datosg = yield dp_datospersonales_1.dp_datospersonales.findOne({
+                            where: {
+                                f_rfc: cita === null || cita === void 0 ? void 0 : cita.rfc
+                            }
+                        });
+                        obj.horarios.push({
+                            rango: `${hora.horario_inicio} - ${hora.horario_fin}`,
+                            nombre: `${datosg === null || datosg === void 0 ? void 0 : datosg.f_nombre} ${datosg === null || datosg === void 0 ? void 0 : datosg.f_primer_apellido} ${datosg === null || datosg === void 0 ? void 0 : datosg.f_segundo_apellido}`,
+                            rfc: `${datosg === null || datosg === void 0 ? void 0 : datosg.f_rfc}`,
+                            num: `${cita.telefono}`,
+                            correo: `${cita.correo}`
                         });
                     }
                     else {
@@ -874,41 +909,18 @@ const getEventos = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     const eventos = yield eventos_1.default.findAll({
         include: [
             {
-                model: citas_issemym_1.default,
-                as: "m_citasI",
+                model: citas_salud_1.default,
+                as: "m_citasS",
                 required: false,
                 include: [
                     {
-                        model: sedes_1.default,
-                        as: "Sede"
-                    },
-                    {
-                        model: horarios_issemym_1.default,
-                        as: "HorarioIssemym"
-                    }
-                ]
-            },
-            {
-                model: citas_licencias_1.default,
-                as: "m_citasL",
-                required: false,
-                include: [
-                    {
-                        model: sedes_1.default,
-                        as: "Sede"
-                    },
-                    {
-                        model: horarios_licencias_1.default,
-                        as: "HorarioLicencia"
+                        model: horarios_salud_1.default,
+                        as: "HorarioSalud"
                     }
                 ]
             }
         ]
     });
-    // const resultado = eventos.map(ev => ({
-    //     fecha_cita: ev.fecha_cita,
-    //     total_issemym: ev.m_citasI?.length,
-    //     total_licencias: ev.m_citasL?.length,
     return res.json({
         eventos: eventos
     });
