@@ -150,7 +150,7 @@ export const generarPdfAcuse = async (req: Request, res: Response) => {
 
     const Validacion = await dp_fum_datos_generales.findOne({
       where: { f_rfc: rfc },
-      attributes: ["f_nombre", "f_primer_apellido", "f_segundo_apellido", "f_sexo", "f_fecha_nacimiento", "f_curp"]
+      attributes: ["f_nombre", "f_primer_apellido", "f_segundo_apellido", "f_sexo", "f_fecha_nacimiento", "f_curp", "f_clave_issemym"]
     });
 
     const ads = await SUsuario.findOne({
@@ -175,6 +175,7 @@ export const generarPdfAcuse = async (req: Request, res: Response) => {
     ].filter(Boolean).join(" ");
 
     const adscripcion = ads?.departamento.nombre_completo;
+    const issemym = Validacion.f_clave_issemym || "";
 
     // const adscripcion = ads?.
     const sexo = Validacion.f_sexo || "";
@@ -205,6 +206,7 @@ export const generarPdfAcuse = async (req: Request, res: Response) => {
       fecha: cita.fecha_cita,
       telefono: cita.telefono,
       adscripcion: adscripcion,
+      issemym: issemym,
       citaId: cita.id
     });
     res.setHeader("Content-Type", "application/pdf");
@@ -229,6 +231,7 @@ interface PDFData {
   fecha: string;
   telefono: string;
   adscripcion: string;
+  issemym: string;
   citaId: number; // <-- ID de la cita para actualizar
 }
 
@@ -291,7 +294,7 @@ export async function generarPDFBufferSalud(data: PDFData): Promise<Buffer> {
     doc.fontSize(11)
       .font("Helvetica")
       .text(`Servidor Público: ${data.nombreCompleto} | Edad: ${data.edad} años` , { align: "left" })
-      .text(`CURP: ${data.curp} | Clave ISSEMYM: `, { align: "left" }) 
+      .text(`CURP: ${data.curp} | Clave ISSEMYM: ${data.issemym}`, { align: "left" }) 
       .text(`Correo Electrónico: ${data.correo} | Teléfono: ${data.telefono}`, { align: "left" })
       .text(`Adscripción: ${data.adscripcion}`, { align: "left" });
 
