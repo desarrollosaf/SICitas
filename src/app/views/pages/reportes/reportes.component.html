@@ -127,7 +127,7 @@
                 </ng-template>
             </button>
             
-            <button class="btn btn-sm btn-danger d-flex align-items-center" (click)="descargarPDF(3)"
+            <button class="btn btn-sm btn-danger d-flex align-items-center" (click)="descargarPDF(4)"
                 [disabled]="descargandoPDF === 2">
                 <ng-container *ngIf="descargandoPDF === 2; else iconoPDF2">
                     <span class="spinner-border spinner-border-sm me-1" role="status"
@@ -140,8 +140,17 @@
             </button>
 
         <div *ngIf="data.horarios as eventos" class="scrollable-modal-content">
-            <strong>Citas {{eventos.evento}} del día: {{ fechaFormateadaM }}</strong><br><br>
+            <h3>Citas {{eventos.evento}} del día: {{ fechaFormateadaM }}</h3><br><br>
             <div *ngFor="let hora of eventos.horarios"> 
+                <div class="border rounded p-2 mb-2">
+                    <p><strong>Nombre:</strong> {{ hora.nombre}}</p>
+                    <p><strong>RFC:</strong> {{ hora.rfc }} </p>
+                    <p><strong>Contacto:</strong> {{ hora.num }} </p>
+                    <p><strong>Correo:</strong> {{ hora.correo }} </p>
+                </div>
+
+<!-- 
+
                 <div class="card mb-2">
                     <div class="card-header d-flex justify-content-between align-items-center"
                         [ngClass]="{ 'bg-success text-white': hora.rfc !== null }">
@@ -157,16 +166,17 @@
                             <p><strong>Nombre:</strong> {{ hora.nombre}}</p>
                             <p><strong>RFC:</strong> {{ hora.rfc }} </p>
                             <p><strong>Contacto:</strong> {{ hora.num }} </p>
+                            <p><strong>Correo:</strong> {{ hora.correo }} </p>
                         </div>
                     </div>
                     <ng-template #sinCitas>
                         <p class="text-muted">Sin datos</p>
                     </ng-template>
-                </div>
+                </div> -->
             </div>
         </div>
     </div>
-    </div>
+
     <div class="modal-footer">
         <button type="button" id="focus-target" class="btn btn-secondary"
             (click)="modal.close('by: close button')">Cerrar</button>

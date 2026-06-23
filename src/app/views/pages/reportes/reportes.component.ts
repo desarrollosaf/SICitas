@@ -504,6 +504,9 @@ getEventos(){
             if( cita.evento === 'Licencias' && cita.m_citasL){
               totalRegistros = cita.m_citasL.length;
             }
+            if( cita.evento === 'Salud' && cita.m_citasS){
+              totalRegistros = cita.m_citasS.length;
+            }
 
             const fechaHora = `${cita.fecha_cita}T00:00:00`;
             const nuevoEvento = {

@@ -10,6 +10,7 @@ import { dp_fum_datos_generales } from '../models/fun/dp_fum_datos_generales'
 import Cita from '../models/citas'
 import citasLicencia from '../models/citas_licencias'
 import citasIssemym from '../models/citas_issemym'
+import citasSalud from '../models/citas_salud'
 
 export const ReadUser = async (req: Request, res: Response): Promise<any> => {
     const listUser = await User.findAll();
@@ -119,9 +120,33 @@ export const LoginUser = async (req: Request, res: Response, next: NextFunction)
         })
     }
 
-    if(from == 'licencias'){
-        const totalCitas = await citasLicencia.count();
-        const citaUser = await citasLicencia.findOne({
+    // if(from == 'licencias'){
+    //     const totalCitas = await citasLicencia.count();
+    //     const citaUser = await citasLicencia.findOne({
+    //         where: { rfc: rfc }
+    //     });
+    //     if (totalCitas >= 500) {
+    //         if (!citaUser) {
+    //             return res.status(416).json({
+    //                 msg: "Ya no hay lugares disponibles."
+    //             });
+    //         }
+    //     }
+    // }else if(from == 'issemym'){
+    //     const totalCitas = await citasIssemym.count();
+    //     const citaUser = await citasIssemym.findOne({
+    //         where: { rfc: rfc }
+    //     });
+    //     if (totalCitas >= 500) {
+    //         if (!citaUser) {
+    //             return res.status(416).json({
+    //                 msg: "Ya no hay lugares disponibles."
+    //             });
+    //         }
+    //     }
+    // }else{
+        const totalCitas = await citasSalud.count();
+        const citaUser = await citasSalud.findOne({
             where: { rfc: rfc }
         });
         if (totalCitas >= 500) {
@@ -131,31 +156,7 @@ export const LoginUser = async (req: Request, res: Response, next: NextFunction)
                 });
             }
         }
-    }else if(from == 'issemym'){
-        const totalCitas = await citasIssemym.count();
-        const citaUser = await citasIssemym.findOne({
-            where: { rfc: rfc }
-        });
-        if (totalCitas >= 500) {
-            if (!citaUser) {
-                return res.status(416).json({
-                    msg: "Ya no hay lugares disponibles."
-                });
-            }
-        }
-    }else{
-        const totalCitas = await Cita.count();
-        const citaUser = await Cita.findOne({
-            where: { rfc: rfc }
-        });
-        if (totalCitas >= 500) {
-            if (!citaUser) {
-                return res.status(416).json({
-                    msg: "Ya no hay lugares disponibles."
-                });
-            }
-        }
-    }
+    // }
 
 
     const accessToken = jwt.sign(

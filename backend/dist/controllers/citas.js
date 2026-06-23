@@ -36,6 +36,7 @@ const horarios_issemym_1 = __importDefault(require("../models/horarios_issemym")
 const eventos_1 = __importDefault(require("../models/eventos"));
 const citas_licencias_1 = __importDefault(require("../models/citas_licencias"));
 const horarios_licencias_1 = __importDefault(require("../models/horarios_licencias"));
+const citas_salud_1 = __importDefault(require("../models/citas_salud"));
 dp_datospersonales_1.dp_datospersonales.initModel(fun_1.default);
 dp_fum_datos_generales_1.dp_fum_datos_generales.initModel(fun_1.default);
 const getHorariosDisponibles = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -380,6 +381,29 @@ const getcitasFecha = (req, res) => __awaiter(void 0, void 0, void 0, function* 
                 }
                 ;
             }
+            if (element.evento === 'Salud') {
+                const citas = yield citas_salud_1.default.findAll({
+                    where: {
+                        fecha_cita: fecha
+                    }
+                });
+                for (const cita of citas) {
+                    if (cita) {
+                        const datosg = yield dp_datospersonales_1.dp_datospersonales.findOne({
+                            where: {
+                                f_rfc: cita === null || cita === void 0 ? void 0 : cita.rfc
+                            }
+                        });
+                        obj.horarios.push({
+                            nombre: `${datosg === null || datosg === void 0 ? void 0 : datosg.f_nombre} ${datosg === null || datosg === void 0 ? void 0 : datosg.f_primer_apellido} ${datosg === null || datosg === void 0 ? void 0 : datosg.f_segundo_apellido}`,
+                            rfc: `${datosg === null || datosg === void 0 ? void 0 : datosg.f_rfc}`,
+                            num: `${cita.telefono}`,
+                            correo: `${cita.correo}`
+                        });
+                    }
+                }
+                ;
+            }
             resultado = [obj];
         }
         ;
@@ -471,7 +495,6 @@ function generarPDFBuffer(data) {
     });
 }
 const generarPDFCitas = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b;
     try {
         const { fecha, sedeId } = req.params;
         let citas;
@@ -523,8 +546,15 @@ const generarPDFCitas = (req, res) => __awaiter(void 0, void 0, void 0, function
                 raw: false
             }));
         }
-        // Obtener nombre de sede (o valor por defecto)
-        const sedeNombre = ((_b = (_a = citas[0]) === null || _a === void 0 ? void 0 : _a.Sede) === null || _b === void 0 ? void 0 : _b.sede) || "SIN SEDE";
+        else if ((eventos === null || eventos === void 0 ? void 0 : eventos.evento) === 'Salud') {
+            citas = (yield citas_salud_1.default.findAll({
+                where: {
+                    fecha_cita: { [sequelize_1.Op.eq]: fecha },
+                },
+                order: [["createdAt", "ASC"]],
+                raw: false
+            }));
+        }
         // Obtener datos extra (nombre completo de usuario)
         for (const cita of citas) {
             if (cita.rfc) {
@@ -551,7 +581,7 @@ const generarPDFCitas = (req, res) => __awaiter(void 0, void 0, void 0, function
             return fechaObj.toLocaleDateString("es-ES", opciones);
         }
         const fechap = formatearFecha(fecha);
-        const pdfBuffer = yield (0, pdf_utils_1.generarReporteCitasPDF)(fechap, sedeNombre, horarios, citas);
+        const pdfBuffer = yield (0, pdf_utils_1.generarReporteCitasPDF)(fechap, citas);
         // Retornar el PDF
         res.setHeader("Content-Type", "application/pdf");
         res.setHeader("Content-Disposition", `attachment; filename="Reporte-${fecha}-sede${sedeId}.pdf"`);
@@ -694,6 +724,15 @@ const generarExcelCitas = (req, res) => __awaiter(void 0, void 0, void 0, functi
             }));
             sedeNombre = ((_d = (_c = citas[0]) === null || _c === void 0 ? void 0 : _c.Sede) === null || _d === void 0 ? void 0 : _d.sede) || "SIN SEDE";
         }
+        else if ((eve === null || eve === void 0 ? void 0 : eve.evento) === 'Salud') {
+            citas = (yield citas_salud_1.default.findAll({
+                where: {
+                    fecha_cita: { [sequelize_1.Op.eq]: fecha },
+                },
+                order: [["createdAt", "ASC"]],
+                raw: false
+            }));
+        }
         for (const cita of citas) {
             if (cita.rfc) {
                 const datos = yield dp_fum_datos_generales_1.dp_fum_datos_generales.findOne({
@@ -724,7 +763,7 @@ const generarExcelCitas = (req, res) => __awaiter(void 0, void 0, void 0, functi
         const workbook = new exceljs_1.default.Workbook();
         const sheet = workbook.addWorksheet("Reporte de Citas");
         // Agregar título general arriba
-        const titulo = `Citas de la sede ${sedeNombre} - ${fecha}`;
+        const titulo = `Citas ${fecha}`;
         sheet.addRow([titulo]);
         const titleRow = sheet.getRow(1);
         titleRow.font = { size: 14, bold: true };
@@ -734,25 +773,16 @@ const generarExcelCitas = (req, res) => __awaiter(void 0, void 0, void 0, functi
         sheet.addRow([]);
         // Encabezados
         // sheet.addRow(["Horario", "Nombre", "Dependencia", "Direccion", "Departamento", "Correo", "Teléfono"]);
-        sheet.addRow(["Horario", "Nombre", "Correo", "Teléfono"]);
-        const headerRow = sheet.getRow(3); // Fila 3 porque hay título y fila vacía
+        sheet.addRow(["Nombre", "Correo", "Teléfono"]);
+        const headerRow = sheet.getRow(2); // Fila 3 porque hay título y fila vacía
         headerRow.font = { bold: true };
         headerRow.alignment = { horizontal: "center" };
         // Datos
-        for (const h of horarios) {
-            const hora = `${h.horario_inicio} - ${h.horario_fin}`;
-            const citasHorario = citas.filter(c => c.horario_id === h.id);
-            if (citasHorario.length === 0) {
-                sheet.addRow([hora, "— Sin citas —", "", ""]);
-            }
-            else {
-                for (const cita of citasHorario) {
-                    const nombre = ((_e = cita.datos_user) === null || _e === void 0 ? void 0 : _e.nombre_completo) || "Nombre desconocido";
-                    const correo = (_f = cita.correo) !== null && _f !== void 0 ? _f : "Sin correo";
-                    const telefono = (_g = cita.telefono) !== null && _g !== void 0 ? _g : "Sin teléfono";
-                    sheet.addRow([hora, nombre, correo, telefono]);
-                }
-            }
+        for (const cita of citas) {
+            const nombre = ((_e = cita.datos_user) === null || _e === void 0 ? void 0 : _e.nombre_completo) || "Nombre desconocido";
+            const correo = (_f = cita.correo) !== null && _f !== void 0 ? _f : "Sin correo";
+            const telefono = (_g = cita.telefono) !== null && _g !== void 0 ? _g : "Sin teléfono";
+            sheet.addRow([nombre, correo, telefono]);
         }
         // Ajustar ancho columnas automáticamente
         (_h = sheet.columns) === null || _h === void 0 ? void 0 : _h.forEach(column => {
@@ -874,34 +904,9 @@ const getEventos = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     const eventos = yield eventos_1.default.findAll({
         include: [
             {
-                model: citas_issemym_1.default,
-                as: "m_citasI",
+                model: citas_salud_1.default,
+                as: "m_citasS",
                 required: false,
-                include: [
-                    {
-                        model: sedes_1.default,
-                        as: "Sede"
-                    },
-                    {
-                        model: horarios_issemym_1.default,
-                        as: "HorarioIssemym"
-                    }
-                ]
-            },
-            {
-                model: citas_licencias_1.default,
-                as: "m_citasL",
-                required: false,
-                include: [
-                    {
-                        model: sedes_1.default,
-                        as: "Sede"
-                    },
-                    {
-                        model: horarios_licencias_1.default,
-                        as: "HorarioLicencia"
-                    }
-                ]
             }
         ]
     });

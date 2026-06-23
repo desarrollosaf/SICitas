@@ -19,9 +19,7 @@ const user_1 = __importDefault(require("../models/user"));
 const s_usuario_1 = __importDefault(require("../models/saf/s_usuario"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const s_usuario_2 = __importDefault(require("../models/saf/s_usuario"));
-const citas_1 = __importDefault(require("../models/citas"));
-const citas_licencias_1 = __importDefault(require("../models/citas_licencias"));
-const citas_issemym_1 = __importDefault(require("../models/citas_issemym"));
+const citas_salud_1 = __importDefault(require("../models/citas_salud"));
 const ReadUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const listUser = yield users_1.default.findAll();
     return res.json({
@@ -110,45 +108,43 @@ const LoginUser = (req, res, next) => __awaiter(void 0, void 0, void 0, function
             msg: `Password Incorrecto => ${password}`
         });
     }
-    if (from == 'licencias') {
-        const totalCitas = yield citas_licencias_1.default.count();
-        const citaUser = yield citas_licencias_1.default.findOne({
-            where: { rfc: rfc }
-        });
-        if (totalCitas >= 500) {
-            if (!citaUser) {
-                return res.status(416).json({
-                    msg: "Ya no hay lugares disponibles."
-                });
-            }
+    // if(from == 'licencias'){
+    //     const totalCitas = await citasLicencia.count();
+    //     const citaUser = await citasLicencia.findOne({
+    //         where: { rfc: rfc }
+    //     });
+    //     if (totalCitas >= 500) {
+    //         if (!citaUser) {
+    //             return res.status(416).json({
+    //                 msg: "Ya no hay lugares disponibles."
+    //             });
+    //         }
+    //     }
+    // }else if(from == 'issemym'){
+    //     const totalCitas = await citasIssemym.count();
+    //     const citaUser = await citasIssemym.findOne({
+    //         where: { rfc: rfc }
+    //     });
+    //     if (totalCitas >= 500) {
+    //         if (!citaUser) {
+    //             return res.status(416).json({
+    //                 msg: "Ya no hay lugares disponibles."
+    //             });
+    //         }
+    //     }
+    // }else{
+    const totalCitas = yield citas_salud_1.default.count();
+    const citaUser = yield citas_salud_1.default.findOne({
+        where: { rfc: rfc }
+    });
+    if (totalCitas >= 500) {
+        if (!citaUser) {
+            return res.status(416).json({
+                msg: "Ya no hay lugares disponibles."
+            });
         }
     }
-    else if (from == 'issemym') {
-        const totalCitas = yield citas_issemym_1.default.count();
-        const citaUser = yield citas_issemym_1.default.findOne({
-            where: { rfc: rfc }
-        });
-        if (totalCitas >= 500) {
-            if (!citaUser) {
-                return res.status(416).json({
-                    msg: "Ya no hay lugares disponibles."
-                });
-            }
-        }
-    }
-    else {
-        const totalCitas = yield citas_1.default.count();
-        const citaUser = yield citas_1.default.findOne({
-            where: { rfc: rfc }
-        });
-        if (totalCitas >= 500) {
-            if (!citaUser) {
-                return res.status(416).json({
-                    msg: "Ya no hay lugares disponibles."
-                });
-            }
-        }
-    }
+    // }
     const accessToken = jsonwebtoken_1.default.sign({ rfc: rfc }, process.env.SECRET_KEY || 'TSE-Poder-legislativo', { expiresIn: '2h' });
     res.cookie('accessToken', accessToken, {
         httpOnly: true,

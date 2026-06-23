@@ -3,8 +3,6 @@ import path from "path";
 
 export async function generarReporteCitasPDF(
   fechap: string,
-  sede: string,
-  horarios: any[],
   citas: any[]
 ): Promise<Buffer> {
   return new Promise((resolve, reject) => {
@@ -15,12 +13,12 @@ export async function generarReporteCitasPDF(
     doc.on("end", () => resolve(Buffer.concat(chunks)));
     doc.on("error", reject);
 
-    const marginBottom = 60;
+    const marginBottom = 70;
     const col1X = 50;
-    const col2X = 150;
+    const col2X = 30;
     const tableWidth = 500;
 
-    const bgPath = path.join(__dirname, "../assets/hojacartacampaniasalud2.jpg");
+    const bgPath = path.join(__dirname, "../assets/salud_page_mem.jpg");
 
     const drawHeader = () => {
       // Fondo de página
@@ -29,14 +27,13 @@ export async function generarReporteCitasPDF(
         height: doc.page.height,
       });
 
-      doc.y = 106; // Fijar posición inicial en cada página
+      doc.y = 115; // Fijar posición inicial en cada página
 
       // Encabezado
       doc.font("Helvetica-Bold").fontSize(20).fillColor("#7d0037")
         .text("Reporte de Citas", { align: "center" });
 
       doc.font("Helvetica").fontSize(12).fillColor("black");
-      doc.text(`Sede: ${sede}`, { align: "center" });
       doc.text(`Fecha: ${fechap}`, { align: "center" });
       doc.moveDown(1);
 
@@ -44,8 +41,7 @@ export async function generarReporteCitasPDF(
       const tableTop = doc.y;
       doc.rect(col1X - 5, tableTop - 5, tableWidth, 20).fill("#7d0037");
       doc.fillColor("white").font("Helvetica-Bold").fontSize(11);
-      doc.text("Horario", col1X, tableTop);
-      doc.text("Citas", col2X, tableTop);
+      doc.text("Citas", col2X+260, tableTop);
       doc.fillColor("black");
       doc.moveDown(1);
     };
@@ -54,31 +50,25 @@ export async function generarReporteCitasPDF(
     drawHeader();
 
     // Dibujar filas
-    for (const h of horarios) {
-      const hora = `${h.horario_inicio} - ${h.horario_fin}`;
-      const citasHorario = citas.filter((c) => c.horario_id === h.id);
 
       let citasTexto = "";
-      if (citasHorario.length === 0) {
-        citasTexto = "— Sin citas —";
-      } else {
-        console.log('citas', citasHorario);
-        for (const cita of citasHorario) {
-          const nombre = cita.datos_user?.nombre_completo || "Nombre desconocido";
-          const curp = cita.datos_user?.f_curp || "Sin curp";
-          const correo = cita.correo ?? "Sin correo";
-          const telefono = cita.telefono ?? "Sin teléfono";
-          citasTexto += `• ${nombre} |CURP: ${curp} | Correo: ${correo} | Tel: ${telefono}\n`;
-        }
+    
+      for (const cita of citas) {
+        const nombre = cita.datos_user?.nombre_completo || "Nombre desconocido";
+        const curp = cita.datos_user?.f_curp || "Sin curp";
+        const correo = cita.correo ?? "Sin correo";
+        const telefono = cita.telefono ?? "Sin teléfono";
+        citasTexto += `• ${nombre} |CURP: ${curp} | Correo: ${correo} | Tel: ${telefono}\n`;
       }
+      
 
       // Calcular altura de la fila ajustada
-      const citasWidth = 380;
+      const citasWidth = 480;
       const textHeight = doc.heightOfString(citasTexto, { width: citasWidth, align: "left" });
 
       // Reducir el padding a 2
-      const padding = 2;
-      const rowHeight = Math.max(2, textHeight + padding); 
+      const padding = 5;
+      const rowHeight = Math.max(5, textHeight + padding); 
 
       // Verifica si el contenido cabe en la página sin generar espacios extra
       if (doc.y + rowHeight + marginBottom > doc.page.height) {
@@ -96,10 +86,9 @@ export async function generarReporteCitasPDF(
 
       // Escribir horario
       doc.fillColor("#000000").font("Helvetica-Bold").fontSize(10);
-      doc.text(hora, col1X, rowY + 3);
-
+ 
       // Escribir citas
-      if (citasHorario.length === 0) {
+      if (citas.length === 0) {
         doc.fillColor("black").font("Helvetica-Oblique").text(citasTexto, col2X, rowY + 3, { width: citasWidth });
       } else {
         doc.fillColor("black").font("Helvetica").fontSize(9);
@@ -108,7 +97,7 @@ export async function generarReporteCitasPDF(
 
       // Avanzar a la siguiente fila
       doc.y = rowY + rowHeight + 3; // Asegúrate de no dejar espacio innecesario
-    }
+  
 
     // Pie de página
     doc.moveDown(2);

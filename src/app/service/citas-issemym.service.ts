@@ -8,7 +8,7 @@ import { enviroment } from '../../enviroments/enviroment';
   providedIn: 'root'
 })
 export class CitasIssemymService {
- private myAppUrl: string;
+  private myAppUrl: string;
   private myAPIUrl: string;
   private http = inject( HttpClient );
   constructor() {

@@ -10,6 +10,8 @@ import { verifyToken } from '../middlewares/auth';
 import routeCitas from "../routes/citas";
 import routeCitasLicencias from "../routes/citasLicencias";
 import routeCitasIssemym from "../routes/citasIssemym";
+import routeSalud from "../routes/citasSalud";
+
 class Server {
 
     private app: Application
@@ -18,7 +20,7 @@ class Server {
 
     constructor(){
         this.app = express()
-        this.port = process.env.PORT || '3019'
+        this.port = process.env.PORT || '3010'
         this.midlewares();
         this.router();
         this.DBconnetc();
@@ -39,14 +41,15 @@ class Server {
         this.app.use(routeCitas);
         this.app.use(routeCitasLicencias)
         this.app.use(routeCitasIssemym)
+        this.app.use(routeSalud)
     }
 
     
     midlewares(){
         this.app.use(express.json())
         this.app.use(cors({
-            // origin: 'http://localhost:4200',
-            origin: 'https://jornadasalud.congresoedomex.gob.mx',
+            origin: 'http://localhost:4200',
+            // origin: 'https://jornadasalud.congresoedomex.gob.mx',
             credentials: true
         }));
 
