@@ -17,6 +17,7 @@ exports.generarPDFBufferSalud = generarPDFBufferSalud;
 const citas_salud_1 = __importDefault(require("../models/citas_salud"));
 const dp_fum_datos_generales_1 = require("../models/fun/dp_fum_datos_generales");
 const s_usuario_1 = __importDefault(require("../models/saf/s_usuario"));
+const t_departamento_1 = __importDefault(require("../models/saf/t_departamento"));
 const pdfkit_1 = __importDefault(require("pdfkit"));
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
@@ -138,6 +139,17 @@ const generarPdfAcuse = (req, res) => __awaiter(void 0, void 0, void 0, function
             where: { f_rfc: rfc },
             attributes: ["f_nombre", "f_primer_apellido", "f_segundo_apellido", "f_sexo", "f_fecha_nacimiento", "f_curp"]
         });
+        const ads = yield s_usuario_1.default.findOne({
+            where: {
+                N_Usuario: rfc
+            },
+            include: [
+                {
+                    model: t_departamento_1.default,
+                    as: "departamento"
+                }
+            ]
+        });
         if (!Validacion) {
             throw new Error("No se encontró información para el RFC proporcionado");
         }
@@ -146,6 +158,8 @@ const generarPdfAcuse = (req, res) => __awaiter(void 0, void 0, void 0, function
             Validacion.f_primer_apellido,
             Validacion.f_segundo_apellido
         ].filter(Boolean).join(" ");
+        const adscripcion = ads === null || ads === void 0 ? void 0 : ads.departamento.nombre_completo;
+        // const adscripcion = ads?.
         const sexo = Validacion.f_sexo || "";
         let curp1 = Validacion.f_curp || "";
         let edad = "";
@@ -170,6 +184,7 @@ const generarPdfAcuse = (req, res) => __awaiter(void 0, void 0, void 0, function
             curp: curp1,
             fecha: cita.fecha_cita,
             telefono: cita.telefono,
+            adscripcion: adscripcion,
             citaId: cita.id
         });
         res.setHeader("Content-Type", "application/pdf");
@@ -226,24 +241,21 @@ function generarPDFBufferSalud(data) {
                 align: "center",
             })
                 .fillColor("black");
-            doc.moveDown(2);
+            doc.moveDown();
             doc.font("Helvetica").fontSize(12).text(`Folio: ${data.folio}`, { align: "right" });
             doc.font("Helvetica").fontSize(12).text(`Fecha cita: ${data.fecha}`, { align: "right" });
-            doc.fontSize(12)
+            doc.font("Helvetica").fontSize(12).text(`Sede: Estacionamiento longares`, { align: "right" });
+            doc.moveDown();
+            doc.fontSize(11)
                 .font("Helvetica")
-                .text(`Servidor público: ${data.nombreCompleto} | Edad: ${data.edad} años`, { align: "left" })
+                .text(`SERVIDOR PÚBLICO: ${data.nombreCompleto} | EDAD: ${data.edad} AÑOS`, { align: "left" })
                 .text(`CURP: ${data.curp}`, { align: "left" })
-                .text(`Correo electrónico: ${data.correo} | Teléfono: ${data.telefono}`, { align: "left" })
-                .text(`Ubicación: Av. Hidalgo #1012, Barrio San Benardino, Toluca, México.`, { align: "left" });
+                .text(`CORREO ELECTRÓNICO: ${data.correo} | TELÉFONO: ${data.telefono}`, { align: "left" })
+                .text(`ADSCRIPCIÓN: ${data.adscripcion}`, { align: "left" });
             doc.moveDown();
-            doc.fontSize(11).text("El sindicato del Poder Legislativo del Estado de México organiza la jornada de salud y prevención SUTEyM 2026.", { align: "justify" });
+            doc.fontSize(11).text("La delegación SUTEyM-Poder Legislativo invita a la 'Jornada de salud y prevención SUTEyM 2026' con el propósito de fortalecer las acciones preventivas y contribuir a la protección y al cuidado de la salud de las personas servidoras públicas del Poder Legislativo.", { align: "justify" });
             doc.moveDown();
-            doc.fontSize(11).text("Actividad dirigida exclusivamente a las personas servidoras públicas del Poder Legislativo del Estado de México. Encaso de presentarse alguna duda, error o requerir asistencia relacionada con el acceso, comunícate a las extensiones 5506 y 5517 del Departamento de Desarrollo y Actualización Tecnológica.", { align: "justify" });
-            doc.moveDown();
-            doc.fontSize(11).text("Para acceder a este beneficio, es indispensable presentar en el día y hora asignados.", { align: "justify" });
-            doc.moveDown();
-            doc.fontSize(11).text("Durante la jornada se llevará a cabo evaluaciones médicas y acciones preventivas de salud, consistentes en: ", { align: "justify" });
-            doc.moveDown();
+            doc.fontSize(11).text("El checkup SUTEyM incluye: ", { align: "justify" });
             doc.fontSize(11).list([
                 "Examen de laboratorios (glucosa, colesterol, triglicéridos);",
                 "Somatometría (toma de peso y talla);",
@@ -255,19 +267,37 @@ function generarPDFBufferSalud(data) {
                 "Nutrición (hábitos alimenticios);",
             ], { bulletIndent: 20 });
             doc.moveDown(1);
-            // doc.fontSize(11).text(
-            //   "Si no se presenta alguno de estos documentos el día de la cita, no podrá realizar su examen y este se dará por perdido. Aviso de Privacidad",
-            //   { align: "justify" }
-            // );
-            // doc.moveDown();
-            // doc.font("Helvetica-Bold").fontSize(10).text("Aviso de Privacidad", { align: "left" });
-            // doc.font("Helvetica").fontSize(9).text("Consúltalo en:", { align: "left" });
-            // doc.font("Helvetica")
-            //   .fontSize(9)
-            //   .text(
-            //     "https://legislacion.legislativoedomex.gob.mx/storage/documentos/avisosprivacidad/expediente-clinico.pdf",
-            //     { align: "left" }
-            //   );
+            doc.fontSize(11).text("Condiciones en las que se tiene que presentar los servidores públicos para la evaluación médica:", { align: "justify" });
+            doc.rect(50, doc.y + 5, 10, 10).stroke();
+            doc.font('Helvetica-Bold').text('X', 52, doc.y + 15 - 10);
+            doc.font('Helvetica').text('Credencial de afiliación ISSEMYM o talón de pago', 70, doc.y - 10);
+            doc.rect(50, doc.y, 10, 10).stroke();
+            doc.font('Helvetica-Bold').text('X', 52, doc.y + 12 - 10);
+            doc.font('Helvetica').text('Ayuno mínimo de 8 horas', 70, doc.y - 10);
+            doc.rect(50, doc.y, 10, 10).stroke();
+            doc.font('Helvetica-Bold').text('X', 52, doc.y + 12 - 10);
+            doc.font('Helvetica').text('Aseo general', 70, doc.y - 10);
+            doc.moveDown();
+            doc.font('Helvetica').text('', 50, doc.y - 10);
+            doc.moveDown();
+            doc.font('Helvetica-Bold').fontSize(11).text("Mujeres", { continued: true });
+            doc.font('Helvetica').text(' en condiciones para Papanicolaou:', {
+                align: 'justify'
+            });
+            doc.fontSize(11).list([
+                "Baño corporal",
+                "Ropa de dos piezas",
+                "Tres días sin haber tenido contacto sexual, no haberse aplicado ningun tratamiento vaginal en las últimas 48 horas como: duchas vaginales, cremas y óvulos",
+                "Ocho días despúes del último día de menstrución"
+            ], { bulletIndent: 20 });
+            doc.moveDown();
+            doc.font('Helvetica-Bold').fontSize(9).list([
+                "Servicio exclusivo para servidores públicos del Poder Legislativo.",
+                "Indispensable presentarse atendiendo las condiciones para la evaluación médica.",
+                "Se atenderá a los servidores públicos conforme la llegada y presentación en la unidad móvil.",
+                "Mayor información de la Jornada de salud en la delegación sindical, en edificio San Rafael, Av. Independencia #108, ext. 1905",
+                "En caso de presentar alguna duda, error o requerir asistencia relacionada con el acceso comunicate a las extensiones 5506, 5517 del Departamento de Desarrollo y Actualización Tecnológica"
+            ], { bulletIndent: 20 });
             doc.end();
         }));
     });
