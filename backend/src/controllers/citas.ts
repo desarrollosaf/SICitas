@@ -524,7 +524,7 @@ export async function generarPDFBuffer(data: PDFData): Promise<Buffer> {
     doc.on("error", reject);
 
     // ===== CONTENIDO DEL PDF =====
-    doc.image(path.join(__dirname, "../assets/salud_page_v.jpeg"), 0, 0, {
+    doc.image(path.join(__dirname, "../assets/salud_page_mem.jpg"), 0, 0, {
       width: doc.page.width,
       height: doc.page.height,
     });
