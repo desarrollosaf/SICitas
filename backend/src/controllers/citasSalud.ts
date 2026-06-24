@@ -150,7 +150,7 @@ export const generarPdfAcuse = async (req: Request, res: Response) => {
 
     const Validacion = await dp_fum_datos_generales.findOne({
       where: { f_rfc: rfc },
-      attributes: ["f_nombre", "f_primer_apellido", "f_segundo_apellido", "f_sexo", "f_fecha_nacimiento", "f_curp"]
+      attributes: ["f_nombre", "f_primer_apellido", "f_segundo_apellido", "f_sexo", "f_fecha_nacimiento", "f_curp", "f_clave_issemym"]
     });
 
     const ads = await SUsuario.findOne({
@@ -175,6 +175,7 @@ export const generarPdfAcuse = async (req: Request, res: Response) => {
     ].filter(Boolean).join(" ");
 
     const adscripcion = ads?.departamento.nombre_completo;
+    const issemym = Validacion.f_clave_issemym || "";
 
     // const adscripcion = ads?.
     const sexo = Validacion.f_sexo || "";
@@ -205,6 +206,7 @@ export const generarPdfAcuse = async (req: Request, res: Response) => {
       fecha: cita.fecha_cita,
       telefono: cita.telefono,
       adscripcion: adscripcion,
+      issemym: issemym,
       citaId: cita.id
     });
     res.setHeader("Content-Type", "application/pdf");
@@ -229,6 +231,7 @@ interface PDFData {
   fecha: string;
   telefono: string;
   adscripcion: string;
+  issemym: string;
   citaId: number; // <-- ID de la cita para actualizar
 }
 
@@ -236,7 +239,7 @@ export async function generarPDFBufferSalud(data: PDFData): Promise<Buffer> {
   return new Promise(async (resolve, reject) => {
     const doc = new PDFDocument({ size: "LETTER", margin: 50 });
     const chunks: any[] = [];
-
+    const fecha = data.fecha.split('-').reverse().join('/');
     const pdfDir = path.join(process.cwd(), "storage/public/pdfs");
     if (!fs.existsSync(pdfDir)) {
       fs.mkdirSync(pdfDir, { recursive: true });
@@ -277,66 +280,66 @@ export async function generarPDFBufferSalud(data: PDFData): Promise<Buffer> {
       .fontSize(18)
       .font("Helvetica-Bold")
       .fillColor("#7d0037") // ✅ Aplica el color
-      .text("JORNADA DE SALUD Y PREVENCIÓN SUTEyM 2026", {
+      .text("JORNADA DE SALUD Y PREVENCIÓN SUTEYM 2026", {
         align: "center",
       })
       .fillColor("black");
 
     doc.moveDown();
     doc.font("Helvetica").fontSize(12).text(`Folio: ${data.folio}`, { align: "right" });
-    doc.font("Helvetica").fontSize(12).text(`Fecha cita: ${data.fecha}`, { align: "right" });
-    doc.font("Helvetica").fontSize(12).text(`Sede: Estacionamiento longares`, { align: "right" });
+    doc.font("Helvetica").fontSize(12).text(`Fecha cita: ${fecha}`, { align: "right" });
+    doc.font("Helvetica").fontSize(12).text(`Sede: Estacionamiento Longares`, { align: "right" });
     doc.moveDown();
 
     doc.fontSize(11)
       .font("Helvetica")
-      .text(`SERVIDOR PÚBLICO: ${data.nombreCompleto} | EDAD: ${data.edad} AÑOS` , { align: "left" })
-      .text(`CURP: ${data.curp}`, { align: "left" })
-      .text(`CORREO ELECTRÓNICO: ${data.correo} | TELÉFONO: ${data.telefono}`, { align: "left" })
-      .text(`ADSCRIPCIÓN: ${data.adscripcion}`, { align: "left" });
+      .text(`Servidor Público: ${data.nombreCompleto} | Edad: ${data.edad} años` , { align: "left" })
+      .text(`CURP: ${data.curp} | Clave ISSEMYM: ${data.issemym}`, { align: "left" }) 
+      .text(`Correo Electrónico: ${data.correo} | Teléfono: ${data.telefono}`, { align: "left" })
+      .text(`Adscripción: ${data.adscripcion}`, { align: "left" });
 
     doc.moveDown();
     doc.fontSize(11).text(
-      "La delegación SUTEyM-Poder Legislativo invita a la 'Jornada de salud y prevención SUTEyM 2026' con el propósito de fortalecer las acciones preventivas y contribuir a la protección y al cuidado de la salud de las personas servidoras públicas del Poder Legislativo.",
+      'La Delegación SUTEyM-Poder Legislativo invita a la "Jornada de Salud y Prevención SUTEyM 2026", con el propósito de fortalecer las acciones preventivas y contribuir a la protección y al cuidado de la salud de las personas servidoras públicas del Poder Legislativo.',
       { align: "justify" }
     );
 
     doc.moveDown();
     doc.fontSize(11).text(
-      "El checkup SUTEyM incluye: ",
+      "El check-up médico SUTEyM incluye: ",
       { align: "justify" }
     );
     doc.fontSize(11).list(
       [
-        "Examen de laboratorios (glucosa, colesterol, triglicéridos);",
+        "Examen de laboratorio (glucosa, colesterol, triglicéridos);",
         "Somatometría (toma de peso y talla);",
-        "Papanicolau;",
+        "Papanicolaou;",
         "Exploración de mama;",
-        "Antígeno prostático (únicamente para hombres mayores de 40 años);",
-        "Medicina general;",
-        "Psicología; y ;",
-        "Nutrición (hábitos alimenticios);",
+        "Antígeno prostático (únicamente hombres mayores de 40 años);",
+        "Medico general;",
+        "Psicología; y ",
+        "Nutrición (hábitos alimenticios).",
       ],
       { bulletIndent: 20 }
     );
     doc.moveDown(1);
 
-    doc.fontSize(11).text(
-      "Condiciones en las que se tiene que presentar los servidores públicos para la evaluación médica:",
+    doc.font('Helvetica-Bold').fontSize(11).text(
+      "Condiciones en las que se tienen que presentar los servidores públicos para la evaluación médica:",
       { align: "justify" }
     );
 
     doc.rect(50, doc.y+5, 10, 10).stroke();
     doc.font('Helvetica-Bold').text('X', 52, doc.y+15 - 10);
-    doc.font('Helvetica').text('Credencial de afiliación ISSEMYM o talón de pago', 70, doc.y - 10);
+    doc.font('Helvetica').text('Credencial de afiliación ISSEMYM o último talón de pago;', 70, doc.y - 10);
 
     doc.rect(50, doc.y, 10, 10).stroke();
     doc.font('Helvetica-Bold').text('X', 52, doc.y+12 - 10);
-    doc.font('Helvetica').text('Ayuno mínimo de 8 horas', 70, doc.y - 10);
+    doc.font('Helvetica').text('Ayuno mínimo de 8 horas;', 70, doc.y - 10);
 
     doc.rect(50, doc.y, 10, 10).stroke();
     doc.font('Helvetica-Bold').text('X', 52, doc.y+12 - 10);
-    doc.font('Helvetica').text('Aseo general', 70, doc.y - 10);
+    doc.font('Helvetica').text('Aseo general.', 70, doc.y - 10);
    
     doc.moveDown();
     doc.font('Helvetica').text('', 50, doc.y - 10);
@@ -344,31 +347,36 @@ export async function generarPDFBufferSalud(data: PDFData): Promise<Buffer> {
     doc.font('Helvetica-Bold').fontSize(11).text(
       "Mujeres" , { continued: true });
     
-    doc.font('Helvetica').text(' en condiciones para Papanicolaou:', {
+    doc.font('Helvetica').text('(condiciones para Papanicolaou):', {
       align: 'justify'
     });
     doc.fontSize(11).list(
       [
-        "Baño corporal",
-        "Ropa de dos piezas",
-        "Tres días sin haber tenido contacto sexual, no haberse aplicado ningun tratamiento vaginal en las últimas 48 horas como: duchas vaginales, cremas y óvulos",
-        "Ocho días despúes del último día de menstrución"
+        "Baño corporal;",
+        "Ropa de dos piezas;",
+        "Tres días sin haber tenido contacto sexual, no haberse aplicado ningun tratamiento vaginal en las últimas 48 horas como: duchas vaginales, cremas u óvulos;",
+        "Ocho días despúes del último día de menstrución."
       ],
       { bulletIndent: 20 }
     );
 
     doc.moveDown();
-    doc.font('Helvetica-Bold').fontSize(9).list(
-      [
-        "Servicio exclusivo para servidores públicos del Poder Legislativo.",
-        "Indispensable presentarse atendiendo las condiciones para la evaluación médica.",
-        "Se atenderá a los servidores públicos conforme la llegada y presentación en la unidad móvil.",
-        "Mayor información de la Jornada de salud en la delegación sindical, en edificio San Rafael, Av. Independencia #108, ext. 1905",
-        "En caso de presentar alguna duda, error o requerir asistencia relacionada con el acceso comunicate a las extensiones 5506, 5517 del Departamento de Desarrollo y Actualización Tecnológica"
-      ],
-      { bulletIndent: 20 }
-    );
-
+    doc.font('Helvetica-Bold').fontSize(9).text("Servicio exclusivo para servidores públicos del Poder Legislativo.", {
+      align: 'justify'
+    });
+    doc.text("Indispensable presentarse atendiendo las condiciones para la evaluación médica.", {
+      align: 'justify'
+    });
+    doc.text("Se atenderá a los servidores públicos conforme su llegada y presentación en la unidad móvil.", {
+      align: 'justify'
+    });
+    doc.text("Mayor información de la Jornada de Salud en la delegación sindical, en edificio San Rafael, Av. Independencia #108, Col. Centro, Toluca, México. Ext. 1905.", {
+      align: 'justify'
+    });
+    doc.text("En caso de presentar alguna duda, error o requerir asistencia relacionada con el acceso ó registro, comunicate a las extensiones 5506 ó 5517 del Departamento de Desarrollo y Actualización Tecnológica.", {
+      align: 'justify'
+    });
+    
     doc.end();
   });
 }
