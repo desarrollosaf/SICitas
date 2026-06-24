@@ -239,7 +239,7 @@ export async function generarPDFBufferSalud(data: PDFData): Promise<Buffer> {
   return new Promise(async (resolve, reject) => {
     const doc = new PDFDocument({ size: "LETTER", margin: 50 });
     const chunks: any[] = [];
-
+    const fecha = data.fecha.split('-').reverse().join('/');
     const pdfDir = path.join(process.cwd(), "storage/public/pdfs");
     if (!fs.existsSync(pdfDir)) {
       fs.mkdirSync(pdfDir, { recursive: true });
@@ -287,7 +287,7 @@ export async function generarPDFBufferSalud(data: PDFData): Promise<Buffer> {
 
     doc.moveDown();
     doc.font("Helvetica").fontSize(12).text(`Folio: ${data.folio}`, { align: "right" });
-    doc.font("Helvetica").fontSize(12).text(`Fecha cita: ${data.fecha}`, { align: "right" });
+    doc.font("Helvetica").fontSize(12).text(`Fecha cita: ${fecha}`, { align: "right" });
     doc.font("Helvetica").fontSize(12).text(`Sede: Estacionamiento Longares`, { align: "right" });
     doc.moveDown();
 
