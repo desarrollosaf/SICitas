@@ -58,10 +58,11 @@ export async function generarReporteCitasPDF(
         const curp = cita.datos_user?.f_curp || "Sin curp";
         const correo = cita.correo ?? "Sin correo";
         const telefono = cita.telefono ?? "Sin teléfono";
-        citasTexto += `• ${nombre} |CURP: ${curp} | Correo: ${correo} | Tel: ${telefono}\n`;
+        const clave = cita.datos_user?.f_clave_issemym ?? "Sin clave";
+        const adscripcion = cita.adscripcion ?? "Sin adscripción";
+        citasTexto += `• ${nombre} | CURP: ${curp} | Clave ISEEMYM: ${clave} | Correo: ${correo} | Tel: ${telefono} | Adscripción: ${adscripcion} \n\n`;
       }
       
-
       // Calcular altura de la fila ajustada
       const citasWidth = 480;
       const textHeight = doc.heightOfString(citasTexto, { width: citasWidth, align: "left" });

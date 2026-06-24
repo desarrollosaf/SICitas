@@ -438,12 +438,25 @@ export const getcitasFecha = async (req: Request, res: Response): Promise<any> =
                 f_rfc: cita?.rfc
               }
             })
+            const ads = await SUsuario.findOne({
+              where: {
+                N_Usuario: cita?.rfc
+              }, 
+              include:[
+                {
+                  model: Departamento,
+                  as: "departamento"
+                }
+              ]
+            }); 
           
         obj.horarios.push({
             nombre: `${datosg?.f_nombre} ${datosg?.f_primer_apellido} ${datosg?.f_segundo_apellido}`,
             rfc: `${datosg?.f_rfc}`,
             num: `${cita.telefono}`,
-            correo: `${cita.correo}`
+            correo: `${cita.correo}`,
+            issemym: `${datosg?.f_clave_issemym}`,
+            adscripcion: `${ads?.departamento?.nombre_completo}`,
           });
         }
       };
@@ -652,12 +665,29 @@ export const generarPDFCitas = async (req: Request, res: Response) => {
         const datos = await dp_fum_datos_generales.findOne({
           where: { f_rfc: cita.rfc },
           attributes: [
-            [Sequelize.literal(`CONCAT(f_nombre, ' ', f_primer_apellido, ' ', f_segundo_apellido)`), 'nombre_completo'], 'f_curp'
+            [Sequelize.literal(`CONCAT(f_nombre, ' ', f_primer_apellido, ' ', f_segundo_apellido)`), 'nombre_completo'], 'f_curp', 'f_clave_issemym'
           ],
           raw: true
         });
+
+        const adscripcion = await SUsuario.findOne({
+          where: { 
+            N_Usuario: cita.rfc
+          }, 
+          include: [
+            {
+              model: Departamento,
+              as: "departamento"
+            }
+          ]
+        })
+      
         if (datos) {
-          (cita as any).datos_user = datos; // ✅ lo agregas directamente
+          (cita as any).datos_user = datos;
+         
+        }
+        if(adscripcion){
+           (cita as any).adscripcion = adscripcion?.departamento?.nombre_completo; // ✅ lo agregas directamente
         }
       }
     }
@@ -853,10 +883,11 @@ export const generarExcelCitas = async (req: Request, res: Response) => {
         const datos = await dp_fum_datos_generales.findOne({
           where: { f_rfc: cita.rfc },
           attributes: [
-            [Sequelize.literal(`CONCAT(f_nombre, ' ', f_primer_apellido, ' ', f_segundo_apellido)`), "nombre_completo"]
+            [Sequelize.literal(`CONCAT(f_nombre, ' ', f_primer_apellido, ' ', f_segundo_apellido)`), "nombre_completo"], "f_clave_issemym"
           ],
           raw: true
         });
+
         if (datos) {
           (cita as any).datos_user = datos;
         }
@@ -871,8 +902,23 @@ export const generarExcelCitas = async (req: Request, res: Response) => {
           ],
           raw: true
         });
+
+        const ads = await SUsuario.findOne({
+          where:{
+            N_Usuario: cita.rfc
+          }, 
+          include:[
+            {
+              model: Departamento, 
+              as: "departamento"
+            }
+          ]
+        });
         if (usuario) {
           cita.setDataValue("dependencia", usuario);
+        }
+        if(ads){
+          (cita as any).adscripcion = ads?.departamento?.nombre_completo;
         }
       }
     }
@@ -893,19 +939,22 @@ export const generarExcelCitas = async (req: Request, res: Response) => {
 
     // Encabezados
     // sheet.addRow(["Horario", "Nombre", "Dependencia", "Direccion", "Departamento", "Correo", "Teléfono"]);
-        sheet.addRow(["Nombre", "Correo", "Teléfono"]);
+        sheet.addRow(["Nombre", "Correo", "Teléfono", "Clave ISSEMYM", "Adscripción"]);
     const headerRow = sheet.getRow(2); // Fila 3 porque hay título y fila vacía
     headerRow.font = { bold: true };
     headerRow.alignment = { horizontal: "center" };
 
     // Datos
     for (const cita of citas) {
+      console.log('cita   ', cita);
       const nombre =
         (cita as any).datos_user?.nombre_completo || "Nombre desconocido";
       const correo = cita.correo ?? "Sin correo";
       const telefono = cita.telefono ?? "Sin teléfono";
+      const clave = cita.datos_user.f_clave_issemym ?? "Sin clave";
+      const adscripcion = cita.adscripcion ?? "Sin adscripción";
 
-      sheet.addRow([nombre, correo, telefono]);
+      sheet.addRow([nombre, correo, telefono, clave, adscripcion]);
     }
       
     // Ajustar ancho columnas automáticamente

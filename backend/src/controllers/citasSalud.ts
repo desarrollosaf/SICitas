@@ -280,7 +280,7 @@ export async function generarPDFBufferSalud(data: PDFData): Promise<Buffer> {
       .fontSize(18)
       .font("Helvetica-Bold")
       .fillColor("#7d0037") // ✅ Aplica el color
-      .text("JORNADA DE SALUD Y PREVENCIÓN SUTEyM 2026", {
+      .text("JORNADA DE SALUD Y PREVENCIÓN SUTEYM 2026", {
         align: "center",
       })
       .fillColor("black");
@@ -300,7 +300,7 @@ export async function generarPDFBufferSalud(data: PDFData): Promise<Buffer> {
 
     doc.moveDown();
     doc.fontSize(11).text(
-      'La Delegación SUTEyM-Poder Legislativo invita a la "Jornada de Salud y Prevención SUTEyM 2026" con el propósito de fortalecer las acciones preventivas y contribuir a la protección y al cuidado de la salud de las personas servidoras públicas del Poder Legislativo.',
+      'La Delegación SUTEyM-Poder Legislativo invita a la "Jornada de Salud y Prevención SUTEyM 2026", con el propósito de fortalecer las acciones preventivas y contribuir a la protección y al cuidado de la salud de las personas servidoras públicas del Poder Legislativo.',
       { align: "justify" }
     );
 
@@ -325,7 +325,7 @@ export async function generarPDFBufferSalud(data: PDFData): Promise<Buffer> {
     doc.moveDown(1);
 
     doc.font('Helvetica-Bold').fontSize(11).text(
-      "Condiciones en las que se tiene que presentar los servidores públicos para la evaluación médica:",
+      "Condiciones en las que se tienen que presentar los servidores públicos para la evaluación médica:",
       { align: "justify" }
     );
 
@@ -373,7 +373,7 @@ export async function generarPDFBufferSalud(data: PDFData): Promise<Buffer> {
     doc.text("Mayor información de la Jornada de Salud en la delegación sindical, en edificio San Rafael, Av. Independencia #108, Col. Centro, Toluca, México. Ext. 1905.", {
       align: 'justify'
     });
-    doc.text("En caso de presentar alguna duda, error o requerir asistencia relacionada con el acceso ó registro comunicate a las extensiones 5506, 5517 del Departamento de Desarrollo y Actualización Tecnológica", {
+    doc.text("En caso de presentar alguna duda, error o requerir asistencia relacionada con el acceso ó registro, comunicate a las extensiones 5506 ó 5517 del Departamento de Desarrollo y Actualización Tecnológica.", {
       align: 'justify'
     });
     
