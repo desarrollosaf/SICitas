@@ -18,7 +18,7 @@ const path_1 = __importDefault(require("path"));
 function generarReporteCitasPDF(fechap, citas) {
     return __awaiter(this, void 0, void 0, function* () {
         return new Promise((resolve, reject) => {
-            var _a, _b, _c, _d;
+            var _a, _b, _c, _d, _e, _f, _g;
             const doc = new pdfkit_1.default({ size: "A4", margin: 50 });
             const chunks = [];
             doc.on("data", (chunk) => chunks.push(chunk));
@@ -59,10 +59,12 @@ function generarReporteCitasPDF(fechap, citas) {
                 const curp = ((_b = cita.datos_user) === null || _b === void 0 ? void 0 : _b.f_curp) || "Sin curp";
                 const correo = (_c = cita.correo) !== null && _c !== void 0 ? _c : "Sin correo";
                 const telefono = (_d = cita.telefono) !== null && _d !== void 0 ? _d : "Sin teléfono";
-                citasTexto += `• ${nombre} |CURP: ${curp} | Correo: ${correo} | Tel: ${telefono}\n`;
+                const clave = (_f = (_e = cita.datos_user) === null || _e === void 0 ? void 0 : _e.f_clave_issemym) !== null && _f !== void 0 ? _f : "Sin clave";
+                const adscripcion = (_g = cita.adscripcion) !== null && _g !== void 0 ? _g : "Sin adscripción";
+                citasTexto += `• ${nombre} | CURP: ${curp} | Clave ISSEMYM: ${clave} | Tel: ${telefono} | Correo: ${correo} | Adscripción: ${adscripcion} \n\n`;
             }
             // Calcular altura de la fila ajustada
-            const citasWidth = 480;
+            const citasWidth = 500;
             const textHeight = doc.heightOfString(citasTexto, { width: citasWidth, align: "left" });
             // Reducir el padding a 2
             const padding = 5;
@@ -86,7 +88,7 @@ function generarReporteCitasPDF(fechap, citas) {
             }
             else {
                 doc.fillColor("black").font("Helvetica").fontSize(9);
-                doc.text(citasTexto.trim(), col2X, rowY + 3, { width: citasWidth });
+                doc.text(citasTexto.trim(), col2X + 15, rowY + 3, { width: citasWidth });
             }
             // Avanzar a la siguiente fila
             doc.y = rowY + rowHeight + 3; // Asegúrate de no dejar espacio innecesario

@@ -137,7 +137,7 @@ const generarPdfAcuse = (req, res) => __awaiter(void 0, void 0, void 0, function
         });
         const Validacion = yield dp_fum_datos_generales_1.dp_fum_datos_generales.findOne({
             where: { f_rfc: rfc },
-            attributes: ["f_nombre", "f_primer_apellido", "f_segundo_apellido", "f_sexo", "f_fecha_nacimiento", "f_curp"]
+            attributes: ["f_nombre", "f_primer_apellido", "f_segundo_apellido", "f_sexo", "f_fecha_nacimiento", "f_curp", "f_clave_issemym"]
         });
         const ads = yield s_usuario_1.default.findOne({
             where: {
@@ -159,6 +159,7 @@ const generarPdfAcuse = (req, res) => __awaiter(void 0, void 0, void 0, function
             Validacion.f_segundo_apellido
         ].filter(Boolean).join(" ");
         const adscripcion = ads === null || ads === void 0 ? void 0 : ads.departamento.nombre_completo;
+        const issemym = Validacion.f_clave_issemym || "";
         // const adscripcion = ads?.
         const sexo = Validacion.f_sexo || "";
         let curp1 = Validacion.f_curp || "";
@@ -185,6 +186,7 @@ const generarPdfAcuse = (req, res) => __awaiter(void 0, void 0, void 0, function
             fecha: cita.fecha_cita,
             telefono: cita.telefono,
             adscripcion: adscripcion,
+            issemym: issemym,
             citaId: cita.id
         });
         res.setHeader("Content-Type", "application/pdf");
@@ -202,6 +204,7 @@ function generarPDFBufferSalud(data) {
         return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
             const doc = new pdfkit_1.default({ size: "LETTER", margin: 50 });
             const chunks = [];
+            const fecha = data.fecha.split('-').reverse().join('/');
             const pdfDir = path_1.default.join(process.cwd(), "storage/public/pdfs");
             if (!fs_1.default.existsSync(pdfDir)) {
                 fs_1.default.mkdirSync(pdfDir, { recursive: true });
@@ -237,23 +240,23 @@ function generarPDFBufferSalud(data) {
                 .fontSize(18)
                 .font("Helvetica-Bold")
                 .fillColor("#7d0037") // ✅ Aplica el color
-                .text("JORNADA DE SALUD Y PREVENCIÓN SUTEyM 2026", {
+                .text("JORNADA DE SALUD Y PREVENCIÓN SUTEYM 2026", {
                 align: "center",
             })
                 .fillColor("black");
             doc.moveDown();
             doc.font("Helvetica").fontSize(12).text(`Folio: ${data.folio}`, { align: "right" });
-            doc.font("Helvetica").fontSize(12).text(`Fecha cita: ${data.fecha}`, { align: "right" });
+            doc.font("Helvetica").fontSize(12).text(`Fecha cita: ${fecha}`, { align: "right" });
             doc.font("Helvetica").fontSize(12).text(`Sede: Estacionamiento Longares`, { align: "right" });
             doc.moveDown();
             doc.fontSize(11)
                 .font("Helvetica")
                 .text(`Servidor Público: ${data.nombreCompleto} | Edad: ${data.edad} años`, { align: "left" })
-                .text(`CURP: ${data.curp} | Clave ISSEMYM: `, { align: "left" })
+                .text(`CURP: ${data.curp} | Clave ISSEMYM: ${data.issemym}`, { align: "left" })
                 .text(`Correo Electrónico: ${data.correo} | Teléfono: ${data.telefono}`, { align: "left" })
                 .text(`Adscripción: ${data.adscripcion}`, { align: "left" });
             doc.moveDown();
-            doc.fontSize(11).text('La Delegación SUTEyM-Poder Legislativo invita a la "Jornada de Salud y Prevención SUTEyM 2026" con el propósito de fortalecer las acciones preventivas y contribuir a la protección y al cuidado de la salud de las personas servidoras públicas del Poder Legislativo.', { align: "justify" });
+            doc.fontSize(11).text('La Delegación SUTEyM-Poder Legislativo invita a la "Jornada de Salud y Prevención SUTEyM 2026", con el propósito de fortalecer las acciones preventivas y contribuir a la protección y al cuidado de la salud de las personas servidoras públicas del Poder Legislativo.', { align: "justify" });
             doc.moveDown();
             doc.fontSize(11).text("El check-up médico SUTEyM incluye: ", { align: "justify" });
             doc.fontSize(11).list([
@@ -267,7 +270,7 @@ function generarPDFBufferSalud(data) {
                 "Nutrición (hábitos alimenticios).",
             ], { bulletIndent: 20 });
             doc.moveDown(1);
-            doc.font('Helvetica-Bold').fontSize(11).text("Condiciones en las que se tiene que presentar los servidores públicos para la evaluación médica:", { align: "justify" });
+            doc.font('Helvetica-Bold').fontSize(11).text("Condiciones en las que se tienen que presentar los servidores públicos para la evaluación médica:", { align: "justify" });
             doc.rect(50, doc.y + 5, 10, 10).stroke();
             doc.font('Helvetica-Bold').text('X', 52, doc.y + 15 - 10);
             doc.font('Helvetica').text('Credencial de afiliación ISSEMYM o último talón de pago;', 70, doc.y - 10);
@@ -303,7 +306,7 @@ function generarPDFBufferSalud(data) {
             doc.text("Mayor información de la Jornada de Salud en la delegación sindical, en edificio San Rafael, Av. Independencia #108, Col. Centro, Toluca, México. Ext. 1905.", {
                 align: 'justify'
             });
-            doc.text("En caso de presentar alguna duda, error o requerir asistencia relacionada con el acceso ó registro comunicate a las extensiones 5506, 5517 del Departamento de Desarrollo y Actualización Tecnológica", {
+            doc.text("En caso de presentar alguna duda, error o requerir asistencia relacionada con el acceso ó registro, comunicate a las extensiones 5506 ó 5517 del Departamento de Desarrollo y Actualización Tecnológica.", {
                 align: 'justify'
             });
             doc.end();

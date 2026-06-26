@@ -292,6 +292,7 @@ const getCita = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 });
 exports.getCita = getCita;
 const getcitasFecha = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     try {
         const { fecha, rfc } = req.params;
         const prefijo = rfc.substring(0, 3).toUpperCase();
@@ -394,11 +395,24 @@ const getcitasFecha = (req, res) => __awaiter(void 0, void 0, void 0, function* 
                                 f_rfc: cita === null || cita === void 0 ? void 0 : cita.rfc
                             }
                         });
+                        const ads = yield s_usuario_1.default.findOne({
+                            where: {
+                                N_Usuario: cita === null || cita === void 0 ? void 0 : cita.rfc
+                            },
+                            include: [
+                                {
+                                    model: t_departamento_1.default,
+                                    as: "departamento"
+                                }
+                            ]
+                        });
                         obj.horarios.push({
                             nombre: `${datosg === null || datosg === void 0 ? void 0 : datosg.f_nombre} ${datosg === null || datosg === void 0 ? void 0 : datosg.f_primer_apellido} ${datosg === null || datosg === void 0 ? void 0 : datosg.f_segundo_apellido}`,
                             rfc: `${datosg === null || datosg === void 0 ? void 0 : datosg.f_rfc}`,
                             num: `${cita.telefono}`,
-                            correo: `${cita.correo}`
+                            correo: `${cita.correo}`,
+                            issemym: `${datosg === null || datosg === void 0 ? void 0 : datosg.f_clave_issemym}`,
+                            adscripcion: `${(_a = ads === null || ads === void 0 ? void 0 : ads.departamento) === null || _a === void 0 ? void 0 : _a.nombre_completo}`,
                         });
                     }
                 }
@@ -449,7 +463,7 @@ function generarPDFBuffer(data) {
             }));
             doc.on("error", reject);
             // ===== CONTENIDO DEL PDF =====
-            doc.image(path_1.default.join(__dirname, "../assets/salud_page_v.jpeg"), 0, 0, {
+            doc.image(path_1.default.join(__dirname, "../assets/salud_page_mem.jpg"), 0, 0, {
                 width: doc.page.width,
                 height: doc.page.height,
             });
@@ -495,6 +509,7 @@ function generarPDFBuffer(data) {
     });
 }
 const generarPDFCitas = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     try {
         const { fecha, sedeId } = req.params;
         let citas;
@@ -561,12 +576,26 @@ const generarPDFCitas = (req, res) => __awaiter(void 0, void 0, void 0, function
                 const datos = yield dp_fum_datos_generales_1.dp_fum_datos_generales.findOne({
                     where: { f_rfc: cita.rfc },
                     attributes: [
-                        [sequelize_2.Sequelize.literal(`CONCAT(f_nombre, ' ', f_primer_apellido, ' ', f_segundo_apellido)`), 'nombre_completo'], 'f_curp'
+                        [sequelize_2.Sequelize.literal(`CONCAT(f_nombre, ' ', f_primer_apellido, ' ', f_segundo_apellido)`), 'nombre_completo'], 'f_curp', 'f_clave_issemym'
                     ],
                     raw: true
                 });
+                const adscripcion = yield s_usuario_1.default.findOne({
+                    where: {
+                        N_Usuario: cita.rfc
+                    },
+                    include: [
+                        {
+                            model: t_departamento_1.default,
+                            as: "departamento"
+                        }
+                    ]
+                });
                 if (datos) {
-                    cita.datos_user = datos; // ✅ lo agregas directamente
+                    cita.datos_user = datos;
+                }
+                if (adscripcion) {
+                    cita.adscripcion = (_a = adscripcion === null || adscripcion === void 0 ? void 0 : adscripcion.departamento) === null || _a === void 0 ? void 0 : _a.nombre_completo; // ✅ lo agregas directamente
                 }
             }
         }
@@ -667,7 +696,7 @@ const generarPdfAcuse = (req, res) => __awaiter(void 0, void 0, void 0, function
 });
 exports.generarPdfAcuse = generarPdfAcuse;
 const generarExcelCitas = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c, _d, _e, _f, _g, _h;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l;
     try {
         const { fecha, sedeId } = req.params;
         // const horarios = await HorarioCita.findAll({
@@ -738,7 +767,7 @@ const generarExcelCitas = (req, res) => __awaiter(void 0, void 0, void 0, functi
                 const datos = yield dp_fum_datos_generales_1.dp_fum_datos_generales.findOne({
                     where: { f_rfc: cita.rfc },
                     attributes: [
-                        [sequelize_2.Sequelize.literal(`CONCAT(f_nombre, ' ', f_primer_apellido, ' ', f_segundo_apellido)`), "nombre_completo"]
+                        [sequelize_2.Sequelize.literal(`CONCAT(f_nombre, ' ', f_primer_apellido, ' ', f_segundo_apellido)`), "nombre_completo"], "f_clave_issemym"
                     ],
                     raw: true
                 });
@@ -755,8 +784,22 @@ const generarExcelCitas = (req, res) => __awaiter(void 0, void 0, void 0, functi
                     ],
                     raw: true
                 });
+                const ads = yield s_usuario_1.default.findOne({
+                    where: {
+                        N_Usuario: cita.rfc
+                    },
+                    include: [
+                        {
+                            model: t_departamento_1.default,
+                            as: "departamento"
+                        }
+                    ]
+                });
                 if (usuario) {
                     cita.setDataValue("dependencia", usuario);
+                }
+                if (ads) {
+                    cita.adscripcion = (_e = ads === null || ads === void 0 ? void 0 : ads.departamento) === null || _e === void 0 ? void 0 : _e.nombre_completo;
                 }
             }
         }
@@ -773,19 +816,22 @@ const generarExcelCitas = (req, res) => __awaiter(void 0, void 0, void 0, functi
         sheet.addRow([]);
         // Encabezados
         // sheet.addRow(["Horario", "Nombre", "Dependencia", "Direccion", "Departamento", "Correo", "Teléfono"]);
-        sheet.addRow(["Nombre", "Correo", "Teléfono"]);
+        sheet.addRow(["Nombre", "Correo", "Teléfono", "Clave ISSEMYM", "Adscripción"]);
         const headerRow = sheet.getRow(2); // Fila 3 porque hay título y fila vacía
         headerRow.font = { bold: true };
         headerRow.alignment = { horizontal: "center" };
         // Datos
         for (const cita of citas) {
-            const nombre = ((_e = cita.datos_user) === null || _e === void 0 ? void 0 : _e.nombre_completo) || "Nombre desconocido";
-            const correo = (_f = cita.correo) !== null && _f !== void 0 ? _f : "Sin correo";
-            const telefono = (_g = cita.telefono) !== null && _g !== void 0 ? _g : "Sin teléfono";
-            sheet.addRow([nombre, correo, telefono]);
+            console.log('cita   ', cita);
+            const nombre = ((_f = cita.datos_user) === null || _f === void 0 ? void 0 : _f.nombre_completo) || "Nombre desconocido";
+            const correo = (_g = cita.correo) !== null && _g !== void 0 ? _g : "Sin correo";
+            const telefono = (_h = cita.telefono) !== null && _h !== void 0 ? _h : "Sin teléfono";
+            const clave = (_j = cita.datos_user.f_clave_issemym) !== null && _j !== void 0 ? _j : "Sin clave";
+            const adscripcion = (_k = cita.adscripcion) !== null && _k !== void 0 ? _k : "Sin adscripción";
+            sheet.addRow([nombre, correo, telefono, clave, adscripcion]);
         }
         // Ajustar ancho columnas automáticamente
-        (_h = sheet.columns) === null || _h === void 0 ? void 0 : _h.forEach(column => {
+        (_l = sheet.columns) === null || _l === void 0 ? void 0 : _l.forEach(column => {
             if (column && typeof column.eachCell === "function") {
                 let maxLength = 0;
                 column.eachCell({ includeEmpty: true }, cell => {
