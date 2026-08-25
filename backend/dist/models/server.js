@@ -51,7 +51,7 @@ class Server {
     midlewares() {
         this.app.use(express_1.default.json());
         this.app.use((0, cors_1.default)({
-            origin: ['http://localhost:4200', 'https://delegacionsindical.congresoedomex.gob.mx', 'https://jornadasalud.congresoedomex.gob.mx'],
+            origin: ['http://localhost:4200', 'https://delegacionsindical.congresoedomex.gob.mx', 'https://voluntariado.congresoedomex.gob.mx'],
             // origin: 'https://jornadasalud.congresoedomex.gob.mx',
             credentials: true
         }));
