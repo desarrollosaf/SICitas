@@ -1,16 +1,117 @@
 :host {
-  height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: block;
 }
+
+$auth-primary: #96134b;
+$auth-primary-dark: #5c0c2e;
 
 .auth-background {
   min-height: 100vh;
-  background: url('../../../../../assets/images/login_suteym.svg') no-repeat center center fixed;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
   display: flex;
   align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+  background: radial-gradient(circle at 75% 25%, #7a1442 0%, #4a0d29 45%, #24071a 100%);
+}
+
+.auth-card-wrapper {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.auth-card {
+  width: 100%;
+  border-radius: 1rem;
+  box-shadow: 0 1.5rem 3rem rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+}
+
+.auth-logo {
+  img {
+    max-height: 48px;
+  }
+}
+
+.auth-title {
+  font-weight: 700;
+  color: #212529;
+}
+
+.auth-subtitle {
+  color: #6c757d;
+  font-size: 0.9rem;
+}
+
+.auth-input-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  .form-control {
+    padding-left: 2.6rem;
+    background-color: #f5f6f8;
+    border-color: #e5e7eb;
+    border-radius: 0.5rem;
+
+    &:focus {
+      background-color: #fff;
+      border-color: $auth-primary;
+      box-shadow: 0 0 0 0.2rem rgba($auth-primary, 0.15);
+    }
+  }
+}
+
+.auth-input-icon {
+  position: absolute;
+  left: 0.85rem;
+  color: #9ca3af;
+  font-size: 1rem;
+  pointer-events: none;
+}
+
+.auth-input-toggle {
+  position: absolute;
+  right: 0.65rem;
+  display: flex;
+  align-items: center;
+  border: none;
+  background: transparent;
+  color: #9ca3af;
+  padding: 0.25rem;
+  cursor: pointer;
+
+  &:hover {
+    color: $auth-primary;
+  }
+}
+
+.auth-submit-btn {
+  background-color: $auth-primary;
+  border-color: $auth-primary;
+  font-weight: 600;
+  padding: 0.65rem 1rem;
+  border-radius: 0.5rem;
+
+  &:hover,
+  &:focus {
+    background-color: $auth-primary-dark;
+    border-color: $auth-primary-dark;
+  }
+}
+
+.auth-help-text {
+  text-align: center;
+  font-size: 0.8rem;
+  color: #8a8f98;
+  line-height: 1.5;
+}
+
+.auth-footer-text {
+  margin-top: 1.5rem;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.75);
+  text-align: center;
 }
