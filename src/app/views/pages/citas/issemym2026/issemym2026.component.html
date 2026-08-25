@@ -34,6 +34,8 @@
                                             <th class="text-center">Correo</th>
                                             <th class="text-center">Teléfono</th>
                                             <th class="text-center">Fecha cita</th>
+                                            <th class="text-center">Antígeno prostático</th>
+                                            <th class="text-center">Papanicolau</th>
                                             <th class="text-center">PDF</th>
                                         </tr>
                                     </thead>
@@ -44,6 +46,8 @@
                                             <td class="text-center">{{ datosCita.citas[0]?.correo }}</td>
                                             <td class="text-center">{{ datosCita.citas[0]?.telefono }}</td>
                                             <td class="text-center">{{ datosCita.citas[0]?.fecha_cita }}</td>
+                                            <td class="text-center">{{ datosCita.citas[0]?.antigeno_prostatico ? 'Sí' : 'No' }}</td>
+                                            <td class="text-center">{{ datosCita.citas[0]?.papanicolau ? 'Sí' : 'No' }}</td>
                                             <td class="text-center"><a
                                                     (click)="descargarpdf()"
                                                     target="_blank" rel="noopener noreferrer">
@@ -100,9 +104,15 @@
                             </div><br>
                             
                             <p>
-                                En caso de presentarse alguna duda, error o requerir asistencia relacionada con el acceso, comunícate 
+                                En caso de presentarse alguna duda, error o requerir asistencia relacionada con el acceso, comunícate
                                 a las extensiones 5506 y 5516 del Departamento de Desarrollo y Actualización Tecnológica.
                             </p>
+
+                            <h6 class="fw-bold">Estudios adicionales (cupo limitado a 15 personas por día):</h6><br>
+                            <input type="checkbox" id="antigenoProstatico" name="antigenoProstatico" [(ngModel)]="antigenoProstatico">
+                            Antígeno prostático (únicamente hombres mayores de 40 años) — Horario: 9:30 a 10:30.<br>
+                            <input type="checkbox" id="papanicolauCheck" name="papanicolauCheck" [(ngModel)]="papanicolau">
+                            Papanicolau — Horario: 10:30 a 12:30.<br>
                         </div>
 
                         <!-- Formulario en filas de 2 columnas -->

@@ -58,6 +58,8 @@ export class Issemym2026Component {
   credencial: string = '';
   ayuno: string = '';
   aseo: string = '';
+  antigenoProstatico: boolean = false;
+  papanicolau: boolean = false;
   enviandoRegistro: number | null = null;
 
 
@@ -220,7 +222,9 @@ export class Issemym2026Component {
       fecha_cita: this.fechaCitaEnvio,
       rfc: this.currentUser.rfc,
       correo: this.correoUsuario,
-      telefono: this.telefonoUsuario
+      telefono: this.telefonoUsuario,
+      antigeno_prostatico: this.antigenoProstatico,
+      papanicolau: this.papanicolau
     };
 
     this.enviandoRegistro = 1;
@@ -265,7 +269,7 @@ export class Issemym2026Component {
           });
           this.mostrarCalendario = true;
           this.modalRef.close();
-        }else if (response.status == 201 || response.status == 202) {
+        }else if (response.status !== 200) {
           Swal.fire({
             position: 'center',
             icon: 'warning',

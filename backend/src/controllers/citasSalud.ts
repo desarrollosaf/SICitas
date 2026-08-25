@@ -35,6 +35,8 @@ export const getCita = async (req: Request, res: Response): Promise<any> => {
         telefono: cita.telefono,
         folio: cita.folio,
         path: cita.path,
+        antigeno_prostatico: citaAny.antigeno_prostatico,
+        papanicolau: citaAny.papanicolau,
       };
     });
 
@@ -59,10 +61,14 @@ export const getCita = async (req: Request, res: Response): Promise<any> => {
 }
 
 
+const CUPO_ESTUDIOS = 15;
+
 export const savecita = async (req: Request, res: Response): Promise<any> => {
   try {
     const { body } = req;
     const limite = 120;
+    const antigenoProstatico = !!body.antigeno_prostatico;
+    const papanicolau = !!body.papanicolau;
 
     const citaExistente = await citasSalud.findOne({
       where: { rfc: body.rfc }
@@ -88,6 +94,30 @@ export const savecita = async (req: Request, res: Response): Promise<any> => {
         });
     }
 
+    if (antigenoProstatico) {
+      const cantidadAntigeno = await citasSalud.count({
+        where: { fecha_cita: body.fecha_cita, antigeno_prostatico: true }
+      });
+      if (cantidadAntigeno >= CUPO_ESTUDIOS) {
+        return res.json({
+          status: 203,
+          msg: "El cupo para antígeno prostático de esa fecha ya está lleno.",
+        });
+      }
+    }
+
+    if (papanicolau) {
+      const cantidadPapanicolau = await citasSalud.count({
+        where: { fecha_cita: body.fecha_cita, papanicolau: true }
+      });
+      if (cantidadPapanicolau >= CUPO_ESTUDIOS) {
+        return res.json({
+          status: 204,
+          msg: "El cupo para Papanicolau de esa fecha ya está lleno.",
+        });
+      }
+    }
+
     const folio: number = Math.floor(10000000 + Math.random() * 90000000);
 
     const cita = await citasSalud.create({
@@ -96,7 +126,9 @@ export const savecita = async (req: Request, res: Response): Promise<any> => {
       correo: body.correo,
       telefono: body.telefono,
       folio: folio,
-      path: '1'
+      path: '1',
+      antigeno_prostatico: antigenoProstatico,
+      papanicolau: papanicolau
     });
 
     const Validacion = await dp_fum_datos_generales.findOne({

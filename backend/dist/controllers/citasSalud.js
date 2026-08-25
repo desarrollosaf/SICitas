@@ -40,6 +40,8 @@ const getCita = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 telefono: cita.telefono,
                 folio: cita.folio,
                 path: cita.path,
+                antigeno_prostatico: citaAny.antigeno_prostatico,
+                papanicolau: citaAny.papanicolau,
             };
         });
         const usuario = yield s_usuario_1.default.findAll({
@@ -61,10 +63,13 @@ const getCita = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     }
 });
 exports.getCita = getCita;
+const CUPO_ESTUDIOS = 15;
 const savecita = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { body } = req;
         const limite = 120;
+        const antigenoProstatico = !!body.antigeno_prostatico;
+        const papanicolau = !!body.papanicolau;
         const citaExistente = yield citas_salud_1.default.findOne({
             where: { rfc: body.rfc }
         });
@@ -85,6 +90,28 @@ const savecita = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 msg: "La fecha seleccionada ya no tiene lugares disponibles.",
             });
         }
+        if (antigenoProstatico) {
+            const cantidadAntigeno = yield citas_salud_1.default.count({
+                where: { fecha_cita: body.fecha_cita, antigeno_prostatico: true }
+            });
+            if (cantidadAntigeno >= CUPO_ESTUDIOS) {
+                return res.json({
+                    status: 203,
+                    msg: "El cupo para antígeno prostático de esa fecha ya está lleno.",
+                });
+            }
+        }
+        if (papanicolau) {
+            const cantidadPapanicolau = yield citas_salud_1.default.count({
+                where: { fecha_cita: body.fecha_cita, papanicolau: true }
+            });
+            if (cantidadPapanicolau >= CUPO_ESTUDIOS) {
+                return res.json({
+                    status: 204,
+                    msg: "El cupo para Papanicolau de esa fecha ya está lleno.",
+                });
+            }
+        }
         const folio = Math.floor(10000000 + Math.random() * 90000000);
         const cita = yield citas_salud_1.default.create({
             rfc: body.rfc,
@@ -92,7 +119,9 @@ const savecita = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             correo: body.correo,
             telefono: body.telefono,
             folio: folio,
-            path: '1'
+            path: '1',
+            antigeno_prostatico: antigenoProstatico,
+            papanicolau: papanicolau
         });
         const Validacion = yield dp_fum_datos_generales_1.dp_fum_datos_generales.findOne({
             where: { f_rfc: body.rfc },

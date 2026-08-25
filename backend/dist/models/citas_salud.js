@@ -37,6 +37,16 @@ citasSalud.init({
         type: sequelize_1.DataTypes.STRING,
         allowNull: true,
     },
+    antigeno_prostatico: {
+        type: sequelize_1.DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+    },
+    papanicolau: {
+        type: sequelize_1.DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+    },
     createdAt: sequelize_1.DataTypes.DATE,
     updatedAt: sequelize_1.DataTypes.DATE,
 }, {
