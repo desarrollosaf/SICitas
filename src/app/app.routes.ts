@@ -31,10 +31,10 @@ export const routes: Routes = [
     children: [
       { path: '',  component: RedirectComponent,
       },
-      {
+      /*{
         path: 'citas',
         loadComponent: () => import('./views/pages/citas/citas.component').then(c => c.CitasComponent)
-      },
+      },*/
       {
         path: 'citasLicencias',
         //  loadChildren: () => import('./views/pages/citas/licencias/licencias.route')
