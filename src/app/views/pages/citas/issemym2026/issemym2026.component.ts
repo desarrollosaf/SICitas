@@ -50,7 +50,7 @@ export class Issemym2026Component {
   modalRef: NgbModalRef;
   viewState: 'lista' | 'enviar-link' | 'atender' = 'lista';
   mostrarCalendario = false;
-  highlightedDates: string[] = ['2026-07-06', '2026-07-07', '2026-07-08'];
+  highlightedDates: string[] = ['2026-09-07', '2026-09-08', '2026-09-09', '2026-09-10', '2026-09-11'];
   correoUsuario: string = '';
   correoConfirmado: string = '';
   telefonoUsuario: string = '';
@@ -103,7 +103,7 @@ export class Issemym2026Component {
   calendarOptions: CalendarOptions = {
     plugins: [dayGridPlugin, interactionPlugin],
     initialView: 'dayGridMonth',
-    initialDate: '2026-07-06',
+    initialDate: '2026-09-07',
     locale: 'es',
     buttonText: {
       today: 'Hoy',
@@ -117,8 +117,8 @@ export class Issemym2026Component {
     weekends: true,
     dayMaxEvents: true,
     validRange: {
-      start: '2026-07-06',
-      end: '2026-07-09'
+      start: '2026-09-07',
+      end: '2026-09-12'
     },
 
     dateClick: (info) => {
@@ -133,7 +133,7 @@ export class Issemym2026Component {
         });
         this._citasService.getCitas(clickedDate).subscribe({
           next: (response: any) => {
-            const sedeFija = this.fechaCitaEnvio == '2026-07-06' ? 4 : (this.fechaCitaEnvio == '2026-07-08' ? 4 : null);
+            const sedeFija = this.fechaCitaEnvio == '2026-09-07' ? 4 : (this.fechaCitaEnvio == '2026-09-11' ? 4 : null);
           },
           error: (e: HttpErrorResponse) => {
             const msg = e.error?.msg || 'Error desconocido';
