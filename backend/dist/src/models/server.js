@@ -22,6 +22,9 @@ const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const path_1 = __importDefault(require("path"));
 const auth_1 = require("../middlewares/auth");
 const citas_1 = __importDefault(require("../routes/citas"));
+const citasLicencias_1 = __importDefault(require("../routes/citasLicencias"));
+const citasIssemym_1 = __importDefault(require("../routes/citasIssemym"));
+const citasSalud_1 = __importDefault(require("../routes/citasSalud"));
 class Server {
     constructor() {
         this.app = (0, express_1.default)();
@@ -41,11 +44,14 @@ class Server {
         this.app.use(combos_1.default);
         this.app.use(user_1.default);
         this.app.use(citas_1.default);
+        this.app.use(citasLicencias_1.default);
+        this.app.use(citasIssemym_1.default);
+        this.app.use(citasSalud_1.default);
     }
     midlewares() {
         this.app.use(express_1.default.json());
         this.app.use((0, cors_1.default)({
-            origin: 'http://localhost:4200',
+            origin: ['http://localhost:4200', 'https://delegacionsindical.congresoedomex.gob.mx', 'https://voluntariado.congresoedomex.gob.mx'],
             // origin: 'https://jornadasalud.congresoedomex.gob.mx',
             credentials: true
         }));

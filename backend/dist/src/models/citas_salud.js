@@ -5,23 +5,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const sequelize_1 = require("sequelize");
 const cuestionariosConnection_1 = __importDefault(require("../database/cuestionariosConnection"));
-const horarios_licencias_1 = __importDefault(require("./horarios_licencias"));
-const sedes_1 = __importDefault(require("./sedes"));
-class citasLicencia extends sequelize_1.Model {
+class citasSalud extends sequelize_1.Model {
 }
-citasLicencia.init({
+citasSalud.init({
     id: {
         type: sequelize_1.DataTypes.INTEGER,
         autoIncrement: true,
         primaryKey: true,
-    },
-    horario_id: {
-        type: sequelize_1.DataTypes.INTEGER,
-        allowNull: false,
-    },
-    sede_id: {
-        type: sequelize_1.DataTypes.INTEGER,
-        allowNull: false,
     },
     rfc: {
         type: sequelize_1.DataTypes.STRING,
@@ -47,15 +37,21 @@ citasLicencia.init({
         type: sequelize_1.DataTypes.STRING,
         allowNull: true,
     },
+    antigeno_prostatico: {
+        type: sequelize_1.DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+    },
+    papanicolau: {
+        type: sequelize_1.DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+    },
     createdAt: sequelize_1.DataTypes.DATE,
     updatedAt: sequelize_1.DataTypes.DATE,
 }, {
     sequelize: cuestionariosConnection_1.default,
-    tableName: 'citas_licencias',
+    tableName: 'citas_salud',
     timestamps: true,
 });
-// 👇 Asociaciones
-citasLicencia.belongsTo(horarios_licencias_1.default, { foreignKey: "horario_id", as: "HorarioLicencia" });
-citasLicencia.belongsTo(sedes_1.default, { foreignKey: 'sede_id', as: 'Sede' });
-// citasLicencia.belongsTo(dp_fum_datos_generales, {foreignKey:'rfc',targetKey: 'f_rfc', as: 'm_sp'});
-exports.default = citasLicencia;
+exports.default = citasSalud;

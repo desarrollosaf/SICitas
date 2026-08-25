@@ -1,0 +1,15 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const citasIssemym_1 = require("../controllers/citasIssemym");
+const router = (0, express_1.Router)();
+router.get("/api/citasIssemym/gethorarios/:fecha", citasIssemym_1.getHorariosDisponibles);
+router.post("/api/citasIssemym/savecita/", citasIssemym_1.savecita);
+router.get("/api/citasIssemym/citasagrupadas/", citasIssemym_1.getcitasagrupadas);
+router.get("/api/citasIssemym/getcitaservidor/:id", citasIssemym_1.getCita);
+router.get("/api/citasIssemym/getcitasfecha/:fecha/:rfc", citasIssemym_1.getcitasFecha);
+router.get("/api/citasIssemym/pdf/:fecha/:sedeId", citasIssemym_1.generarPDFCitas);
+router.get("/api/citasIssemym/exel/:fecha/:sedeId", citasIssemym_1.generarExcelCitas);
+router.get("/api/citasIssemym/exelgeneral/", citasIssemym_1.generalExcel);
+router.get("/api/citasIssemym/pdfAcuse/:rfc", citasIssemym_1.generarPdfAcuse);
+exports.default = router;

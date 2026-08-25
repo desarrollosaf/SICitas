@@ -5,9 +5,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const sequelize_1 = require("sequelize");
 const cuestionariosConnection_1 = __importDefault(require("../database/cuestionariosConnection"));
-class HorarioCita extends sequelize_1.Model {
+class HorarioIssemym extends sequelize_1.Model {
 }
-HorarioCita.init({
+HorarioIssemym.init({
     id: {
         type: sequelize_1.DataTypes.INTEGER,
         autoIncrement: true,
@@ -25,7 +25,7 @@ HorarioCita.init({
     updatedAt: sequelize_1.DataTypes.DATE,
 }, {
     sequelize: cuestionariosConnection_1.default,
-    tableName: 'horarios_citas',
+    tableName: 'horarios_issemym',
     timestamps: true,
 });
-exports.default = HorarioCita;
+exports.default = HorarioIssemym;

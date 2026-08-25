@@ -15,6 +15,26 @@ import path from 'path';
 import models from "..";
 
 
+// El CURP mexicano codifica el sexo en su onceavo carácter: 'H' (hombre) o 'M' (mujer).
+// Es un estándar de RENAPO, más confiable que confiar en el formato libre del campo f_sexo.
+function sexoDesdeCurp(curp?: string | null): 'H' | 'M' | null {
+  if (!curp || curp.length < 11) return null;
+  const letra = curp.charAt(10).toUpperCase();
+  return letra === 'H' || letra === 'M' ? letra : null;
+}
+
+function calcularEdad(fechaNacimiento?: Date | string | null): number | null {
+  if (!fechaNacimiento) return null;
+  const nacimiento = new Date(fechaNacimiento);
+  const hoy = new Date();
+  let edad = hoy.getFullYear() - nacimiento.getFullYear();
+  const mes = hoy.getMonth() - nacimiento.getMonth();
+  if (mes < 0 || (mes === 0 && hoy.getDate() < nacimiento.getDate())) {
+    edad -= 1;
+  }
+  return edad;
+}
+
 export const getCita = async (req: Request, res: Response): Promise<any> => {
  const { id } = req.params; // Este es el RFC
   try {
@@ -49,10 +69,37 @@ export const getCita = async (req: Request, res: Response): Promise<any> => {
       raw: true
     });
 
+    const datosGenerales = await dp_fum_datos_generales.findOne({
+      where: { f_rfc: id },
+      attributes: ["f_curp", "f_fecha_nacimiento"]
+    });
+
+    const sexo = sexoDesdeCurp(datosGenerales?.f_curp);
+    const edad = calcularEdad(datosGenerales?.f_fecha_nacimiento);
+
+    // Antígeno prostático es exclusivo para hombres (y, según la convocatoria, mayores de 40 años);
+    // Papanicolau es exclusivo para mujeres. Si no se pudo determinar el sexo (sin CURP válido en el
+    // padrón), se dejan ambos estudios visibles para no bloquear el registro por un dato faltante.
+    let puedeAntigenoProstatico = true;
+    let puedePapanicolau = true;
+    if (sexo === 'H') {
+      puedePapanicolau = false;
+      puedeAntigenoProstatico = edad === null ? true : edad > 40;
+    } else if (sexo === 'M') {
+      puedeAntigenoProstatico = false;
+      puedePapanicolau = true;
+    }
+
     return res.json({
       msg: "Cita obtenida",
       citas: citasConHorario,
-      datosUser: usuario
+      datosUser: usuario,
+      elegibilidadEstudios: {
+        sexo,
+        edad,
+        antigeno_prostatico: puedeAntigenoProstatico,
+        papanicolau: puedePapanicolau,
+      }
     });
   } catch (error) {
     console.error("Error al obtener citas:", error);
@@ -265,7 +312,9 @@ export const generarPdfAcuse = async (req: Request, res: Response) => {
       telefono: cita.telefono,
       adscripcion: adscripcion,
       issemym: issemym,
-      citaId: cita.id
+      citaId: cita.id,
+      antigenoProstatico: !!(cita as any).antigeno_prostatico,
+      papanicolau: !!(cita as any).papanicolau
     });
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader("Content-Disposition", `attachment; filename="Reporte.pdf"`);
@@ -291,6 +340,8 @@ interface PDFData {
   adscripcion: string;
   issemym: string;
   citaId: number; // <-- ID de la cita para actualizar
+  antigenoProstatico: boolean;
+  papanicolau: boolean;
 }
 
 export async function generarPDFBufferSalud(data: PDFData): Promise<Buffer> {
@@ -356,8 +407,18 @@ export async function generarPDFBufferSalud(data: PDFData): Promise<Buffer> {
       .text(`Correo Electrónico: ${data.correo} | Teléfono: ${data.telefono}`, { align: "left" })
       .text(`Adscripción: ${data.adscripcion}`, { align: "left" });
 
+    const estudiosAdicionales: string[] = [];
+    if (data.antigenoProstatico) estudiosAdicionales.push("Antígeno prostático (9:30 a 10:30 hrs)");
+    if (data.papanicolau) estudiosAdicionales.push("Papanicolau (10:30 a 12:30 hrs)");
+
     doc.moveDown();
-    doc.fontSize(11).text(
+    doc.font('Helvetica-Bold').fontSize(11).text(
+      `Estudios adicionales registrados: ${estudiosAdicionales.length > 0 ? estudiosAdicionales.join(", ") : "Ninguno"}`,
+      { align: "left" }
+    );
+
+    doc.moveDown();
+    doc.font('Helvetica').fontSize(11).text(
       'La Delegación SUTEyM-Poder Legislativo invita a la "Jornada de Salud y Prevención SUTEyM 2026", con el propósito de fortalecer las acciones preventivas y contribuir a la protección y al cuidado de la salud de las personas servidoras públicas del Poder Legislativo.',
       { align: "justify" }
     );

@@ -104,21 +104,25 @@
                                 a las extensiones 5506 y 5516 del Departamento de Desarrollo y Actualización Tecnológica.
                             </p>
 
-                            <h6 class="fw-bold">Estudios adicionales (cupo limitado a 15 personas por día):</h6><br>
-                            <input type="checkbox" id="antigenoProstatico" name="antigenoProstatico"
-                                [(ngModel)]="antigenoProstatico" [disabled]="cupoAntigeno === null || cupoAntigeno <= 0">
-                            Antígeno prostático (únicamente hombres mayores de 40 años) — Horario: 9:30 a 10:30.
-                            <span *ngIf="cupoAntigeno === null" class="text-muted">(consultando disponibilidad...)</span>
-                            <span *ngIf="cupoAntigeno !== null && cupoAntigeno > 0" class="text-success">({{ cupoAntigeno }} lugares disponibles)</span>
-                            <span *ngIf="cupoAntigeno !== null && cupoAntigeno <= 0" class="text-danger">(cupo lleno)</span>
-                            <br>
-                            <input type="checkbox" id="papanicolauCheck" name="papanicolauCheck"
-                                [(ngModel)]="papanicolau" [disabled]="cupoPapanicolau === null || cupoPapanicolau <= 0">
-                            Papanicolau — Horario: 10:30 a 12:30.
-                            <span *ngIf="cupoPapanicolau === null" class="text-muted">(consultando disponibilidad...)</span>
-                            <span *ngIf="cupoPapanicolau !== null && cupoPapanicolau > 0" class="text-success">({{ cupoPapanicolau }} lugares disponibles)</span>
-                            <span *ngIf="cupoPapanicolau !== null && cupoPapanicolau <= 0" class="text-danger">(cupo lleno)</span>
-                            <br>
+                            <h6 class="fw-bold" *ngIf="puedeAntigenoProstatico || puedePapanicolau">Estudios adicionales (cupo limitado a 15 personas por día):</h6><br *ngIf="puedeAntigenoProstatico || puedePapanicolau">
+                            <ng-container *ngIf="puedeAntigenoProstatico">
+                                <input type="checkbox" id="antigenoProstatico" name="antigenoProstatico"
+                                    [(ngModel)]="antigenoProstatico" [disabled]="cupoAntigeno === null || cupoAntigeno <= 0">
+                                Antígeno prostático (únicamente hombres mayores de 40 años) — Horario: 9:30 a 10:30.
+                                <span *ngIf="cupoAntigeno === null" class="text-muted">(consultando disponibilidad...)</span>
+                                <span *ngIf="cupoAntigeno !== null && cupoAntigeno > 0" class="text-success">({{ cupoAntigeno }} lugares disponibles)</span>
+                                <span *ngIf="cupoAntigeno !== null && cupoAntigeno <= 0" class="text-danger">(cupo lleno)</span>
+                                <br>
+                            </ng-container>
+                            <ng-container *ngIf="puedePapanicolau">
+                                <input type="checkbox" id="papanicolauCheck" name="papanicolauCheck"
+                                    [(ngModel)]="papanicolau" [disabled]="cupoPapanicolau === null || cupoPapanicolau <= 0">
+                                Papanicolau — Horario: 10:30 a 12:30.
+                                <span *ngIf="cupoPapanicolau === null" class="text-muted">(consultando disponibilidad...)</span>
+                                <span *ngIf="cupoPapanicolau !== null && cupoPapanicolau > 0" class="text-success">({{ cupoPapanicolau }} lugares disponibles)</span>
+                                <span *ngIf="cupoPapanicolau !== null && cupoPapanicolau <= 0" class="text-danger">(cupo lleno)</span>
+                                <br>
+                            </ng-container>
                         </div>
 
                         <!-- Formulario en filas de 2 columnas -->
