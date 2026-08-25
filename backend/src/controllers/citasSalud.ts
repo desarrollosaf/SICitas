@@ -364,44 +364,24 @@ export async function generarPDFBufferSalud(data: PDFData): Promise<Buffer> {
 
     doc.moveDown();
     doc.fontSize(11).text(
-      "El check-up médico SUTEyM incluye: ",
+      "La jornada de salud comprenderá: ",
       { align: "justify" }
     );
     doc.fontSize(11).list(
       [
-        "Examen de laboratorio (glucosa, colesterol, triglicéridos);",
+        "Llenado de cédulas de evaluación médica y psicológica;",
         "Somatometría (toma de peso y talla);",
-        "Papanicolaou;",
-        "Exploración de mama;",
-        "Antígeno prostático (únicamente hombres mayores de 40 años);",
-        "Medico general;",
-        "Psicología; y ",
-        "Nutrición (hábitos alimenticios).",
+        "Toma de T/A;",
+        "Toma de citología cervico-vaginal (Papanicolau);",
+        "Exploración de glándula mamaria (Capacitación para autoexploración);",
+        "Seguimiento por Trabajo Social;",
+        "Evaluación y orientación médica, nutricional y psicológica de acuerdo a resultados; y",
+        "Referencia y gestión de cita a la persona servidora pública a su Unidad Médica de adscripción en caso de ameritar seguimiento.",
       ],
       { bulletIndent: 20 }
     );
     doc.moveDown(1);
 
-    doc.font('Helvetica-Bold').fontSize(11).text(
-      "Condiciones en las que se tienen que presentar los servidores públicos para la evaluación médica:",
-      { align: "justify" }
-    );
-
-    doc.rect(50, doc.y+5, 10, 10).stroke();
-    doc.font('Helvetica-Bold').text('X', 52, doc.y+15 - 10);
-    doc.font('Helvetica').text('Credencial de afiliación ISSEMYM o último talón de pago;', 70, doc.y - 10);
-
-    doc.rect(50, doc.y, 10, 10).stroke();
-    doc.font('Helvetica-Bold').text('X', 52, doc.y+12 - 10);
-    doc.font('Helvetica').text('Ayuno mínimo de 8 horas;', 70, doc.y - 10);
-
-    doc.rect(50, doc.y, 10, 10).stroke();
-    doc.font('Helvetica-Bold').text('X', 52, doc.y+12 - 10);
-    doc.font('Helvetica').text('Aseo general.', 70, doc.y - 10);
-   
-    doc.moveDown();
-    doc.font('Helvetica').text('', 50, doc.y - 10);
-    doc.moveDown();
     doc.font('Helvetica-Bold').fontSize(11).text(
       "Mujeres" , { continued: true });
     
