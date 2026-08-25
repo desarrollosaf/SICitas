@@ -55,11 +55,10 @@ export class Issemym2026Component {
   correoConfirmado: string = '';
   telefonoUsuario: string = '';
   telefonoConfirmado: string = '';
-  credencial: string = '';
-  ayuno: string = '';
-  aseo: string = '';
   antigenoProstatico: boolean = false;
   papanicolau: boolean = false;
+  cupoAntigeno: number | null = null;
+  cupoPapanicolau: number | null = null;
   enviandoRegistro: number | null = null;
 
 
@@ -142,6 +141,9 @@ export class Issemym2026Component {
             console.error('Error del servidor:', msg);
           }
         });
+        this.antigenoProstatico = false;
+        this.papanicolau = false;
+        this.cargarCupoEstudios(clickedDate);
         this.abrirModal(null);
       } else {
         console.log('Fecha no permitida:', clickedDate);
@@ -163,6 +165,23 @@ export class Issemym2026Component {
       }
     }
   };
+
+  cargarCupoEstudios(fecha: string) {
+    this.cupoAntigeno = null;
+    this.cupoPapanicolau = null;
+    this._citasService.getCupoEstudios(fecha).subscribe({
+      next: (response: any) => {
+        this.cupoAntigeno = response.antigeno_prostatico?.disponibles ?? 0;
+        this.cupoPapanicolau = response.papanicolau?.disponibles ?? 0;
+      },
+      error: (e: HttpErrorResponse) => {
+        const msg = e.error?.msg || 'Error desconocido';
+        console.error('Error al consultar cupo de estudios:', msg);
+        this.cupoAntigeno = 0;
+        this.cupoPapanicolau = 0;
+      }
+    });
+  }
 
   guardarSeleccion() {
     this.currentUser = this._userService.currentUserValue;

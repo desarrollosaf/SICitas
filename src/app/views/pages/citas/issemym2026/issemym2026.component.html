@@ -90,11 +90,7 @@
                                 <li> Evaluación y Orientación: médica, nutricional y psicológica de acuerdo a resultados; y</li>
                                 <li> Referencia y gestión de cita a la persona servidora pública a su Unidad Médica de adscripción en caso de ameritar seguimiento.</li>
                             </div><br>
-                            <h6 class="fw-bold">Condiciones en las que se tienen que presentar los servidores públicos para la evaluación médica:</h6><br>
-                            <input type="checkbox"  id="credencial" name="credencial" [(ngModel)]="credencial">Credencial de afiliación ISSEMYM o talón de pago.<br>
-                            <input type="checkbox" id="ayuno" name="ayuno" [(ngModel)]="ayuno">Ayuno mínimo de 8 horas.<br>
-                            <input type="checkbox" id="aseo" name="aseo" [(ngModel)]="aseo">Aseo general.<br><br>
-                            <b>Mujeres </b>en condiciones para Papanicolaou: 
+                            <b>Mujeres </b>en condiciones para Papanicolaou:
                         
                             <div class="jornada-list">
                                 <li> Baño corporal</li>
@@ -109,10 +105,20 @@
                             </p>
 
                             <h6 class="fw-bold">Estudios adicionales (cupo limitado a 15 personas por día):</h6><br>
-                            <input type="checkbox" id="antigenoProstatico" name="antigenoProstatico" [(ngModel)]="antigenoProstatico">
-                            Antígeno prostático (únicamente hombres mayores de 40 años) — Horario: 9:30 a 10:30.<br>
-                            <input type="checkbox" id="papanicolauCheck" name="papanicolauCheck" [(ngModel)]="papanicolau">
-                            Papanicolau — Horario: 10:30 a 12:30.<br>
+                            <input type="checkbox" id="antigenoProstatico" name="antigenoProstatico"
+                                [(ngModel)]="antigenoProstatico" [disabled]="cupoAntigeno === null || cupoAntigeno <= 0">
+                            Antígeno prostático (únicamente hombres mayores de 40 años) — Horario: 9:30 a 10:30.
+                            <span *ngIf="cupoAntigeno === null" class="text-muted">(consultando disponibilidad...)</span>
+                            <span *ngIf="cupoAntigeno !== null && cupoAntigeno > 0" class="text-success">({{ cupoAntigeno }} lugares disponibles)</span>
+                            <span *ngIf="cupoAntigeno !== null && cupoAntigeno <= 0" class="text-danger">(cupo lleno)</span>
+                            <br>
+                            <input type="checkbox" id="papanicolauCheck" name="papanicolauCheck"
+                                [(ngModel)]="papanicolau" [disabled]="cupoPapanicolau === null || cupoPapanicolau <= 0">
+                            Papanicolau — Horario: 10:30 a 12:30.
+                            <span *ngIf="cupoPapanicolau === null" class="text-muted">(consultando disponibilidad...)</span>
+                            <span *ngIf="cupoPapanicolau !== null && cupoPapanicolau > 0" class="text-success">({{ cupoPapanicolau }} lugares disponibles)</span>
+                            <span *ngIf="cupoPapanicolau !== null && cupoPapanicolau <= 0" class="text-danger">(cupo lleno)</span>
+                            <br>
                         </div>
 
                         <!-- Formulario en filas de 2 columnas -->
@@ -150,7 +156,7 @@
                         </div>
 
                         <button class="btn btn-primary mt-3" (click)="guardarSeleccion()"
-                            [disabled]="!correoUsuario || !telefonoUsuario || !credencial || !ayuno || !aseo || enviandoRegistro === 1">
+                            [disabled]="!correoUsuario || !telefonoUsuario || enviandoRegistro === 1">
                             <ng-container *ngIf="enviandoRegistro === 1; else iconoGuardar">
                                 <span class="spinner-border spinner-border-sm me-1" role="status"></span>
                                 Registrando

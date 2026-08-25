@@ -63,6 +63,32 @@ export const getCita = async (req: Request, res: Response): Promise<any> => {
 
 const CUPO_ESTUDIOS = 15;
 
+export const getCupoEstudios = async (req: Request, res: Response): Promise<any> => {
+  try {
+    const { fecha } = req.params;
+
+    const [antigenoUsados, papanicolauUsados] = await Promise.all([
+      citasSalud.count({ where: { fecha_cita: fecha, antigeno_prostatico: true } }),
+      citasSalud.count({ where: { fecha_cita: fecha, papanicolau: true } }),
+    ]);
+
+    return res.json({
+      cupoTotal: CUPO_ESTUDIOS,
+      antigeno_prostatico: {
+        usados: antigenoUsados,
+        disponibles: Math.max(CUPO_ESTUDIOS - antigenoUsados, 0),
+      },
+      papanicolau: {
+        usados: papanicolauUsados,
+        disponibles: Math.max(CUPO_ESTUDIOS - papanicolauUsados, 0),
+      },
+    });
+  } catch (error) {
+    console.error("Error al obtener el cupo de estudios:", error);
+    return res.status(500).json({ error: "Ocurrió un error al obtener el cupo de estudios" });
+  }
+};
+
 export const savecita = async (req: Request, res: Response): Promise<any> => {
   try {
     const { body } = req;

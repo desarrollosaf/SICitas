@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.generarPdfAcuse = exports.savecita = exports.getCita = void 0;
+exports.generarPdfAcuse = exports.savecita = exports.getCupoEstudios = exports.getCita = void 0;
 exports.generarPDFBufferSalud = generarPDFBufferSalud;
 const citas_salud_1 = __importDefault(require("../models/citas_salud"));
 const dp_fum_datos_generales_1 = require("../models/fun/dp_fum_datos_generales");
@@ -64,6 +64,31 @@ const getCita = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 });
 exports.getCita = getCita;
 const CUPO_ESTUDIOS = 15;
+const getCupoEstudios = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { fecha } = req.params;
+        const [antigenoUsados, papanicolauUsados] = yield Promise.all([
+            citas_salud_1.default.count({ where: { fecha_cita: fecha, antigeno_prostatico: true } }),
+            citas_salud_1.default.count({ where: { fecha_cita: fecha, papanicolau: true } }),
+        ]);
+        return res.json({
+            cupoTotal: CUPO_ESTUDIOS,
+            antigeno_prostatico: {
+                usados: antigenoUsados,
+                disponibles: Math.max(CUPO_ESTUDIOS - antigenoUsados, 0),
+            },
+            papanicolau: {
+                usados: papanicolauUsados,
+                disponibles: Math.max(CUPO_ESTUDIOS - papanicolauUsados, 0),
+            },
+        });
+    }
+    catch (error) {
+        console.error("Error al obtener el cupo de estudios:", error);
+        return res.status(500).json({ error: "Ocurrió un error al obtener el cupo de estudios" });
+    }
+});
+exports.getCupoEstudios = getCupoEstudios;
 const savecita = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { body } = req;

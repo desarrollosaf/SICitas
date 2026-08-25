@@ -23,6 +23,10 @@ export class CitasIssemym2026Service {
   return this.http.get<any>(`${this.myAppUrl}${this.myAPIUrl}/gethorarios/${fecha}`)
   }
 
+  getCupoEstudios(fecha: String): Observable<any> {
+  return this.http.get<any>(`${this.myAppUrl}${this.myAPIUrl}/cupoEstudios/${fecha}`)
+  }
+
   saveCita(data:any): Observable<string> {
   return this.http.post<string>(`${this.myAppUrl}${this.myAPIUrl}/savecita/`,data)
   }
