@@ -287,8 +287,9 @@ function generarPDFBufferSalud(data) {
             }));
             doc.on("error", reject);
             // ===== CONTENIDO DEL PDF =====
-            doc.image(path_1.default.join(__dirname, "../assets/logos_juntos.png"), 50, 40, {
-                width: 350,
+            doc.image(path_1.default.join(__dirname, "../assets/salud_page.jpg"), 0, 0, {
+                width: doc.page.width,
+                height: doc.page.height,
             });
             doc.moveDown(6);
             doc
