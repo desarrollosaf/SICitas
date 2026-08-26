@@ -59,8 +59,6 @@ export class Issemym2026Component {
   papanicolau: boolean = false;
   cupoAntigeno: number | null = null;
   cupoPapanicolau: number | null = null;
-  puedeAntigenoProstatico: boolean = true;
-  puedePapanicolau: boolean = true;
   enviandoRegistro: number | null = null;
 
 
@@ -77,10 +75,6 @@ export class Issemym2026Component {
           this._citasService.getcitaRFC(this.currentUser.rfc).subscribe({
             next: (response: any) => {
               this.datosCita = response
-              if (response.elegibilidadEstudios) {
-                this.puedeAntigenoProstatico = response.elegibilidadEstudios.antigeno_prostatico;
-                this.puedePapanicolau = response.elegibilidadEstudios.papanicolau;
-              }
               if (response.citas.length > 0) {
                 this.mostrarCalendario = true;
               }

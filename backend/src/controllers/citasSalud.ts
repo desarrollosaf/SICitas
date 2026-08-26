@@ -15,26 +15,6 @@ import path from 'path';
 import models from "..";
 
 
-// El CURP mexicano codifica el sexo en su onceavo carácter: 'H' (hombre) o 'M' (mujer).
-// Es un estándar de RENAPO, más confiable que confiar en el formato libre del campo f_sexo.
-function sexoDesdeCurp(curp?: string | null): 'H' | 'M' | null {
-  if (!curp || curp.length < 11) return null;
-  const letra = curp.charAt(10).toUpperCase();
-  return letra === 'H' || letra === 'M' ? letra : null;
-}
-
-function calcularEdad(fechaNacimiento?: Date | string | null): number | null {
-  if (!fechaNacimiento) return null;
-  const nacimiento = new Date(fechaNacimiento);
-  const hoy = new Date();
-  let edad = hoy.getFullYear() - nacimiento.getFullYear();
-  const mes = hoy.getMonth() - nacimiento.getMonth();
-  if (mes < 0 || (mes === 0 && hoy.getDate() < nacimiento.getDate())) {
-    edad -= 1;
-  }
-  return edad;
-}
-
 export const getCita = async (req: Request, res: Response): Promise<any> => {
  const { id } = req.params; // Este es el RFC
   try {
@@ -69,37 +49,10 @@ export const getCita = async (req: Request, res: Response): Promise<any> => {
       raw: true
     });
 
-    const datosGenerales = await dp_fum_datos_generales.findOne({
-      where: { f_rfc: id },
-      attributes: ["f_curp", "f_fecha_nacimiento"]
-    });
-
-    const sexo = sexoDesdeCurp(datosGenerales?.f_curp);
-    const edad = calcularEdad(datosGenerales?.f_fecha_nacimiento);
-
-    // Antígeno prostático es exclusivo para hombres (y, según la convocatoria, mayores de 40 años);
-    // Papanicolau es exclusivo para mujeres. Si no se pudo determinar el sexo (sin CURP válido en el
-    // padrón), se dejan ambos estudios visibles para no bloquear el registro por un dato faltante.
-    let puedeAntigenoProstatico = true;
-    let puedePapanicolau = true;
-    if (sexo === 'H') {
-      puedePapanicolau = false;
-      puedeAntigenoProstatico = edad === null ? true : edad > 40;
-    } else if (sexo === 'M') {
-      puedeAntigenoProstatico = false;
-      puedePapanicolau = true;
-    }
-
     return res.json({
       msg: "Cita obtenida",
       citas: citasConHorario,
-      datosUser: usuario,
-      elegibilidadEstudios: {
-        sexo,
-        edad,
-        antigeno_prostatico: puedeAntigenoProstatico,
-        papanicolau: puedePapanicolau,
-      }
+      datosUser: usuario
     });
   } catch (error) {
     console.error("Error al obtener citas:", error);
@@ -379,9 +332,8 @@ export async function generarPDFBufferSalud(data: PDFData): Promise<Buffer> {
     doc.on("error", reject);
 
     // ===== CONTENIDO DEL PDF =====
-    doc.image(path.join(__dirname, "../assets/salud_page_mem.jpg"), 0, 0, {
-      width: doc.page.width,
-      height: doc.page.height,
+    doc.image(path.join(__dirname, "../assets/logos_juntos.png"), 50, 40, {
+      width: 350,
     });
 
     doc.moveDown(6);
@@ -389,7 +341,7 @@ export async function generarPDFBufferSalud(data: PDFData): Promise<Buffer> {
       .fontSize(18)
       .font("Helvetica-Bold")
       .fillColor("#7d0037") // ✅ Aplica el color
-      .text("JORNADA DE SALUD Y PREVENCIÓN SUTEYM 2026", {
+      .text("JORNADA DE SALUD", {
         align: "center",
       })
       .fillColor("black");
@@ -397,7 +349,8 @@ export async function generarPDFBufferSalud(data: PDFData): Promise<Buffer> {
     doc.moveDown();
     doc.font("Helvetica").fontSize(12).text(`Folio: ${data.folio}`, { align: "right" });
     doc.font("Helvetica").fontSize(12).text(`Fecha cita: ${fecha}`, { align: "right" });
-    doc.font("Helvetica").fontSize(12).text(`Sede: Estacionamiento Longares`, { align: "right" });
+    doc.font("Helvetica").fontSize(12).text(`Lugar: Calle Plutarco González #111, La Merced y Alameda, Toluca, Edo. Méx.`, { align: "right" });
+    doc.font("Helvetica").fontSize(12).text(`Tel: (722) 279-6499`, { align: "right" });
     doc.moveDown();
 
     doc.fontSize(11)
@@ -419,7 +372,7 @@ export async function generarPDFBufferSalud(data: PDFData): Promise<Buffer> {
 
     doc.moveDown();
     doc.font('Helvetica').fontSize(11).text(
-      'La Delegación SUTEyM-Poder Legislativo invita a la "Jornada de Salud y Prevención SUTEyM 2026", con el propósito de fortalecer las acciones preventivas y contribuir a la protección y al cuidado de la salud de las personas servidoras públicas del Poder Legislativo.',
+      'El Congreso del Estado de México, en coordinación con el Voluntariado del Poder Legislativo del Estado de México, tienen el agrado de invitarles a participar en la Jornada de Salud, iniciativa orientada a promover la prevención y el bienestar de todas las personas servidoras públicas que integran este Poder Legislativo.',
       { align: "justify" }
     );
 
@@ -467,9 +420,6 @@ export async function generarPDFBufferSalud(data: PDFData): Promise<Buffer> {
       align: 'justify'
     });
     doc.text("Se atenderá a los servidores públicos conforme su llegada y presentación en la unidad móvil.", {
-      align: 'justify'
-    });
-    doc.text("Mayor información de la Jornada de Salud en la delegación sindical, en edificio San Rafael, Av. Independencia #108, Col. Centro, Toluca, México. Ext. 1905.", {
       align: 'justify'
     });
     doc.text("En caso de presentar alguna duda, error o requerir asistencia relacionada con el acceso ó registro, comunicate a las extensiones 5506 ó 5517 del Departamento de Desarrollo y Actualización Tecnológica.", {
