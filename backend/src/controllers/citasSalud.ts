@@ -61,7 +61,7 @@ export const getCita = async (req: Request, res: Response): Promise<any> => {
 }
 
 
-const CUPO_ESTUDIOS = 15;
+const CUPO_ESTUDIOS = 30;
 
 export const getCupoEstudios = async (req: Request, res: Response): Promise<any> => {
   try {

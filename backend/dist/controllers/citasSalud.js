@@ -63,7 +63,7 @@ const getCita = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     }
 });
 exports.getCita = getCita;
-const CUPO_ESTUDIOS = 15;
+const CUPO_ESTUDIOS = 30;
 const getCupoEstudios = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { fecha } = req.params;
