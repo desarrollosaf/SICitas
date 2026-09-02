@@ -28,7 +28,7 @@ function generarReporteCitasPDF(fechap, citas) {
             const col1X = 50;
             const col2X = 30;
             const tableWidth = 500;
-            const bgPath = path_1.default.join(__dirname, "../assets/salud_page_mem.jpg");
+            const bgPath = path_1.default.join(__dirname, "../assets/salud_page.jpg");
             const drawHeader = () => {
                 // Fondo de página
                 doc.image(bgPath, 0, 0, {

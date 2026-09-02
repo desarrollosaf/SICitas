@@ -151,6 +151,29 @@ export class ReportesComponent {
         info.el.style.border = '2px solid #0f5132';
         info.el.style.cursor = 'pointer';
       // }
+    },
+
+    eventDidMount: (info) => {
+      const detalle = info.event.extendedProps?.['detalle'];
+      if (detalle) {
+        info.el.setAttribute('title', detalle);
+      }
+      info.el.style.whiteSpace = 'normal';
+    },
+
+    eventContent: (arg) => {
+      const props = arg.event.extendedProps;
+      if (!props?.['esSalud']) {
+        return true; // deja el render por default para los demás tipos de evento
+      }
+      const wrapper = document.createElement('div');
+      wrapper.className = 'fc-salud-event';
+      wrapper.innerHTML = `
+        <div class="fc-salud-total">${props['total']} citas de Salud</div>
+        <span class="fc-badge fc-badge-antigeno">Antígeno: ${props['antigeno']}</span>
+        <span class="fc-badge fc-badge-papanicolau">Papanicolau: ${props['papanicolau']}</span>
+      `;
+      return { domNodes: [wrapper] };
     }
   };
 
@@ -518,13 +541,20 @@ getEventos(){
             const fechaHora = `${cita.fecha_cita}T00:00:00`;
             const nuevoEvento = {
               title: esSalud
-                ? `${totalRegistros} Citas Salud (Antígeno: ${totalAntigeno}, Papanicolau: ${totalPapanicolau})`
+                ? `${totalRegistros} Salud (A:${totalAntigeno} P:${totalPapanicolau})`
                 : `${totalRegistros} Citas ${cita.evento}`,
               start: fechaHora,
-              allDay: false,
+              allDay: true,
               backgroundColor: '#dc3545',  // Rojo
               borderColor: '#bd2130',
-              textColor: '#fff'
+              textColor: '#fff',
+              extendedProps: esSalud ? {
+                esSalud: true,
+                total: totalRegistros,
+                antigeno: totalAntigeno,
+                papanicolau: totalPapanicolau,
+                detalle: `Total citas: ${totalRegistros}\nAntígeno prostático: ${totalAntigeno}\nPapanicolau: ${totalPapanicolau}`
+              } : {}
             };
             if (Array.isArray(this.calendarOptions.events)) {
               this.calendarOptions.events = [...this.calendarOptions.events, nuevoEvento];
