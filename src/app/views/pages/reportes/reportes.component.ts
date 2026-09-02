@@ -496,8 +496,12 @@ descargarExcel(sedeID: number) {
 getEventos(){
   this._citasService.getEventos().subscribe({
       next: (response: any) => {
-        let totalRegistros: 0;
         response.eventos.forEach((cita: any) => {
+            let totalRegistros = 0;
+            let esSalud = false;
+            let totalAntigeno = 0;
+            let totalPapanicolau = 0;
+
             if( cita.evento === 'Credencialización' && cita.m_citasI){
               totalRegistros = cita.m_citasI.length;
             }
@@ -505,12 +509,17 @@ getEventos(){
               totalRegistros = cita.m_citasL.length;
             }
             if( cita.evento === 'Salud' && cita.m_citasS){
+              esSalud = true;
               totalRegistros = cita.m_citasS.length;
+              totalAntigeno = cita.m_citasS.filter((c: any) => c.antigeno_prostatico).length;
+              totalPapanicolau = cita.m_citasS.filter((c: any) => c.papanicolau).length;
             }
 
             const fechaHora = `${cita.fecha_cita}T00:00:00`;
             const nuevoEvento = {
-              title: `${totalRegistros} Citas ${cita.evento}`,
+              title: esSalud
+                ? `${totalRegistros} Citas Salud (Antígeno: ${totalAntigeno}, Papanicolau: ${totalPapanicolau})`
+                : `${totalRegistros} Citas ${cita.evento}`,
               start: fechaHora,
               allDay: false,
               backgroundColor: '#dc3545',  // Rojo
