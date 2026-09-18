@@ -1045,7 +1045,7 @@ export const saveCitaSep = async (req: Request, res: Response): Promise<any> => 
   try {
     const { body } = req;
     const limite = 3;
-console.log('*** body  **** ', body)
+
     const citaExistente = await CitaSep.findOne({
       where: { rfc: body.rfc }
     });
