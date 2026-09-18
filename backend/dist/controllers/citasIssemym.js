@@ -12,8 +12,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.generalExcel = exports.generarExcelCitas = exports.generarPdfAcuse = exports.generarPDFCitas = exports.getcitasFecha = exports.getCita = exports.getcitasagrupadas = exports.savecita = exports.getHorariosDisponibles = void 0;
+exports.generarPdfAcuseSep = exports.saveCitaSep = exports.getHorariosDisponiblesSep = exports.getCitaSep = exports.generalExcel = exports.generarExcelCitas = exports.generarPdfAcuse = exports.generarPDFCitas = exports.getcitasFecha = exports.getCita = exports.getcitasagrupadas = exports.savecita = exports.getHorariosDisponibles = void 0;
 exports.generarPDFBuffer = generarPDFBuffer;
+exports.generarPDFBufferSep = generarPDFBufferSep;
 const horarios_issemym_1 = __importDefault(require("../models/horarios_issemym")); // ✅ corregido
 const sedes_1 = __importDefault(require("../models/sedes"));
 const sequelize_1 = require("sequelize");
@@ -31,6 +32,8 @@ const path_1 = __importDefault(require("path"));
 const pdf_utils_1 = require("./pdf.utils");
 const exceljs_1 = __importDefault(require("exceljs"));
 const citas_issemym_1 = __importDefault(require("../models/citas_issemym"));
+const citas_sep_1 = __importDefault(require("../models/citas_sep"));
+const horarios_citas_sep_1 = __importDefault(require("../models/horarios_citas_sep"));
 dp_datospersonales_1.dp_datospersonales.initModel(fun_1.default);
 dp_fum_datos_generales_1.dp_fum_datos_generales.initModel(fun_1.default);
 const getHorariosDisponibles = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -778,3 +781,318 @@ const generalExcel = (req, res) => __awaiter(void 0, void 0, void 0, function* (
     }
 });
 exports.generalExcel = generalExcel;
+const getCitaSep = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { id } = req.params; // Este es el RFC
+    try {
+        // Traemos todas las citas asociadas al RFC
+        const citasser = yield citas_sep_1.default.findAll({
+            where: { rfc: id },
+            include: [
+                {
+                    model: sedes_1.default,
+                    as: "Sede",
+                    attributes: ["id", "sede"]
+                },
+                {
+                    model: horarios_citas_sep_1.default,
+                    as: "HorarioCita",
+                    attributes: ["horario_inicio", "horario_fin"]
+                }
+            ],
+            order: [["fecha_cita", "ASC"], ["horario_id", "ASC"]]
+        });
+        // Convertimos el resultado para incluir el rango horario
+        const citasConHorario = citasser.map(cita => {
+            var _a, _b;
+            const citaAny = cita; // Tipo flexible para TS
+            return {
+                id: cita.id,
+                rfc: cita.rfc,
+                fecha_cita: cita.fecha_cita,
+                sede: ((_a = citaAny.Sede) === null || _a === void 0 ? void 0 : _a.sede) || "Desconocida",
+                sede_id: ((_b = citaAny.Sede) === null || _b === void 0 ? void 0 : _b.id) || null,
+                horario_id: cita.horario_id,
+                folio: cita.folio,
+                horario: citaAny.HorarioIssemym
+                    ? `${citaAny.HorarioIssemym.horario_inicio} - ${citaAny.HorarioIssemym.horario_fin}`
+                    : "Horario desconocido"
+            };
+        });
+        const usuario = yield s_usuario_1.default.findAll({
+            where: { N_Usuario: id },
+            attributes: [
+                "Nombre",
+            ],
+            raw: true
+        });
+        return res.json({
+            msg: "Cita obtenida",
+            citas: citasConHorario,
+            datosUser: usuario
+        });
+    }
+    catch (error) {
+        console.error("Error al obtener citas:", error);
+        return res.status(500).json({ error: "Ocurrió un error al obtener los registros" });
+    }
+});
+exports.getCitaSep = getCitaSep;
+const getHorariosDisponiblesSep = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { fecha } = req.params;
+        const limite = 3;
+        const citas = yield citas_sep_1.default.findAll({
+            where: { fecha_cita: fecha },
+        });
+        const horariosDisponibles = yield horarios_citas_sep_1.default.findAll({
+            order: [["id", "ASC"]],
+        });
+        const sedes = yield sedes_1.default.findAll();
+        const resultado = [];
+        horariosDisponibles.forEach(h => {
+            const sedesDisponibles = [];
+            sedes.forEach(s => {
+                const cantidadCitas = citas.filter(c => c.horario_id === h.id && c.sede_id === s.id).length;
+                if (cantidadCitas < limite) {
+                    sedesDisponibles.push({ sede_id: s.id, sede_texto: s.sede });
+                }
+            });
+            if (sedesDisponibles.length > 0) {
+                resultado.push({
+                    horario_id: h.id,
+                    horario_texto: `${h.horario_inicio} - ${h.horario_fin}`,
+                    sedes: sedesDisponibles
+                });
+            }
+        });
+        return res.json({ horarios: resultado });
+    }
+    catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: "Error al obtener horarios disponibles" });
+    }
+});
+exports.getHorariosDisponiblesSep = getHorariosDisponiblesSep;
+const saveCitaSep = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    try {
+        const { body } = req;
+        const limite = 3;
+        const citaExistente = yield citas_sep_1.default.findOne({
+            where: { rfc: body.rfc }
+        });
+        if (citaExistente) {
+            return res.status(400).json({
+                status: 400,
+                msg: "Ya existe una cita registrada con ese RFC"
+            });
+        }
+        console.log('body.fecha_cita:', body.fecha_cita);
+        console.log('typeof:', typeof body.fecha_cita);
+        const cantidadCitas = yield citas_sep_1.default.count({
+            where: {
+                horario_id: body.horario_id,
+                fecha_cita: body.fecha_cita
+            }
+        });
+        if (cantidadCitas >= limite) {
+            return res.status(400).json({
+                status: 400,
+                msg: "Este horario ya está ocupado para la fecha y sede seleccionada"
+            });
+        }
+        const folio = Math.floor(10000000 + Math.random() * 90000000);
+        const cita = yield citas_sep_1.default.create({
+            horario_id: body.horario_id,
+            sede_id: body.sede_id,
+            rfc: body.rfc,
+            fecha_cita: body.fecha_cita,
+            folio: folio,
+        });
+        const horarios = yield horarios_citas_sep_1.default.findOne({
+            where: { id: body.horario_id }
+        });
+        const horario = horarios ? `${horarios.horario_inicio} - ${horarios.horario_fin}` : '';
+        const sede2 = ((_a = (yield sedes_1.default.findOne({ where: { id: body.sede_id } }))) === null || _a === void 0 ? void 0 : _a.sede) || "";
+        const Validacion = yield dp_fum_datos_generales_1.dp_fum_datos_generales.findOne({
+            where: { f_rfc: body.rfc },
+            attributes: ["f_nombre", "f_primer_apellido", "f_segundo_apellido", "f_sexo", "f_fecha_nacimiento"]
+        });
+        if (!Validacion) {
+            throw new Error("No se encontró información para el RFC proporcionado");
+        }
+        const nombreCompleto = [
+            Validacion.f_nombre,
+            Validacion.f_primer_apellido,
+            Validacion.f_segundo_apellido
+        ].filter(Boolean).join(" ");
+        const sexo = Validacion.f_sexo || "";
+        let edad = "";
+        if (Validacion.f_fecha_nacimiento) {
+            const nacimiento = new Date(Validacion.f_fecha_nacimiento);
+            const hoy = new Date();
+            edad = (hoy.getFullYear() - nacimiento.getFullYear()).toString();
+            const mes = hoy.getMonth() - nacimiento.getMonth();
+            if (mes < 0 || (mes === 0 && hoy.getDate() < nacimiento.getDate())) {
+                edad = (parseInt(edad) - 1).toString();
+            }
+        }
+        return res.json({
+            status: 200,
+            msg: "Cita registrada correctamente",
+        });
+    }
+    catch (error) {
+        console.error('Error al guardar la cita:', error);
+        return res.status(500).json({ msg: 'Error interno del servidor' });
+    }
+});
+exports.saveCitaSep = saveCitaSep;
+const generarPdfAcuseSep = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b, _c;
+    try {
+        const { rfc } = req.params;
+        const cita = yield citas_sep_1.default.findOne({
+            where: { rfc: rfc },
+            include: [
+                {
+                    model: sedes_1.default,
+                    as: "Sede",
+                    attributes: ["id", "sede"]
+                },
+                {
+                    model: horarios_citas_sep_1.default,
+                    as: "HorarioCita",
+                    attributes: ["horario_inicio", "horario_fin"]
+                }
+            ],
+            order: [["fecha_cita", "ASC"], ["horario_id", "ASC"]]
+        });
+        const Validacion = yield dp_fum_datos_generales_1.dp_fum_datos_generales.findOne({
+            where: { f_rfc: rfc },
+            attributes: ["f_nombre", "f_primer_apellido", "f_segundo_apellido", "f_sexo", "f_fecha_nacimiento", "f_curp"]
+        });
+        if (!Validacion) {
+            throw new Error("No se encontró información para el RFC proporcionado");
+        }
+        const sede2 = ((_a = (yield sedes_1.default.findOne({ where: { id: cita === null || cita === void 0 ? void 0 : cita.sede_id } }))) === null || _a === void 0 ? void 0 : _a.sede) || "";
+        const nombreCompleto = [
+            Validacion.f_nombre,
+            Validacion.f_primer_apellido,
+            Validacion.f_segundo_apellido
+        ].filter(Boolean).join(" ");
+        const sexo = Validacion.f_sexo || "";
+        let curp1 = Validacion.f_curp || "";
+        console.log(Validacion);
+        let edad = "";
+        if (Validacion.f_fecha_nacimiento) {
+            const nacimiento = new Date(Validacion.f_fecha_nacimiento);
+            const hoy = new Date();
+            edad = (hoy.getFullYear() - nacimiento.getFullYear()).toString();
+            const mes = hoy.getMonth() - nacimiento.getMonth();
+            if (mes < 0 || (mes === 0 && hoy.getDate() < nacimiento.getDate())) {
+                edad = (parseInt(edad) - 1).toString();
+            }
+        }
+        if (!cita) {
+            return res.status(404).json({ error: "No se encontró la cita" });
+        }
+        const citaHora = ((_b = cita === null || cita === void 0 ? void 0 : cita.HorarioCita) === null || _b === void 0 ? void 0 : _b.horario_inicio) + '-' + ((_c = cita === null || cita === void 0 ? void 0 : cita.HorarioCita) === null || _c === void 0 ? void 0 : _c.horario_fin);
+        const pdfBuffer = yield generarPDFBufferSep({
+            folio: cita.folio,
+            nombreCompleto: nombreCompleto,
+            sexo: '',
+            edad: edad,
+            curp: curp1,
+            fecha: cita.fecha_cita,
+            sede: sede2,
+            horario: citaHora,
+            citaId: cita.id
+        });
+        res.setHeader("Content-Type", "application/pdf");
+        res.setHeader("Content-Disposition", `attachment; filename="acuse.pdf"`);
+        res.send(pdfBuffer);
+    }
+    catch (error) {
+        console.error("❌ Error generando Acuse:", error);
+        res.status(500).json({ error: "Error generando Acuse" });
+    }
+});
+exports.generarPdfAcuseSep = generarPdfAcuseSep;
+function generarPDFBufferSep(data) {
+    return __awaiter(this, void 0, void 0, function* () {
+        return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+            const doc = new pdfkit_1.default({ size: "LETTER", margin: 50 });
+            const chunks = [];
+            const pdfDir = path_1.default.join(process.cwd(), "storage/public/pdfs");
+            if (!fs_1.default.existsSync(pdfDir)) {
+                fs_1.default.mkdirSync(pdfDir, { recursive: true });
+            }
+            const fileName = `acuse_${data.folio}.pdf`;
+            const filePath = path_1.default.join(pdfDir, fileName);
+            const relativePath = path_1.default.join("storage", "public", "pdfs", fileName);
+            console.log(relativePath);
+            // const writeStream = fs.createWriteStream(filePath);
+            // doc.pipe(writeStream);
+            doc.on("data", (chunk) => chunks.push(chunk));
+            doc.on("end", () => __awaiter(this, void 0, void 0, function* () {
+                try {
+                    // Guardar la ruta del PDF en la tabla citas
+                    // await Cita.update(
+                    //   { path: relativePath },
+                    //   { where: { id: data.citaId } }
+                    // );
+                    resolve(Buffer.concat(chunks));
+                }
+                catch (error) {
+                    reject(error);
+                }
+            }));
+            doc.on("error", reject);
+            // ===== CONTENIDO DEL PDF =====
+            doc.image(path_1.default.join(__dirname, "../assets/salud_page_mem.jpg"), 0, 0, {
+                width: doc.page.width,
+                height: doc.page.height,
+            });
+            doc.moveDown(6);
+            doc
+                .fontSize(18)
+                .font("Helvetica-Bold")
+                .fillColor("#7d0037") // ✅ Aplica el color
+                .text("PROGRAMA DE CREDENCIALIZACIÓN Y ACTUALIZACIÓN DE CARTA TESTAMENTARIA DEL ISSEMYM", {
+                align: "center",
+            })
+                .fillColor("black");
+            doc.moveDown(2);
+            doc.font("Helvetica").fontSize(12).text(`Folio: ${data.folio}`, { align: "right" });
+            doc.font("Helvetica").fontSize(12).text(`Fecha cita: ${data.fecha}`, { align: "right" });
+            doc.fontSize(12)
+                .font("Helvetica")
+                .text(`Servidor público: ${data.nombreCompleto} | Edad: ${data.edad} años`, { align: "left" })
+                .text(`CURP: ${data.curp}`, { align: "left" })
+                .text(`Ubicación: ${data.sede}`, { align: "left" })
+                .text(`Horario: ${data.horario}`, { align: "left" });
+            doc.moveDown();
+            doc.fontSize(11).text("SUTEYM Poder Legislativo del Estado de México organiza el programa de Credencialización y actualización de Carta Testamentaria del ISSEMYM.", { align: "justify" });
+            doc.moveDown();
+            doc.fontSize(11).text("De acuerdo al reglamento para la afiliación de Derechohabientes del Instituto de Seguridad Social del Estado de México y Municipios, que indica la vigencia de la credencialización. Artpiculo 7.- Los derechohabientes tienen la obligación de renovar la identificación institucional; para el caso de menores de edad, su renovación será cada cinco años hasta cumplir 18 años, en el caso de mayores de edad, será cada diez años. En caso de presentarse alguna duda, error o requerir asistencia relacionada con el acceso, comunícate a las extensiones 5506 y 5517 del Departamento de Desarrollo y Actualización Tecnológica.", { align: "justify" });
+            doc.moveDown();
+            doc.fontSize(11).text("Para acceder a este beneficio, es indispensable presentar en el día y hora asignados.", { align: "justify" });
+            doc.moveDown();
+            // doc.fontSize(11).text(
+            //   "Si no se presenta alguno de estos documentos el día de la cita, no podrá realizar su examen y este se dará por perdido. Aviso de Privacidad",
+            //   { align: "justify" }
+            // );
+            // doc.moveDown();
+            // doc.font("Helvetica-Bold").fontSize(10).text("Aviso de Privacidad", { align: "left" });
+            // doc.font("Helvetica").fontSize(9).text("Consúltalo en:", { align: "left" });
+            // doc.font("Helvetica")
+            //   .fontSize(9)
+            //   .text(
+            //     "https://legislacion.legislativoedomex.gob.mx/storage/documentos/avisosprivacidad/expediente-clinico.pdf",
+            //     { align: "left" }
+            //   );
+            doc.end();
+        }));
+    });
+}

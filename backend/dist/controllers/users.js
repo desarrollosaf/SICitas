@@ -19,7 +19,7 @@ const user_1 = __importDefault(require("../models/user"));
 const s_usuario_1 = __importDefault(require("../models/saf/s_usuario"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const s_usuario_2 = __importDefault(require("../models/saf/s_usuario"));
-const citas_salud_1 = __importDefault(require("../models/citas_salud"));
+const citas_sep_1 = __importDefault(require("../models/citas_sep"));
 const ReadUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const listUser = yield users_1.default.findAll();
     return res.json({
@@ -94,7 +94,7 @@ const LoginUser = (req, res, next) => __awaiter(void 0, void 0, void 0, function
                 },
             ],
         });
-        console.log(user.datos_user);
+        console.log('este es el user', user.datos_user);
         if (!user) {
             return res.status(400).json({
                 msg: `Usuario no existe con el rfc ${rfc}`
@@ -133,11 +133,11 @@ const LoginUser = (req, res, next) => __awaiter(void 0, void 0, void 0, function
     //         }
     //     }
     // }else{
-    const totalCitas = yield citas_salud_1.default.count();
-    const citaUser = yield citas_salud_1.default.findOne({
+    const totalCitas = yield citas_sep_1.default.count();
+    const citaUser = yield citas_sep_1.default.findOne({
         where: { rfc: rfc }
     });
-    if (totalCitas >= 500) {
+    if (totalCitas >= 140) {
         if (!citaUser) {
             return res.status(416).json({
                 msg: "Ya no hay lugares disponibles."

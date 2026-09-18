@@ -37,6 +37,8 @@ const eventos_1 = __importDefault(require("../models/eventos"));
 const citas_licencias_1 = __importDefault(require("../models/citas_licencias"));
 const horarios_licencias_1 = __importDefault(require("../models/horarios_licencias"));
 const citas_salud_1 = __importDefault(require("../models/citas_salud"));
+const citas_sep_1 = __importDefault(require("../models/citas_sep"));
+const horarios_citas_sep_1 = __importDefault(require("../models/horarios_citas_sep"));
 dp_datospersonales_1.dp_datospersonales.initModel(fun_1.default);
 dp_fum_datos_generales_1.dp_fum_datos_generales.initModel(fun_1.default);
 const getHorariosDisponibles = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -171,7 +173,7 @@ const savecita = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 exports.savecita = savecita;
 const getcitasagrupadas = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const citas = yield citas_1.default.findAll({
+        const citas = yield citas_sep_1.default.findAll({
             include: [
                 {
                     model: sedes_1.default,
@@ -179,7 +181,7 @@ const getcitasagrupadas = (req, res) => __awaiter(void 0, void 0, void 0, functi
                     attributes: ["id", "sede"]
                 },
                 {
-                    model: horarios_citas_1.default,
+                    model: horarios_citas_sep_1.default,
                     as: "HorarioCita",
                     attributes: ["horario_inicio", "horario_fin"]
                 }
@@ -292,7 +294,7 @@ const getCita = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 });
 exports.getCita = getCita;
 const getcitasFecha = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
+    var _a, _b;
     try {
         const { fecha, rfc } = req.params;
         const prefijo = rfc.substring(0, 3).toUpperCase();
@@ -418,9 +420,67 @@ const getcitasFecha = (req, res) => __awaiter(void 0, void 0, void 0, function* 
                 }
                 ;
             }
+            if (element.evento === 'Credencialización y Actualización de Carta Testamentaria') {
+                const horarios = yield horarios_citas_sep_1.default.findAll({
+                    order: [['horario_inicio', 'ASC']]
+                });
+                for (const hora of horarios) {
+                    const cita = yield citas_sep_1.default.findAll({
+                        where: {
+                            horario_id: hora.id,
+                            fecha_cita: fecha
+                        }
+                    });
+                    for (const ci of cita) {
+                        if (ci) {
+                            const datosg = yield dp_fum_datos_generales_1.dp_fum_datos_generales.findOne({
+                                where: {
+                                    f_rfc: ci === null || ci === void 0 ? void 0 : ci.rfc
+                                }
+                            });
+                            const ads = yield s_usuario_1.default.findOne({
+                                where: {
+                                    N_Usuario: ci === null || ci === void 0 ? void 0 : ci.rfc
+                                },
+                                include: [
+                                    {
+                                        model: t_departamento_1.default,
+                                        as: "departamento"
+                                    }
+                                ]
+                            });
+                            const rango = `${hora.horario_inicio} - ${hora.horario_fin}`;
+                            let horario = obj.horarios.find((h) => h.rango === rango);
+                            const persona = {
+                                nombre: `${datosg === null || datosg === void 0 ? void 0 : datosg.f_nombre} ${datosg === null || datosg === void 0 ? void 0 : datosg.f_primer_apellido} ${datosg === null || datosg === void 0 ? void 0 : datosg.f_segundo_apellido}`,
+                                rfc: datosg === null || datosg === void 0 ? void 0 : datosg.f_rfc,
+                                issemym: datosg === null || datosg === void 0 ? void 0 : datosg.f_clave_issemym,
+                                adscripcion: (_b = ads === null || ads === void 0 ? void 0 : ads.departamento) === null || _b === void 0 ? void 0 : _b.nombre_completo
+                            };
+                            if (!horario) {
+                                obj.horarios.push({
+                                    rango,
+                                    personas: [persona]
+                                });
+                            }
+                            else {
+                                horario.personas.push(persona);
+                            }
+                            // obj.horarios.push({
+                            //     rango: `${hora.horario_inicio} - ${hora.horario_fin}`,
+                            //     servidor: {
+                            //       nombre: `${datosg?.f_nombre} ${datosg?.f_primer_apellido} ${datosg?.f_segundo_apellido}`,
+                            //       rfc: `${datosg?.f_rfc}`,
+                            //       issemym: `${datosg?.f_clave_issemym}`,
+                            //       adscripcion: `${ads?.departamento?.nombre_completo}`,
+                            //     }
+                            // });
+                        }
+                    }
+                }
+            }
             resultado = [obj];
         }
-        ;
         return res.json({
             msg: "Horarios con citas agrupadas",
             horarios: resultado
@@ -570,6 +630,27 @@ const generarPDFCitas = (req, res) => __awaiter(void 0, void 0, void 0, function
                 raw: false
             }));
         }
+        else if ((eventos === null || eventos === void 0 ? void 0 : eventos.evento) === 'Credencialización y Actualización de Carta Testamentaria') {
+            horarios = yield horarios_citas_sep_1.default.findAll({
+                order: [["id", "ASC"]],
+                raw: true
+            });
+            citas = (yield citas_sep_1.default.findAll({
+                where: {
+                    fecha_cita: { [sequelize_1.Op.eq]: fecha },
+                    sede_id: sedeId
+                },
+                include: [
+                    {
+                        model: sedes_1.default,
+                        as: "Sede",
+                        attributes: ["sede"]
+                    }
+                ],
+                order: [["horario_id", "ASC"]],
+                raw: false
+            }));
+        }
         // Obtener datos extra (nombre completo de usuario)
         for (const cita of citas) {
             if (cita.rfc) {
@@ -696,7 +777,7 @@ const generarPdfAcuse = (req, res) => __awaiter(void 0, void 0, void 0, function
 });
 exports.generarPdfAcuse = generarPdfAcuse;
 const generarExcelCitas = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o;
     try {
         const { fecha, sedeId } = req.params;
         // const horarios = await HorarioCita.findAll({
@@ -762,6 +843,27 @@ const generarExcelCitas = (req, res) => __awaiter(void 0, void 0, void 0, functi
                 raw: false
             }));
         }
+        else if ((eve === null || eve === void 0 ? void 0 : eve.evento) === 'Credencialización y Actualización de Carta Testamentaria') {
+            horarios = yield horarios_citas_sep_1.default.findAll({
+                order: [["id", "ASC"]],
+                raw: true
+            });
+            citas = (yield citas_sep_1.default.findAll({
+                where: {
+                    fecha_cita: { [sequelize_1.Op.eq]: fecha },
+                },
+                include: [
+                    {
+                        model: sedes_1.default,
+                        as: "Sede",
+                        attributes: ["sede"]
+                    }
+                ],
+                order: [["horario_id", "ASC"]],
+                raw: false
+            }));
+            sedeNombre = ((_f = (_e = citas[0]) === null || _e === void 0 ? void 0 : _e.Sede) === null || _f === void 0 ? void 0 : _f.sede) || "SIN SEDE";
+        }
         for (const cita of citas) {
             if (cita.rfc) {
                 const datos = yield dp_fum_datos_generales_1.dp_fum_datos_generales.findOne({
@@ -799,7 +901,7 @@ const generarExcelCitas = (req, res) => __awaiter(void 0, void 0, void 0, functi
                     cita.setDataValue("dependencia", usuario);
                 }
                 if (ads) {
-                    cita.adscripcion = (_e = ads === null || ads === void 0 ? void 0 : ads.departamento) === null || _e === void 0 ? void 0 : _e.nombre_completo;
+                    cita.adscripcion = (_g = ads === null || ads === void 0 ? void 0 : ads.departamento) === null || _g === void 0 ? void 0 : _g.nombre_completo;
                 }
             }
         }
@@ -827,11 +929,11 @@ const generarExcelCitas = (req, res) => __awaiter(void 0, void 0, void 0, functi
         // Datos
         for (const cita of citas) {
             console.log('cita   ', cita);
-            const nombre = ((_f = cita.datos_user) === null || _f === void 0 ? void 0 : _f.nombre_completo) || "Nombre desconocido";
-            const correo = (_g = cita.correo) !== null && _g !== void 0 ? _g : "Sin correo";
-            const telefono = (_h = cita.telefono) !== null && _h !== void 0 ? _h : "Sin teléfono";
-            const clave = (_j = cita.datos_user.f_clave_issemym) !== null && _j !== void 0 ? _j : "Sin clave";
-            const adscripcion = (_k = cita.adscripcion) !== null && _k !== void 0 ? _k : "Sin adscripción";
+            const nombre = ((_h = cita.datos_user) === null || _h === void 0 ? void 0 : _h.nombre_completo) || "Nombre desconocido";
+            const correo = (_j = cita.correo) !== null && _j !== void 0 ? _j : "Sin correo";
+            const telefono = (_k = cita.telefono) !== null && _k !== void 0 ? _k : "Sin teléfono";
+            const clave = (_l = cita.datos_user.f_clave_issemym) !== null && _l !== void 0 ? _l : "Sin clave";
+            const adscripcion = (_m = cita.adscripcion) !== null && _m !== void 0 ? _m : "Sin adscripción";
             const fila = [nombre, correo, telefono, clave, adscripcion];
             if (esSalud) {
                 fila.push(cita.antigeno_prostatico ? "Sí" : "No");
@@ -840,7 +942,7 @@ const generarExcelCitas = (req, res) => __awaiter(void 0, void 0, void 0, functi
             sheet.addRow(fila);
         }
         // Ajustar ancho columnas automáticamente
-        (_l = sheet.columns) === null || _l === void 0 ? void 0 : _l.forEach(column => {
+        (_o = sheet.columns) === null || _o === void 0 ? void 0 : _o.forEach(column => {
             if (column && typeof column.eachCell === "function") {
                 let maxLength = 0;
                 column.eachCell({ includeEmpty: true }, cell => {
@@ -959,8 +1061,8 @@ const getEventos = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     const eventos = yield eventos_1.default.findAll({
         include: [
             {
-                model: citas_salud_1.default,
-                as: "m_citasS",
+                model: citas_sep_1.default,
+                as: "m_citasSep",
                 required: false,
             }
         ]

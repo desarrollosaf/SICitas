@@ -26,6 +26,8 @@ import HorarioLicencia from "../models/horarios_licencias";
 import { count } from "console";
 import citasSalud from "../models/citas_salud";
 import HorariosSalud from "../models/horarios_salud";
+import CitaSep from "../models/citas_sep";
+import HorarioCitasSep from "../models/horarios_citas_sep";
 
 
 dp_datospersonales.initModel(sequelizefun);
@@ -197,7 +199,7 @@ export const savecita = async (req: Request, res: Response): Promise<any> => {
 
 export const getcitasagrupadas = async (req: Request, res: Response): Promise<any> => {
   try {
-    const citas = await Cita.findAll({
+    const citas = await CitaSep.findAll({
       include: [
         {
           model: Sede,
@@ -205,13 +207,15 @@ export const getcitasagrupadas = async (req: Request, res: Response): Promise<an
           attributes: ["id", "sede"]
         },
         {
-          model: HorarioCita,
+          model: HorarioCitasSep,
           as: "HorarioCita",
           attributes: ["horario_inicio", "horario_fin"]
         }
       ],
       order: [["fecha_cita", "ASC"], ["sede_id", "ASC"], ["horario_id", "ASC"]]
     });
+
+    
 
     const agrupadas: Record<string, any> = {};
 
@@ -461,8 +465,75 @@ export const getcitasFecha = async (req: Request, res: Response): Promise<any> =
         }
       };
     }
+
+    if(element.evento === 'Credencialización y Actualización de Carta Testamentaria')
+      {
+        const horarios = await HorarioCitasSep.findAll({
+          order: [['horario_inicio', 'ASC']]
+        })
+        
+        for (const hora of horarios) {
+          const cita = await CitaSep.findAll({
+            where:{
+              horario_id: hora.id,
+              fecha_cita: fecha
+            }
+          })
+          for(const ci of cita){
+            if(ci){
+              const datosg = await dp_fum_datos_generales.findOne({
+                where:{
+                  f_rfc: ci?.rfc
+                }
+              })
+        
+              const ads = await SUsuario.findOne({
+                where: {
+                  N_Usuario: ci?.rfc
+                }, 
+                include:[
+                  {
+                    model: Departamento,
+                    as: "departamento"
+                  }
+                ]
+              }); 
+            
+             const rango = `${hora.horario_inicio} - ${hora.horario_fin}`;
+              let horario = obj.horarios.find(
+                (h) => h.rango === rango
+              );
+
+              const persona = {
+                nombre: `${datosg?.f_nombre} ${datosg?.f_primer_apellido} ${datosg?.f_segundo_apellido}`,
+                rfc: datosg?.f_rfc,
+                issemym: datosg?.f_clave_issemym,
+                adscripcion: ads?.departamento?.nombre_completo
+              };
+
+              if (!horario) {
+                obj.horarios.push({
+                  rango,
+                  personas: [persona]
+                });
+              } else {
+                horario.personas.push(persona);
+              }
+              // obj.horarios.push({
+              //     rango: `${hora.horario_inicio} - ${hora.horario_fin}`,
+              //     servidor: {
+              //       nombre: `${datosg?.f_nombre} ${datosg?.f_primer_apellido} ${datosg?.f_segundo_apellido}`,
+              //       rfc: `${datosg?.f_rfc}`,
+              //       issemym: `${datosg?.f_clave_issemym}`,
+              //       adscripcion: `${ads?.departamento?.nombre_completo}`,
+              //     }
+              // });
+            }
+          }
+        }
+      }
     resultado = [obj];
-  };
+  }
 
     return res.json({
       msg: "Horarios con citas agrupadas",
@@ -657,6 +728,28 @@ export const generarPDFCitas = async (req: Request, res: Response) => {
         order: [["createdAt", "ASC"]],
         raw: false
       }) as (Cita & { usuario?: any })[];
+    }else if(eventos?.evento === 'Credencialización y Actualización de Carta Testamentaria'){
+      horarios = await HorarioCitasSep.findAll({
+        order: [["id", "ASC"]],
+        raw: true
+      });
+
+
+      citas = await CitaSep.findAll({
+        where: {
+          fecha_cita: { [Op.eq]: fecha },
+          sede_id: sedeId
+        },
+        include: [
+          {
+            model: Sede,
+            as: "Sede",
+            attributes: ["sede"]
+          }
+        ],
+        order: [["horario_id", "ASC"]],
+        raw: false
+      }) as (Cita & { Sede?: { sede: string }, usuario?: any })[];
     }
     
     // Obtener datos extra (nombre completo de usuario)
@@ -826,8 +919,6 @@ export const generarExcelCitas = async (req: Request, res: Response) => {
           order: [["id", "ASC"]],
           raw: true
         });
-
-
         citas = await citasIssemym.findAll({
           where: {
             fecha_cita: { [Op.eq]: fecha },
@@ -876,6 +967,27 @@ export const generarExcelCitas = async (req: Request, res: Response) => {
           order: [["createdAt", "ASC"]],
           raw: false
         }) as (Cita & { usuario?: any })[];
+    }else if(eve?.evento === 'Credencialización y Actualización de Carta Testamentaria'){
+        horarios = await HorarioCitasSep.findAll({
+          order: [["id", "ASC"]],
+          raw: true
+        });
+        citas = await CitaSep.findAll({
+          where: {
+            fecha_cita: { [Op.eq]: fecha },
+          },
+          include: [
+            {
+              model: Sede,
+              as: "Sede",
+              attributes: ["sede"]
+            }
+          ],
+          order: [["horario_id", "ASC"]],
+          raw: false
+        }) as (Cita & { Sede?: { sede: string }, usuario?: any })[];
+        sedeNombre = citas[0]?.Sede?.sede || "SIN SEDE";
+  
     }
     
     for (const cita of citas) {
@@ -1110,8 +1222,8 @@ export const getEventos = async(req: Request, res: Response): Promise<any> => {
   const eventos = await agendaEventos.findAll({
     include: [
       {
-        model: citasSalud,
-        as: "m_citasS",
+        model: CitaSep,
+        as: "m_citasSep",
         required: false,
       }
     ]

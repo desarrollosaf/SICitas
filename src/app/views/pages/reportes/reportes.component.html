@@ -55,10 +55,12 @@
             <button type="button" class="btn-close" (click)="modal.close('by: close icon')" aria-label="Close"></button>
         </div>
         <div class="modal-body w-100">
-            <div *ngFor="let hora of eventos.horarios"> 
-                <div class="border rounded p-2 mb-2">
-                    <p><strong>Nombre:</strong> {{ hora.nombre}} | <strong>RFC:</strong> {{ hora.rfc }} | <strong>Clave ISSEMYM:</strong> {{ hora.issemym }} | <strong>Teléfono:</strong> {{ hora.num }} | <strong>Correo electrónico:</strong> {{ hora.correo }}</p>
-                   <p><strong>Adscripción:</strong> {{ hora.adscripcion}}  </p>
+            <div *ngFor="let hora of eventos.horarios" class="border rounded p-2 mb-2"> 
+                {{hora.rango}}
+                <div *ngFor="let sp of hora.personas"> 
+                    <div class="border rounded p-2 mb-2">
+                        <p><strong>Nombre:</strong> {{ sp.nombre}} | <strong>RFC:</strong> {{ sp.rfc }} | <strong>Clave ISSEMYM:</strong> {{ sp.issemym }} | <strong>Adscripción:</strong> {{ sp.adscripcion}}  </p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -67,7 +69,7 @@
             <button class="btn btn-sm btn-success d-flex align-items-center" (click)="descargarExcel(3)">
                 <i class="bi bi-file-earmark-excel me-1"></i> Excel
             </button>
-            <button class="btn btn-sm btn-danger d-flex align-items-center" (click)="descargarPDF(4)">
+            <button class="btn btn-sm btn-danger d-flex align-items-center" (click)="descargarPDF(3)">
             <i class="bi bi-file-earmark-pdf me-1"></i> PDF
             </button>
 

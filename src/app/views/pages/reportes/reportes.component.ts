@@ -537,6 +537,10 @@ getEventos(){
               totalAntigeno = cita.m_citasS.filter((c: any) => c.antigeno_prostatico).length;
               totalPapanicolau = cita.m_citasS.filter((c: any) => c.papanicolau).length;
             }
+            if( cita.evento === 'Credencialización y Actualización de Carta Testamentaria' && cita.m_citasSep){
+              esSalud = false;
+              totalRegistros = cita.m_citasSep.length;
+            }
 
             const fechaHora = `${cita.fecha_cita}T00:00:00`;
             const nuevoEvento = {
@@ -545,7 +549,7 @@ getEventos(){
                 : `${totalRegistros} Citas ${cita.evento}`,
               start: fechaHora,
               allDay: true,
-              backgroundColor: '#dc3545',  // Rojo
+              backgroundColor: '#a54b54',  // Rojo
               borderColor: '#bd2130',
               textColor: '#fff',
               extendedProps: esSalud ? {
