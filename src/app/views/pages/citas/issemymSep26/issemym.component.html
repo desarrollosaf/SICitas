@@ -32,6 +32,7 @@
                                             <th class="text-center">Folio</th>
                                             <th class="text-center">Nombre</th>
                                             <th class="text-center">Fecha cita</th>
+                                            <th class="text-center">Trámite</th>
                                             <th class="text-center">PDF</th>
                                         </tr>
                                     </thead>
@@ -40,6 +41,7 @@
                                             <td class="text-center">{{ datosCita.citas[0]?.folio }}</td>
                                             <td class="text-center">{{ datosCita.datosUser[0]?.Nombre }}</td>
                                             <td class="text-center">{{ datosCita.citas[0]?.fecha_cita }}</td>
+                                            <td class="text-center">{{datosCita.citas[0]?.tramites}} </td>
                                             <td class="text-center"><a
                                                     (click)="descargarpdf()"
                                                     target="_blank" rel="noopener noreferrer">
@@ -50,7 +52,6 @@
                                     </tbody>
                                 </table>
                             </div>
-
                         </div>
                     </div>
                 </div>
@@ -67,7 +68,6 @@
                     <div class="modal-body w-100">
                         <div class="p-2 text-white text-muted bg-light">
                             <strong>Horario disponibles</strong>
-
                         </div>
                         <br>
                         <!-- Indicaciones -->
@@ -82,19 +82,9 @@
                         <!-- Formulario en filas de 2 columnas -->
                         <div class="row">
                             <!-- Horario -->
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-4 mb-3">
                                 <label for="sede" class="form-label">Sede</label>
-                                <!-- <select
-                        id="sede"
-                        class="form-select"
-                        [(ngModel)]="sedeSeleccionada"
-                        name="sede"
-                        >
-                        <option [ngValue]="null" disabled selected>-- Selecciona una sede --</option>
-                        <option *ngFor="let sede of sedesDisponibles2" [ngValue]="sede.sede_id">
-                            {{ sede.sede_texto }}
-                        </option>
-                        </select> -->
+                        
                                 <select id="sede" class="form-select" [(ngModel)]="sedeSeleccionada" name="sede"
                                     disabled>
                                     <option *ngFor="let sede of sedesDisponibles2" [ngValue]="sede.sede_id">
@@ -102,7 +92,7 @@
                                     </option>
                                 </select>
                             </div>
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-4 mb-3">
                                 <label for="hora" class="form-label">Horario</label>
                                 <select id="hora" class="form-select" [(ngModel)]="horaSeleccionada2" name="hora">
                                     <option [ngValue]="null" disabled selected>-- Selecciona un horario --</option>
@@ -111,12 +101,20 @@
                                     </option>
                                 </select>
                             </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="hora" class="form-label">Trámite</label>
+                                <select id="tramite_id" class="form-select" [(ngModel)]="tramitesSeleccionados" name="tramite_id" multiple>
+                                    <option [ngValue]="null" disabled selected>-- Seleccione una opción --</option>
+                                    <option [ngValue]="1"> Credencialización</option>
+                                    <option [ngValue]="2"> Actualización de Carta testamentaria</option>
+                                </select>
+                            </div>
                         </div>
 
 
 
                         <button class="btn btn-primary mt-3" (click)="guardarSeleccion()"
-                            [disabled]="!horaSeleccionada2 || !sedeSeleccionada ||  enviandoRegistro === 1">
+                            [disabled]="!horaSeleccionada2 || !tramitesSeleccionados || !sedeSeleccionada ||  enviandoRegistro === 1">
                             <ng-container *ngIf="enviandoRegistro === 1; else iconoGuardar">
                                 <span class="spinner-border spinner-border-sm me-1" role="status"></span>
                                 Registrando

@@ -805,6 +805,15 @@ const getCitaSep = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         const citasConHorario = citasser.map(cita => {
             var _a, _b;
             const citaAny = cita; // Tipo flexible para TS
+            const tramites = cita.tramites.split(',').map((tramite) => {
+                const id = Number(tramite.trim());
+                if (id === 1) {
+                    return 'Credencialización ';
+                }
+                if (id === 2) {
+                    return 'Actualización de Carta testamentaria';
+                }
+            });
             return {
                 id: cita.id,
                 rfc: cita.rfc,
@@ -813,6 +822,7 @@ const getCitaSep = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
                 sede_id: ((_b = citaAny.Sede) === null || _b === void 0 ? void 0 : _b.id) || null,
                 horario_id: cita.horario_id,
                 folio: cita.folio,
+                tramites: tramites,
                 horario: citaAny.HorarioIssemym
                     ? `${citaAny.HorarioIssemym.horario_inicio} - ${citaAny.HorarioIssemym.horario_fin}`
                     : "Horario desconocido"
@@ -878,6 +888,7 @@ const saveCitaSep = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
     try {
         const { body } = req;
         const limite = 3;
+        console.log('*****body **** ', body);
         const citaExistente = yield citas_sep_1.default.findOne({
             where: { rfc: body.rfc }
         });
@@ -902,12 +913,14 @@ const saveCitaSep = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
             });
         }
         const folio = Math.floor(10000000 + Math.random() * 90000000);
+        const tramites = body.tramite.join(',');
         const cita = yield citas_sep_1.default.create({
             horario_id: body.horario_id,
             sede_id: body.sede_id,
             rfc: body.rfc,
             fecha_cita: body.fecha_cita,
             folio: folio,
+            tramites: tramites,
         });
         const horarios = yield horarios_citas_sep_1.default.findOne({
             where: { id: body.horario_id }

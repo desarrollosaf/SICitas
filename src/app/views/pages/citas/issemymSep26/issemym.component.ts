@@ -59,6 +59,7 @@ export class IssemymComponent {
     sedes: { sede_id: number; sede_texto: string }[];
   }[] = [];
   horaSeleccionada2: number | null = null;
+  tramitesSeleccionados: number[] = [];
   sedeSeleccionada: number | null = null;
   sedesDisponibles2: Array<{ sede_id: number; sede_texto: string }> = [];
   enviandoRegistro: number | null = null;
@@ -76,7 +77,6 @@ export class IssemymComponent {
     this.currentUser = this._userService.currentUserValue;
     this._citasService.getcitaSepRFC(this.currentUser.rfc).subscribe({
       next: (response: any) => {
-        console.log('response de fun ', response);
         this.datosCita = response
         if (response.citas.length > 0) {
           this.mostrarCalendario = true;
@@ -213,12 +213,12 @@ export class IssemymComponent {
   guardarSeleccion() {
     this.currentUser = this._userService.currentUserValue;
 
-
     const datos = {
       fecha_cita: this.fechaCitaEnvio,
       horario_id: this.horaSeleccionada2,
       sede_id: this.sedeSeleccionada,
       rfc: this.currentUser.rfc,
+      tramite: this.tramitesSeleccionados,
     };
 
     this.enviandoRegistro = 1;

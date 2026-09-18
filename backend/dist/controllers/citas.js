@@ -451,11 +451,21 @@ const getcitasFecha = (req, res) => __awaiter(void 0, void 0, void 0, function* 
                             });
                             const rango = `${hora.horario_inicio} - ${hora.horario_fin}`;
                             let horario = obj.horarios.find((h) => h.rango === rango);
+                            const tramites = ci.tramites.split(',').map((tramite) => {
+                                const id = Number(tramite.trim());
+                                if (id === 1) {
+                                    return 'Credencialización ';
+                                }
+                                if (id === 2) {
+                                    return 'Actualización de Carta testamentaria';
+                                }
+                            });
                             const persona = {
                                 nombre: `${datosg === null || datosg === void 0 ? void 0 : datosg.f_nombre} ${datosg === null || datosg === void 0 ? void 0 : datosg.f_primer_apellido} ${datosg === null || datosg === void 0 ? void 0 : datosg.f_segundo_apellido}`,
                                 rfc: datosg === null || datosg === void 0 ? void 0 : datosg.f_rfc,
                                 issemym: datosg === null || datosg === void 0 ? void 0 : datosg.f_clave_issemym,
-                                adscripcion: (_b = ads === null || ads === void 0 ? void 0 : ads.departamento) === null || _b === void 0 ? void 0 : _b.nombre_completo
+                                adscripcion: (_b = ads === null || ads === void 0 ? void 0 : ads.departamento) === null || _b === void 0 ? void 0 : _b.nombre_completo,
+                                tramites: tramites,
                             };
                             if (!horario) {
                                 obj.horarios.push({

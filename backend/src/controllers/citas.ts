@@ -504,11 +504,24 @@ export const getcitasFecha = async (req: Request, res: Response): Promise<any> =
                 (h) => h.rango === rango
               );
 
+              const tramites = ci.tramites.split(',').map((tramite: string) => {
+                const id = Number(tramite.trim());
+                  if (id === 1) {
+                    return 'Credencialización ';
+                  }
+
+                  if (id === 2) {
+                    return 'Actualización de Carta testamentaria';
+                  }
+              });
+
+
               const persona = {
                 nombre: `${datosg?.f_nombre} ${datosg?.f_primer_apellido} ${datosg?.f_segundo_apellido}`,
                 rfc: datosg?.f_rfc,
                 issemym: datosg?.f_clave_issemym,
-                adscripcion: ads?.departamento?.nombre_completo
+                adscripcion: ads?.departamento?.nombre_completo, 
+                tramites: tramites,
               };
 
               if (!horario) {
@@ -733,7 +746,6 @@ export const generarPDFCitas = async (req: Request, res: Response) => {
         order: [["id", "ASC"]],
         raw: true
       });
-
 
       citas = await CitaSep.findAll({
         where: {
