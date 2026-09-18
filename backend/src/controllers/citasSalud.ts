@@ -35,6 +35,8 @@ export const getCita = async (req: Request, res: Response): Promise<any> => {
         telefono: cita.telefono,
         folio: cita.folio,
         path: cita.path,
+        antigeno_prostatico: citaAny.antigeno_prostatico,
+        papanicolau: citaAny.papanicolau,
       };
     });
 
@@ -59,10 +61,40 @@ export const getCita = async (req: Request, res: Response): Promise<any> => {
 }
 
 
+const CUPO_ESTUDIOS = 30;
+
+export const getCupoEstudios = async (req: Request, res: Response): Promise<any> => {
+  try {
+    const { fecha } = req.params;
+
+    const [antigenoUsados, papanicolauUsados] = await Promise.all([
+      citasSalud.count({ where: { fecha_cita: fecha, antigeno_prostatico: true } }),
+      citasSalud.count({ where: { fecha_cita: fecha, papanicolau: true } }),
+    ]);
+
+    return res.json({
+      cupoTotal: CUPO_ESTUDIOS,
+      antigeno_prostatico: {
+        usados: antigenoUsados,
+        disponibles: Math.max(CUPO_ESTUDIOS - antigenoUsados, 0),
+      },
+      papanicolau: {
+        usados: papanicolauUsados,
+        disponibles: Math.max(CUPO_ESTUDIOS - papanicolauUsados, 0),
+      },
+    });
+  } catch (error) {
+    console.error("Error al obtener el cupo de estudios:", error);
+    return res.status(500).json({ error: "Ocurrió un error al obtener el cupo de estudios" });
+  }
+};
+
 export const savecita = async (req: Request, res: Response): Promise<any> => {
   try {
     const { body } = req;
     const limite = 120;
+    const antigenoProstatico = !!body.antigeno_prostatico;
+    const papanicolau = !!body.papanicolau;
 
     const citaExistente = await citasSalud.findOne({
       where: { rfc: body.rfc }
@@ -88,6 +120,30 @@ export const savecita = async (req: Request, res: Response): Promise<any> => {
         });
     }
 
+    if (antigenoProstatico) {
+      const cantidadAntigeno = await citasSalud.count({
+        where: { fecha_cita: body.fecha_cita, antigeno_prostatico: true }
+      });
+      if (cantidadAntigeno >= CUPO_ESTUDIOS) {
+        return res.json({
+          status: 203,
+          msg: "El cupo para antígeno prostático de esa fecha ya está lleno.",
+        });
+      }
+    }
+
+    if (papanicolau) {
+      const cantidadPapanicolau = await citasSalud.count({
+        where: { fecha_cita: body.fecha_cita, papanicolau: true }
+      });
+      if (cantidadPapanicolau >= CUPO_ESTUDIOS) {
+        return res.json({
+          status: 204,
+          msg: "El cupo para Papanicolau de esa fecha ya está lleno.",
+        });
+      }
+    }
+
     const folio: number = Math.floor(10000000 + Math.random() * 90000000);
 
     const cita = await citasSalud.create({
@@ -96,7 +152,9 @@ export const savecita = async (req: Request, res: Response): Promise<any> => {
       correo: body.correo,
       telefono: body.telefono,
       folio: folio,
-      path: '1'
+      path: '1',
+      antigeno_prostatico: antigenoProstatico,
+      papanicolau: papanicolau
     });
 
     const Validacion = await dp_fum_datos_generales.findOne({
@@ -207,7 +265,9 @@ export const generarPdfAcuse = async (req: Request, res: Response) => {
       telefono: cita.telefono,
       adscripcion: adscripcion,
       issemym: issemym,
-      citaId: cita.id
+      citaId: cita.id,
+      antigenoProstatico: !!(cita as any).antigeno_prostatico,
+      papanicolau: !!(cita as any).papanicolau
     });
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader("Content-Disposition", `attachment; filename="Reporte.pdf"`);
@@ -233,6 +293,8 @@ interface PDFData {
   adscripcion: string;
   issemym: string;
   citaId: number; // <-- ID de la cita para actualizar
+  antigenoProstatico: boolean;
+  papanicolau: boolean;
 }
 
 export async function generarPDFBufferSalud(data: PDFData): Promise<Buffer> {
@@ -270,7 +332,7 @@ export async function generarPDFBufferSalud(data: PDFData): Promise<Buffer> {
     doc.on("error", reject);
 
     // ===== CONTENIDO DEL PDF =====
-    doc.image(path.join(__dirname, "../assets/salud_page_mem.jpg"), 0, 0, {
+    doc.image(path.join(__dirname, "../assets/salud_page.jpg"), 0, 0, {
       width: doc.page.width,
       height: doc.page.height,
     });
@@ -280,7 +342,7 @@ export async function generarPDFBufferSalud(data: PDFData): Promise<Buffer> {
       .fontSize(18)
       .font("Helvetica-Bold")
       .fillColor("#7d0037") // ✅ Aplica el color
-      .text("JORNADA DE SALUD Y PREVENCIÓN SUTEYM 2026", {
+      .text("JORNADA DE SALUD", {
         align: "center",
       })
       .fillColor("black");
@@ -288,7 +350,8 @@ export async function generarPDFBufferSalud(data: PDFData): Promise<Buffer> {
     doc.moveDown();
     doc.font("Helvetica").fontSize(12).text(`Folio: ${data.folio}`, { align: "right" });
     doc.font("Helvetica").fontSize(12).text(`Fecha cita: ${fecha}`, { align: "right" });
-    doc.font("Helvetica").fontSize(12).text(`Sede: Estacionamiento Longares`, { align: "right" });
+    doc.font("Helvetica").fontSize(12).text(`Lugar: Calle Plutarco González #111, La Merced y Alameda, Toluca, Edo. Méx.`, { align: "right" });
+    doc.font("Helvetica").fontSize(12).text(`Tel: (722) 279-6499`, { align: "right" });
     doc.moveDown();
 
     doc.fontSize(11)
@@ -298,52 +361,42 @@ export async function generarPDFBufferSalud(data: PDFData): Promise<Buffer> {
       .text(`Correo Electrónico: ${data.correo} | Teléfono: ${data.telefono}`, { align: "left" })
       .text(`Adscripción: ${data.adscripcion}`, { align: "left" });
 
+    const estudiosAdicionales: string[] = [];
+    if (data.antigenoProstatico) estudiosAdicionales.push("Antígeno prostático (9:30 a 10:30 hrs)");
+    if (data.papanicolau) estudiosAdicionales.push("Papanicolau (10:30 a 12:30 hrs)");
+
     doc.moveDown();
-    doc.fontSize(11).text(
-      'La Delegación SUTEyM-Poder Legislativo invita a la "Jornada de Salud y Prevención SUTEyM 2026", con el propósito de fortalecer las acciones preventivas y contribuir a la protección y al cuidado de la salud de las personas servidoras públicas del Poder Legislativo.',
+    doc.font('Helvetica-Bold').fontSize(11).text(
+      `Estudios adicionales registrados: ${estudiosAdicionales.length > 0 ? estudiosAdicionales.join(", ") : "Ninguno"}`,
+      { align: "left" }
+    );
+
+    doc.moveDown();
+    doc.font('Helvetica').fontSize(11).text(
+      'El Congreso del Estado de México, en coordinación con el Voluntariado del Poder Legislativo del Estado de México, tienen el agrado de invitarles a participar en la Jornada de Salud, iniciativa orientada a promover la prevención y el bienestar de todas las personas servidoras públicas que integran este Poder Legislativo.',
       { align: "justify" }
     );
 
     doc.moveDown();
     doc.fontSize(11).text(
-      "El check-up médico SUTEyM incluye: ",
+      "La jornada de salud comprenderá: ",
       { align: "justify" }
     );
     doc.fontSize(11).list(
       [
-        "Examen de laboratorio (glucosa, colesterol, triglicéridos);",
+        "Llenado de cédulas de evaluación médica y psicológica;",
         "Somatometría (toma de peso y talla);",
-        "Papanicolaou;",
-        "Exploración de mama;",
-        "Antígeno prostático (únicamente hombres mayores de 40 años);",
-        "Medico general;",
-        "Psicología; y ",
-        "Nutrición (hábitos alimenticios).",
+        "Toma de T/A;",
+        "Toma de citología cervico-vaginal (Papanicolau);",
+        "Exploración de glándula mamaria (Capacitación para autoexploración);",
+        "Seguimiento por Trabajo Social;",
+        "Evaluación y orientación médica, nutricional y psicológica de acuerdo a resultados; y",
+        "Referencia y gestión de cita a la persona servidora pública a su Unidad Médica de adscripción en caso de ameritar seguimiento.",
       ],
       { bulletIndent: 20 }
     );
     doc.moveDown(1);
 
-    doc.font('Helvetica-Bold').fontSize(11).text(
-      "Condiciones en las que se tienen que presentar los servidores públicos para la evaluación médica:",
-      { align: "justify" }
-    );
-
-    doc.rect(50, doc.y+5, 10, 10).stroke();
-    doc.font('Helvetica-Bold').text('X', 52, doc.y+15 - 10);
-    doc.font('Helvetica').text('Credencial de afiliación ISSEMYM o último talón de pago;', 70, doc.y - 10);
-
-    doc.rect(50, doc.y, 10, 10).stroke();
-    doc.font('Helvetica-Bold').text('X', 52, doc.y+12 - 10);
-    doc.font('Helvetica').text('Ayuno mínimo de 8 horas;', 70, doc.y - 10);
-
-    doc.rect(50, doc.y, 10, 10).stroke();
-    doc.font('Helvetica-Bold').text('X', 52, doc.y+12 - 10);
-    doc.font('Helvetica').text('Aseo general.', 70, doc.y - 10);
-   
-    doc.moveDown();
-    doc.font('Helvetica').text('', 50, doc.y - 10);
-    doc.moveDown();
     doc.font('Helvetica-Bold').fontSize(11).text(
       "Mujeres" , { continued: true });
     
@@ -368,9 +421,6 @@ export async function generarPDFBufferSalud(data: PDFData): Promise<Buffer> {
       align: 'justify'
     });
     doc.text("Se atenderá a los servidores públicos conforme su llegada y presentación en la unidad móvil.", {
-      align: 'justify'
-    });
-    doc.text("Mayor información de la Jornada de Salud en la delegación sindical, en edificio San Rafael, Av. Independencia #108, Col. Centro, Toluca, México. Ext. 1905.", {
       align: 'justify'
     });
     doc.text("En caso de presentar alguna duda, error o requerir asistencia relacionada con el acceso ó registro, comunicate a las extensiones 5506 ó 5517 del Departamento de Desarrollo y Actualización Tecnológica.", {

@@ -11,6 +11,8 @@ class citasSalud extends Model {
   declare telefono: string;
   declare folio: string;
   declare path: string | null;
+  declare antigeno_prostatico: boolean;
+  declare papanicolau: boolean;
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
 }
@@ -45,6 +47,16 @@ citasSalud.init(
     path: {
       type: DataTypes.STRING,
       allowNull: true,
+    },
+    antigeno_prostatico: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+    },
+    papanicolau: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
     },
     createdAt: DataTypes.DATE,
     updatedAt: DataTypes.DATE,

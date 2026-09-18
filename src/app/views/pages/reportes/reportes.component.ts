@@ -151,6 +151,29 @@ export class ReportesComponent {
         info.el.style.border = '2px solid #0f5132';
         info.el.style.cursor = 'pointer';
       // }
+    },
+
+    eventDidMount: (info) => {
+      const detalle = info.event.extendedProps?.['detalle'];
+      if (detalle) {
+        info.el.setAttribute('title', detalle);
+      }
+      info.el.style.whiteSpace = 'normal';
+    },
+
+    eventContent: (arg) => {
+      const props = arg.event.extendedProps;
+      if (!props?.['esSalud']) {
+        return true; // deja el render por default para los demás tipos de evento
+      }
+      const wrapper = document.createElement('div');
+      wrapper.className = 'fc-salud-event';
+      wrapper.innerHTML = `
+        <div class="fc-salud-total">${props['total']} citas de Salud</div>
+        <span class="fc-badge fc-badge-antigeno">Antígeno: ${props['antigeno']}</span>
+        <span class="fc-badge fc-badge-papanicolau">Papanicolau: ${props['papanicolau']}</span>
+      `;
+      return { domNodes: [wrapper] };
     }
   };
 
@@ -496,8 +519,12 @@ descargarExcel(sedeID: number) {
 getEventos(){
   this._citasService.getEventos().subscribe({
       next: (response: any) => {
-        let totalRegistros: 0;
         response.eventos.forEach((cita: any) => {
+            let totalRegistros = 0;
+            let esSalud = false;
+            let totalAntigeno = 0;
+            let totalPapanicolau = 0;
+
             if( cita.evento === 'Credencialización' && cita.m_citasI){
               totalRegistros = cita.m_citasI.length;
             }
@@ -505,17 +532,29 @@ getEventos(){
               totalRegistros = cita.m_citasL.length;
             }
             if( cita.evento === 'Salud' && cita.m_citasS){
+              esSalud = true;
               totalRegistros = cita.m_citasS.length;
+              totalAntigeno = cita.m_citasS.filter((c: any) => c.antigeno_prostatico).length;
+              totalPapanicolau = cita.m_citasS.filter((c: any) => c.papanicolau).length;
             }
 
             const fechaHora = `${cita.fecha_cita}T00:00:00`;
             const nuevoEvento = {
-              title: `${totalRegistros} Citas ${cita.evento}`,
+              title: esSalud
+                ? `${totalRegistros} Salud (A:${totalAntigeno} P:${totalPapanicolau})`
+                : `${totalRegistros} Citas ${cita.evento}`,
               start: fechaHora,
-              allDay: false,
+              allDay: true,
               backgroundColor: '#dc3545',  // Rojo
               borderColor: '#bd2130',
-              textColor: '#fff'
+              textColor: '#fff',
+              extendedProps: esSalud ? {
+                esSalud: true,
+                total: totalRegistros,
+                antigeno: totalAntigeno,
+                papanicolau: totalPapanicolau,
+                detalle: `Total citas: ${totalRegistros}\nAntígeno prostático: ${totalAntigeno}\nPapanicolau: ${totalPapanicolau}`
+              } : {}
             };
             if (Array.isArray(this.calendarOptions.events)) {
               this.calendarOptions.events = [...this.calendarOptions.events, nuevoEvento];

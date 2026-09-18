@@ -50,14 +50,15 @@ export class Issemym2026Component {
   modalRef: NgbModalRef;
   viewState: 'lista' | 'enviar-link' | 'atender' = 'lista';
   mostrarCalendario = false;
-  highlightedDates: string[] = ['2026-07-06', '2026-07-07', '2026-07-08'];
+  highlightedDates: string[] = ['2026-09-07', '2026-09-08', '2026-09-09', '2026-09-10', '2026-09-11'];
   correoUsuario: string = '';
   correoConfirmado: string = '';
   telefonoUsuario: string = '';
   telefonoConfirmado: string = '';
-  credencial: string = '';
-  ayuno: string = '';
-  aseo: string = '';
+  antigenoProstatico: boolean = false;
+  papanicolau: boolean = false;
+  cupoAntigeno: number | null = null;
+  cupoPapanicolau: number | null = null;
   enviandoRegistro: number | null = null;
 
 
@@ -103,7 +104,7 @@ export class Issemym2026Component {
   calendarOptions: CalendarOptions = {
     plugins: [dayGridPlugin, interactionPlugin],
     initialView: 'dayGridMonth',
-    initialDate: '2026-07-06',
+    initialDate: '2026-09-07',
     locale: 'es',
     buttonText: {
       today: 'Hoy',
@@ -117,8 +118,8 @@ export class Issemym2026Component {
     weekends: true,
     dayMaxEvents: true,
     validRange: {
-      start: '2026-07-06',
-      end: '2026-07-09'
+      start: '2026-09-07',
+      end: '2026-09-12'
     },
 
     dateClick: (info) => {
@@ -133,13 +134,16 @@ export class Issemym2026Component {
         });
         this._citasService.getCitas(clickedDate).subscribe({
           next: (response: any) => {
-            const sedeFija = this.fechaCitaEnvio == '2026-07-06' ? 4 : (this.fechaCitaEnvio == '2026-07-08' ? 4 : null);
+            const sedeFija = this.fechaCitaEnvio == '2026-09-07' ? 4 : (this.fechaCitaEnvio == '2026-09-11' ? 4 : null);
           },
           error: (e: HttpErrorResponse) => {
             const msg = e.error?.msg || 'Error desconocido';
             console.error('Error del servidor:', msg);
           }
         });
+        this.antigenoProstatico = false;
+        this.papanicolau = false;
+        this.cargarCupoEstudios(clickedDate);
         this.abrirModal(null);
       } else {
         console.log('Fecha no permitida:', clickedDate);
@@ -161,6 +165,23 @@ export class Issemym2026Component {
       }
     }
   };
+
+  cargarCupoEstudios(fecha: string) {
+    this.cupoAntigeno = null;
+    this.cupoPapanicolau = null;
+    this._citasService.getCupoEstudios(fecha).subscribe({
+      next: (response: any) => {
+        this.cupoAntigeno = response.antigeno_prostatico?.disponibles ?? 0;
+        this.cupoPapanicolau = response.papanicolau?.disponibles ?? 0;
+      },
+      error: (e: HttpErrorResponse) => {
+        const msg = e.error?.msg || 'Error desconocido';
+        console.error('Error al consultar cupo de estudios:', msg);
+        this.cupoAntigeno = 0;
+        this.cupoPapanicolau = 0;
+      }
+    });
+  }
 
   guardarSeleccion() {
     this.currentUser = this._userService.currentUserValue;
@@ -220,7 +241,9 @@ export class Issemym2026Component {
       fecha_cita: this.fechaCitaEnvio,
       rfc: this.currentUser.rfc,
       correo: this.correoUsuario,
-      telefono: this.telefonoUsuario
+      telefono: this.telefonoUsuario,
+      antigeno_prostatico: this.antigenoProstatico,
+      papanicolau: this.papanicolau
     };
 
     this.enviandoRegistro = 1;
@@ -265,7 +288,7 @@ export class Issemym2026Component {
           });
           this.mostrarCalendario = true;
           this.modalRef.close();
-        }else if (response.status == 201 || response.status == 202) {
+        }else if (response.status !== 200) {
           Swal.fire({
             position: 'center',
             icon: 'warning',

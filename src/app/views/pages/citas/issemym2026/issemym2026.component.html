@@ -6,7 +6,7 @@
 
                 @if(!mostrarCalendario){
                 <h6 class="card-title text-center">
-                    CITAS JORNADA DE SALUD Y PREVENCIÓN SUTEyM 2026
+                    CITAS JORNADA DE SALUD
                 </h6>
                 <div class="d-flex justify-content-center">
                     <div style="width: 1300px;">
@@ -34,6 +34,8 @@
                                             <th class="text-center">Correo</th>
                                             <th class="text-center">Teléfono</th>
                                             <th class="text-center">Fecha cita</th>
+                                            <th class="text-center">Antígeno prostático</th>
+                                            <th class="text-center">Papanicolau</th>
                                             <th class="text-center">PDF</th>
                                         </tr>
                                     </thead>
@@ -44,6 +46,8 @@
                                             <td class="text-center">{{ datosCita.citas[0]?.correo }}</td>
                                             <td class="text-center">{{ datosCita.citas[0]?.telefono }}</td>
                                             <td class="text-center">{{ datosCita.citas[0]?.fecha_cita }}</td>
+                                            <td class="text-center">{{ datosCita.citas[0]?.antigeno_prostatico ? 'Sí' : 'No' }}</td>
+                                            <td class="text-center">{{ datosCita.citas[0]?.papanicolau ? 'Sí' : 'No' }}</td>
                                             <td class="text-center"><a
                                                     (click)="descargarpdf()"
                                                     target="_blank" rel="noopener noreferrer">
@@ -75,22 +79,18 @@
                         <br>
                         <!-- Indicaciones -->
                         <div class="mb-4">
-                            <h6>La jornada de salud y prevención comprenderá: </h6><br>
+                            <h6>La jornada de salud comprenderá: </h6><br>
                               <div class="jornada-list">
-                                <li>Examen de laboratorio (glucosa, colesterol y triglicéridos);</li>
-                                <li> Somatometría (tomaa de peso y talla);</li>
-                                <li> Papanicolaou;</li>
-                                <li> Exploración de mama;</li>
-                                <li> Antígeno prostático (unicamente para hombres mayores de 40 años);</li>
-                                <li> Medicina general;</li>
-                                <li> Psicología; y</li>
-                                <li> Nutrición (hábitos alimenticios).</li>
+                                <li>Llenado de cédulas de: Evaluación médica y psicológica;</li>
+                                <li> Somatometría (toma de peso y talla);</li>
+                                <li> Toma de T/A;</li>
+                                <li> Toma de citología cervico-vaginal (Papanicolau);</li>
+                                <li> Exploración de glándula mamaria (Capacitación para autoexploración);</li>
+                                <li> Seguimiento por Trabajo Social;</li>
+                                <li> Evaluación y Orientación: médica, nutricional y psicológica de acuerdo a resultados; y</li>
+                                <li> Referencia y gestión de cita a la persona servidora pública a su Unidad Médica de adscripción en caso de ameritar seguimiento.</li>
                             </div><br>
-                            <h6 class="fw-bold">Condiciones en las que se tienen que presentar los servidores públicos para la evaluación médica:</h6><br>
-                            <input type="checkbox"  id="credencial" name="credencial" [(ngModel)]="credencial">Credencial de afiliación ISSEMYM o talón de pago.<br>
-                            <input type="checkbox" id="ayuno" name="ayuno" [(ngModel)]="ayuno">Ayuno mínimo de 8 horas.<br>
-                            <input type="checkbox" id="aseo" name="aseo" [(ngModel)]="aseo">Aseo general.<br><br>
-                            <b>Mujeres </b>en condiciones para Papanicolaou: 
+                            <b>Mujeres </b>en condiciones para Papanicolaou:
                         
                             <div class="jornada-list">
                                 <li> Baño corporal</li>
@@ -100,9 +100,25 @@
                             </div><br>
                             
                             <p>
-                                En caso de presentarse alguna duda, error o requerir asistencia relacionada con el acceso, comunícate 
+                                En caso de presentarse alguna duda, error o requerir asistencia relacionada con el acceso, comunícate
                                 a las extensiones 5506 y 5516 del Departamento de Desarrollo y Actualización Tecnológica.
                             </p>
+
+                            <h6 class="fw-bold">Estudios adicionales (cupo limitado a 30 personas por día):</h6><br>
+                            <input type="checkbox" id="antigenoProstatico" name="antigenoProstatico"
+                                [(ngModel)]="antigenoProstatico" [disabled]="cupoAntigeno === null || cupoAntigeno <= 0">
+                            Antígeno prostático (únicamente hombres mayores de 40 años) — Horario: 9:30 a 10:30.
+                            <span *ngIf="cupoAntigeno === null" class="text-muted">(consultando disponibilidad...)</span>
+                            <span *ngIf="cupoAntigeno !== null && cupoAntigeno > 0" class="text-success">({{ cupoAntigeno }} lugares disponibles)</span>
+                            <span *ngIf="cupoAntigeno !== null && cupoAntigeno <= 0" class="text-danger">(cupo lleno)</span>
+                            <br>
+                            <input type="checkbox" id="papanicolauCheck" name="papanicolauCheck"
+                                [(ngModel)]="papanicolau" [disabled]="cupoPapanicolau === null || cupoPapanicolau <= 0">
+                            Papanicolau — Horario: 10:30 a 12:30.
+                            <span *ngIf="cupoPapanicolau === null" class="text-muted">(consultando disponibilidad...)</span>
+                            <span *ngIf="cupoPapanicolau !== null && cupoPapanicolau > 0" class="text-success">({{ cupoPapanicolau }} lugares disponibles)</span>
+                            <span *ngIf="cupoPapanicolau !== null && cupoPapanicolau <= 0" class="text-danger">(cupo lleno)</span>
+                            <br>
                         </div>
 
                         <!-- Formulario en filas de 2 columnas -->
@@ -140,7 +156,7 @@
                         </div>
 
                         <button class="btn btn-primary mt-3" (click)="guardarSeleccion()"
-                            [disabled]="!correoUsuario || !telefonoUsuario || !credencial || !ayuno || !aseo || enviandoRegistro === 1">
+                            [disabled]="!correoUsuario || !telefonoUsuario || enviandoRegistro === 1">
                             <ng-container *ngIf="enviandoRegistro === 1; else iconoGuardar">
                                 <span class="spinner-border spinner-border-sm me-1" role="status"></span>
                                 Registrando

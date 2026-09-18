@@ -803,6 +803,7 @@ const generarExcelCitas = (req, res) => __awaiter(void 0, void 0, void 0, functi
                 }
             }
         }
+        const esSalud = (eve === null || eve === void 0 ? void 0 : eve.evento) === 'Salud';
         const workbook = new exceljs_1.default.Workbook();
         const sheet = workbook.addWorksheet("Reporte de Citas");
         // Agregar título general arriba
@@ -810,13 +811,16 @@ const generarExcelCitas = (req, res) => __awaiter(void 0, void 0, void 0, functi
         sheet.addRow([titulo]);
         const titleRow = sheet.getRow(1);
         titleRow.font = { size: 14, bold: true };
-        sheet.mergeCells(`A1:D1`); // Unir las columnas A-D para el título
+        const headers = esSalud
+            ? ["Nombre", "Correo", "Teléfono", "Clave ISSEMYM", "Adscripción", "Antígeno prostático", "Papanicolau"]
+            : ["Nombre", "Correo", "Teléfono", "Clave ISSEMYM", "Adscripción"];
+        const ultimaColumna = String.fromCharCode(64 + headers.length);
+        sheet.mergeCells(`A1:${ultimaColumna}1`); // Unir las columnas para el título
         titleRow.alignment = { horizontal: "center" };
         // Dejar una fila vacía
         sheet.addRow([]);
         // Encabezados
-        // sheet.addRow(["Horario", "Nombre", "Dependencia", "Direccion", "Departamento", "Correo", "Teléfono"]);
-        sheet.addRow(["Nombre", "Correo", "Teléfono", "Clave ISSEMYM", "Adscripción"]);
+        sheet.addRow(headers);
         const headerRow = sheet.getRow(2); // Fila 3 porque hay título y fila vacía
         headerRow.font = { bold: true };
         headerRow.alignment = { horizontal: "center" };
@@ -828,7 +832,12 @@ const generarExcelCitas = (req, res) => __awaiter(void 0, void 0, void 0, functi
             const telefono = (_h = cita.telefono) !== null && _h !== void 0 ? _h : "Sin teléfono";
             const clave = (_j = cita.datos_user.f_clave_issemym) !== null && _j !== void 0 ? _j : "Sin clave";
             const adscripcion = (_k = cita.adscripcion) !== null && _k !== void 0 ? _k : "Sin adscripción";
-            sheet.addRow([nombre, correo, telefono, clave, adscripcion]);
+            const fila = [nombre, correo, telefono, clave, adscripcion];
+            if (esSalud) {
+                fila.push(cita.antigeno_prostatico ? "Sí" : "No");
+                fila.push(cita.papanicolau ? "Sí" : "No");
+            }
+            sheet.addRow(fila);
         }
         // Ajustar ancho columnas automáticamente
         (_l = sheet.columns) === null || _l === void 0 ? void 0 : _l.forEach(column => {

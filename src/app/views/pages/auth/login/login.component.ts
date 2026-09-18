@@ -1,6 +1,6 @@
-import { NgStyle } from '@angular/common';
+import { NgClass } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import { FormsModule, NgForm, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { UserService } from '../../../../core/services/user.service';
@@ -11,8 +11,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 @Component({
     selector: 'app-login',
     imports: [
-      NgStyle,
-      RouterLink,
+      NgClass,
       FormsModule
     ],
     templateUrl: './login.component.html',
@@ -27,6 +26,8 @@ export class LoginComponent implements OnInit {
   userRole$: Observable<string | undefined>;
   formLogin: FormGroup;
   from: string = '';
+  showPassword: boolean = false;
+  currentYear: number = new Date().getFullYear();
 
   public _userService = inject(UserService);
 

@@ -18,7 +18,7 @@ export async function generarReporteCitasPDF(
     const col2X = 30;
     const tableWidth = 500;
 
-    const bgPath = path.join(__dirname, "../assets/salud_page_mem.jpg");
+    const bgPath = path.join(__dirname, "../assets/salud_page.jpg");
 
     const drawHeader = () => {
       // Fondo de página

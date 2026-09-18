@@ -6,4 +6,5 @@ const router = (0, express_1.Router)();
 router.get("/api/citasSalud/getcitaservidor/:id", citasSalud_1.getCita);
 router.post("/api/citasSalud/savecita/", citasSalud_1.savecita);
 router.get("/api/citasSalud/pdfAcuse/:rfc", citasSalud_1.generarPdfAcuse);
+router.get("/api/citasSalud/cupoEstudios/:fecha", citasSalud_1.getCupoEstudios);
 exports.default = router;
