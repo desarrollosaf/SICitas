@@ -3,6 +3,7 @@ import sequelize from '../database/cuestionariosConnection';
 import citasIssemym from './citas_issemym';
 import citasLicencia from './citas_licencias';
 import citasSalud from './citas_salud';
+import CitaSep from './citas_sep';
 
 class agendaEventos extends Model {
   declare id: CreationOptional<number>;
@@ -56,6 +57,12 @@ agendaEventos.hasMany(citasSalud,{
     foreignKey: "fecha_cita",
     sourceKey: "fecha_cita",
     as: "m_citasS"
+});
+
+agendaEventos.hasMany(CitaSep,{
+    foreignKey: "fecha_cita",
+    sourceKey: "fecha_cita",
+    as: "m_citasSep"
 });
 
 export default agendaEventos;

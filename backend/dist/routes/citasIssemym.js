@@ -12,4 +12,9 @@ router.get("/api/citasIssemym/pdf/:fecha/:sedeId", citasIssemym_1.generarPDFCita
 router.get("/api/citasIssemym/exel/:fecha/:sedeId", citasIssemym_1.generarExcelCitas);
 router.get("/api/citasIssemym/exelgeneral/", citasIssemym_1.generalExcel);
 router.get("/api/citasIssemym/pdfAcuse/:rfc", citasIssemym_1.generarPdfAcuse);
+// citas sep 26
+router.get("/api/citasIssemym/getCitaSepServidor/:id", citasIssemym_1.getCitaSep);
+router.get("/api/citasIssemym/gethorariosSep/:fecha", citasIssemym_1.getHorariosDisponiblesSep);
+router.post("/api/citasIssemym/saveCitaSep/", citasIssemym_1.saveCitaSep);
+router.get("/api/citasIssemym/pdfAcuseSep/:rfc", citasIssemym_1.generarPdfAcuseSep);
 exports.default = router;

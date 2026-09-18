@@ -8,6 +8,7 @@ const cuestionariosConnection_1 = __importDefault(require("../database/cuestiona
 const citas_issemym_1 = __importDefault(require("./citas_issemym"));
 const citas_licencias_1 = __importDefault(require("./citas_licencias"));
 const citas_salud_1 = __importDefault(require("./citas_salud"));
+const citas_sep_1 = __importDefault(require("./citas_sep"));
 class agendaEventos extends sequelize_1.Model {
 }
 agendaEventos.init({
@@ -45,5 +46,10 @@ agendaEventos.hasMany(citas_salud_1.default, {
     foreignKey: "fecha_cita",
     sourceKey: "fecha_cita",
     as: "m_citasS"
+});
+agendaEventos.hasMany(citas_sep_1.default, {
+    foreignKey: "fecha_cita",
+    sourceKey: "fecha_cita",
+    as: "m_citasSep"
 });
 exports.default = agendaEventos;
