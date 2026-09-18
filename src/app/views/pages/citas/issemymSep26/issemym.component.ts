@@ -243,12 +243,12 @@ export class IssemymComponent {
               }
             },
             error: (e: HttpErrorResponse) => {
-              if (e.status == 400) {
+              if (e.status === 400) {
                 Swal.fire({
                   position: 'center',
                   icon: 'error',
                   title: "¡Atención!",
-                  text: "Ya tienes una cita activa",
+                  text: JSON.stringify(e.error),
                   showConfirmButton: false,
                   timer: 5000
                 });
@@ -264,7 +264,6 @@ export class IssemymComponent {
           this.mostrarCalendario = true;
           this.modalRef.close();
         }
-
       },
       error: (e: HttpErrorResponse) => {
         this.enviandoRegistro = null;
@@ -273,7 +272,7 @@ export class IssemymComponent {
             position: 'center',
             icon: 'error',
             title: "¡Atención!",
-            text: "Ya tienes una cita activa",
+            text: e.error?.msg,
             showConfirmButton: false,
             timer: 5000
           });
