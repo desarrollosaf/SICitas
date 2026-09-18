@@ -422,6 +422,7 @@ interface PDFDataSep {
   fecha: string;
   sede: string;
   horario: string;
+  tramites: string[];
   citaId: number; // <-- ID de la cita para actualizar
 }
 
@@ -484,7 +485,7 @@ export async function generarPDFBuffer(data: PDFData): Promise<Buffer> {
       .text(`CURP: ${data.curp}`, { align: "left" })
       .text(`Correo electrónico: ${data.correo} | Teléfono: ${data.telefono}`, { align: "left" })
       .text(`Ubicación: ${data.sede}`, { align: "left" })
-      .text(`Horario: ${data.horario}`, { align: "left" });
+      .text(`Horario dss: ${data.horario}`, { align: "left" });
 
     doc.moveDown();
     doc.fontSize(11).text(
@@ -1183,7 +1184,19 @@ export const generarPdfAcuseSep = async (req: Request, res: Response) => {
     if (!cita) {
       return res.status(404).json({ error: "No se encontró la cita" });
     }
+    
+    const tramites = cita.tramites.split(',').map((tramite: string): string | undefined => {
+      const id = Number(tramite.trim());
+        if (id === 1) {
+          return 'Credencialización ';
+        }
 
+        if (id === 2) {
+          return 'Actualización de Carta testamentaria';
+        }
+         
+        return undefined;
+    }).filter((tramite): tramite is string => tramite !== undefined);
 
     const citaHora =  cita?.HorarioCita?.horario_inicio + '-' + cita?.HorarioCita?.horario_fin;
     const pdfBuffer = await generarPDFBufferSep({
@@ -1195,7 +1208,8 @@ export const generarPdfAcuseSep = async (req: Request, res: Response) => {
       fecha: cita.fecha_cita,
       sede: sede2,
       horario: citaHora,
-      citaId: cita.id
+      citaId: cita.id,
+      tramites: tramites,
     });
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader("Content-Disposition", `attachment; filename="acuse.pdf"`);
@@ -1266,7 +1280,8 @@ export async function generarPDFBufferSep(data: PDFDataSep): Promise<Buffer> {
       .text(`Servidor público: ${data.nombreCompleto} | Edad: ${data.edad} años` , { align: "left" })
       .text(`CURP: ${data.curp}`, { align: "left" })
       .text(`Ubicación: ${data.sede}`, { align: "left" })
-      .text(`Horario: ${data.horario}`, { align: "left" });
+      .text(`Horario: ${data.horario}`, { align: "left" })
+      .text(`Tramites: ${data.tramites}`, { align: "left" });
 
     doc.moveDown();
     doc.fontSize(11).text(
@@ -1276,7 +1291,7 @@ export async function generarPDFBufferSep(data: PDFDataSep): Promise<Buffer> {
 
     doc.moveDown();
     doc.fontSize(11).text(
-      "De acuerdo al reglamento para la afiliación de Derechohabientes del Instituto de Seguridad Social del Estado de México y Municipios, que indica la vigencia de la credencialización. Artpiculo 7.- Los derechohabientes tienen la obligación de renovar la identificación institucional; para el caso de menores de edad, su renovación será cada cinco años hasta cumplir 18 años, en el caso de mayores de edad, será cada diez años. En caso de presentarse alguna duda, error o requerir asistencia relacionada con el acceso, comunícate a las extensiones 5506 y 5517 del Departamento de Desarrollo y Actualización Tecnológica.",
+      " En caso de presentarse alguna duda, error o requerir asistencia relacionada con el acceso, comunícate a las extensiones 5506 y 5517 del Departamento de Desarrollo y Actualización Tecnológica.",
       { align: "justify" }
     );
 

@@ -412,7 +412,7 @@ function generarPDFBuffer(data) {
                 .text(`CURP: ${data.curp}`, { align: "left" })
                 .text(`Correo electrónico: ${data.correo} | Teléfono: ${data.telefono}`, { align: "left" })
                 .text(`Ubicación: ${data.sede}`, { align: "left" })
-                .text(`Horario: ${data.horario}`, { align: "left" });
+                .text(`Horario dss: ${data.horario}`, { align: "left" });
             doc.moveDown();
             doc.fontSize(11).text("El Voluntariado del Poder Legislativo del Estado de México organiza la jornada de afiliación y credencialización del ISSEMYM.", { align: "justify" });
             doc.moveDown();
@@ -1009,6 +1009,16 @@ const generarPdfAcuseSep = (req, res) => __awaiter(void 0, void 0, void 0, funct
         if (!cita) {
             return res.status(404).json({ error: "No se encontró la cita" });
         }
+        const tramites = cita.tramites.split(',').map((tramite) => {
+            const id = Number(tramite.trim());
+            if (id === 1) {
+                return 'Credencialización ';
+            }
+            if (id === 2) {
+                return 'Actualización de Carta testamentaria';
+            }
+            return undefined;
+        }).filter((tramite) => tramite !== undefined);
         const citaHora = ((_b = cita === null || cita === void 0 ? void 0 : cita.HorarioCita) === null || _b === void 0 ? void 0 : _b.horario_inicio) + '-' + ((_c = cita === null || cita === void 0 ? void 0 : cita.HorarioCita) === null || _c === void 0 ? void 0 : _c.horario_fin);
         const pdfBuffer = yield generarPDFBufferSep({
             folio: cita.folio,
@@ -1019,7 +1029,8 @@ const generarPdfAcuseSep = (req, res) => __awaiter(void 0, void 0, void 0, funct
             fecha: cita.fecha_cita,
             sede: sede2,
             horario: citaHora,
-            citaId: cita.id
+            citaId: cita.id,
+            tramites: tramites,
         });
         res.setHeader("Content-Type", "application/pdf");
         res.setHeader("Content-Disposition", `attachment; filename="acuse.pdf"`);
@@ -1083,11 +1094,12 @@ function generarPDFBufferSep(data) {
                 .text(`Servidor público: ${data.nombreCompleto} | Edad: ${data.edad} años`, { align: "left" })
                 .text(`CURP: ${data.curp}`, { align: "left" })
                 .text(`Ubicación: ${data.sede}`, { align: "left" })
-                .text(`Horario: ${data.horario}`, { align: "left" });
+                .text(`Horario: ${data.horario}`, { align: "left" })
+                .text(`Tramites: ${data.tramites}`, { align: "left" });
             doc.moveDown();
             doc.fontSize(11).text("SUTEYM Poder Legislativo del Estado de México organiza el programa de Credencialización y actualización de Carta Testamentaria del ISSEMYM.", { align: "justify" });
             doc.moveDown();
-            doc.fontSize(11).text("De acuerdo al reglamento para la afiliación de Derechohabientes del Instituto de Seguridad Social del Estado de México y Municipios, que indica la vigencia de la credencialización. Artpiculo 7.- Los derechohabientes tienen la obligación de renovar la identificación institucional; para el caso de menores de edad, su renovación será cada cinco años hasta cumplir 18 años, en el caso de mayores de edad, será cada diez años. En caso de presentarse alguna duda, error o requerir asistencia relacionada con el acceso, comunícate a las extensiones 5506 y 5517 del Departamento de Desarrollo y Actualización Tecnológica.", { align: "justify" });
+            doc.fontSize(11).text(" En caso de presentarse alguna duda, error o requerir asistencia relacionada con el acceso, comunícate a las extensiones 5506 y 5517 del Departamento de Desarrollo y Actualización Tecnológica.", { align: "justify" });
             doc.moveDown();
             doc.fontSize(11).text("Para acceder a este beneficio, es indispensable presentar en el día y hora asignados.", { align: "justify" });
             doc.moveDown();
