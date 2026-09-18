@@ -948,6 +948,17 @@ export const getCitaSep = async(req: Request, res: Response): Promise<any> => {
     // Convertimos el resultado para incluir el rango horario
     const citasConHorario = citasser.map(cita => {
       const citaAny = cita as any; // Tipo flexible para TS
+      const tramites = cita.tramites.split(',').map((tramite: string) => {
+        const id = Number(tramite.trim());
+          if (id === 1) {
+            return 'Credencialización ';
+          }
+
+          if (id === 2) {
+            return 'Actualización de Carta testamentaria';
+          }
+      });
+
       return {
         id: cita.id,
         rfc: cita.rfc,
@@ -956,6 +967,7 @@ export const getCitaSep = async(req: Request, res: Response): Promise<any> => {
         sede_id: citaAny.Sede?.id || null,
         horario_id: cita.horario_id,
         folio: cita.folio,
+        tramites: tramites,
         horario: citaAny.HorarioIssemym
           ? `${citaAny.HorarioIssemym.horario_inicio} - ${citaAny.HorarioIssemym.horario_fin}`
           : "Horario desconocido"
@@ -1035,7 +1047,7 @@ export const saveCitaSep = async (req: Request, res: Response): Promise<any> => 
     const { body } = req;
     const limite = 3;
 
-
+console.log('*****body **** ', body);
     const citaExistente = await CitaSep.findOne({
       where: { rfc: body.rfc }
     });
@@ -1065,6 +1077,7 @@ export const saveCitaSep = async (req: Request, res: Response): Promise<any> => 
     }
 
     const folio: number = Math.floor(10000000 + Math.random() * 90000000);
+    const tramites =  body.tramite.join(',');
 
     const cita = await CitaSep.create({
       horario_id: body.horario_id,
@@ -1072,6 +1085,7 @@ export const saveCitaSep = async (req: Request, res: Response): Promise<any> => 
       rfc: body.rfc,
       fecha_cita: body.fecha_cita,
       folio: folio,
+      tramites: tramites,
     });
 
     const horarios = await HorarioCitasSep.findOne({

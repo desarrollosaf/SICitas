@@ -31,6 +31,10 @@ CitaSep.init({
         type: sequelize_1.DataTypes.STRING,
         allowNull: false,
     },
+    tramites: {
+        type: sequelize_1.DataTypes.STRING,
+        allowNull: false,
+    },
     fecha_cita: {
         type: sequelize_1.DataTypes.DATEONLY,
         allowNull: false,

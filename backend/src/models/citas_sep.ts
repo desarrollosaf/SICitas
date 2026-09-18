@@ -10,6 +10,7 @@ class CitaSep extends Model {
   declare rfc: string | null;
   declare fecha_cita: string;
   declare folio: string;
+  declare tramites: string;
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
   declare HorarioCita?: import('./horarios_citas_sep').default;
@@ -37,6 +38,10 @@ CitaSep.init(
       allowNull: true,
     },
     folio: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    tramites: {
       type: DataTypes.STRING,
       allowNull: false,
     },
