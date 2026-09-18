@@ -60,11 +60,11 @@ export async function generarReporteCitasPDF(
         const telefono = cita.telefono ?? "Sin teléfono";
         const clave = cita.datos_user?.f_clave_issemym ?? "Sin clave";
         const adscripcion = cita.adscripcion ?? "Sin adscripción";
-        citasTexto += `• ${nombre} | CURP: ${curp} | Clave ISEEMYM: ${clave} | Correo: ${correo} | Tel: ${telefono} | Adscripción: ${adscripcion} \n\n`;
+        citasTexto += `• ${nombre} | CURP: ${curp} | Clave ISSEMYM: ${clave} | Tel: ${telefono} | Correo: ${correo} | Adscripción: ${adscripcion} \n\n`;
       }
       
       // Calcular altura de la fila ajustada
-      const citasWidth = 480;
+      const citasWidth = 500;
       const textHeight = doc.heightOfString(citasTexto, { width: citasWidth, align: "left" });
 
       // Reducir el padding a 2
@@ -93,7 +93,7 @@ export async function generarReporteCitasPDF(
         doc.fillColor("black").font("Helvetica-Oblique").text(citasTexto, col2X, rowY + 3, { width: citasWidth });
       } else {
         doc.fillColor("black").font("Helvetica").fontSize(9);
-        doc.text(citasTexto.trim(), col2X, rowY + 3, { width: citasWidth });
+        doc.text(citasTexto.trim(), col2X+15, rowY + 3, { width: citasWidth });
       }
 
       // Avanzar a la siguiente fila

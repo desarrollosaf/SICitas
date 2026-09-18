@@ -61,10 +61,10 @@ function generarReporteCitasPDF(fechap, citas) {
                 const telefono = (_d = cita.telefono) !== null && _d !== void 0 ? _d : "Sin teléfono";
                 const clave = (_f = (_e = cita.datos_user) === null || _e === void 0 ? void 0 : _e.f_clave_issemym) !== null && _f !== void 0 ? _f : "Sin clave";
                 const adscripcion = (_g = cita.adscripcion) !== null && _g !== void 0 ? _g : "Sin adscripción";
-                citasTexto += `• ${nombre} | CURP: ${curp} | Clave ISEEMYM: ${clave} | Correo: ${correo} | Tel: ${telefono} | Adscripción: ${adscripcion} \n\n`;
+                citasTexto += `• ${nombre} | CURP: ${curp} | Clave ISSEMYM: ${clave} | Tel: ${telefono} | Correo: ${correo} | Adscripción: ${adscripcion} \n\n`;
             }
             // Calcular altura de la fila ajustada
-            const citasWidth = 480;
+            const citasWidth = 500;
             const textHeight = doc.heightOfString(citasTexto, { width: citasWidth, align: "left" });
             // Reducir el padding a 2
             const padding = 5;
@@ -88,7 +88,7 @@ function generarReporteCitasPDF(fechap, citas) {
             }
             else {
                 doc.fillColor("black").font("Helvetica").fontSize(9);
-                doc.text(citasTexto.trim(), col2X, rowY + 3, { width: citasWidth });
+                doc.text(citasTexto.trim(), col2X + 15, rowY + 3, { width: citasWidth });
             }
             // Avanzar a la siguiente fila
             doc.y = rowY + rowHeight + 3; // Asegúrate de no dejar espacio innecesario

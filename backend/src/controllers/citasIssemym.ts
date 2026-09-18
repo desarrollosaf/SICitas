@@ -18,6 +18,9 @@ import { generarReporteCitasPDF } from "./pdf.utils";
 import ExcelJS from "exceljs";
 import citasIssemym from "../models/citas_issemym";
 import citasLicencia from "../models/citas_licencias";
+import CitaSep from "../models/citas_sep";
+import HorarioCitasSep from "../models/horarios_citas_sep";
+import HorarioCita from "../models/horarios_citas";
 
 
 dp_datospersonales.initModel(sequelizefun);
@@ -404,6 +407,19 @@ interface PDFData {
   curp: string;
   fecha: string;
   telefono: string;
+  sede: string;
+  horario: string;
+  citaId: number; // <-- ID de la cita para actualizar
+}
+
+
+interface PDFDataSep {
+  folio: string;
+  nombreCompleto: string;
+  sexo: string;
+  edad: string;
+  curp: string;
+  fecha: string;
   sede: string;
   horario: string;
   citaId: number; // <-- ID de la cita para actualizar
@@ -907,4 +923,378 @@ export const generalExcel = async (req: Request, res: Response) => {
     res.status(500).json({ error: "Error generando Excel" });
   }
 };
+
+export const getCitaSep = async(req: Request, res: Response): Promise<any> => {
+  const { id } = req.params; // Este es el RFC
+  try {
+    // Traemos todas las citas asociadas al RFC
+    const citasser = await CitaSep.findAll({
+      where: { rfc: id },
+      include: [
+        {
+          model: Sede,
+          as: "Sede",
+          attributes: ["id", "sede"]
+        },
+        {
+          model: HorarioCitasSep,
+          as: "HorarioCita",
+          attributes: ["horario_inicio", "horario_fin"]
+        }
+      ],
+      order: [["fecha_cita", "ASC"], ["horario_id", "ASC"]]
+    });
+
+    // Convertimos el resultado para incluir el rango horario
+    const citasConHorario = citasser.map(cita => {
+      const citaAny = cita as any; // Tipo flexible para TS
+      return {
+        id: cita.id,
+        rfc: cita.rfc,
+        fecha_cita: cita.fecha_cita,
+        sede: citaAny.Sede?.sede || "Desconocida",
+        sede_id: citaAny.Sede?.id || null,
+        horario_id: cita.horario_id,
+        folio: cita.folio,
+        horario: citaAny.HorarioIssemym
+          ? `${citaAny.HorarioIssemym.horario_inicio} - ${citaAny.HorarioIssemym.horario_fin}`
+          : "Horario desconocido"
+      };
+    });
+
+    const usuario = await SUsuario.findAll({
+      where: { N_Usuario: id },
+      attributes: [
+        "Nombre",
+      ],
+      raw: true
+    });
+
+    return res.json({
+      msg: "Cita obtenida",
+      citas: citasConHorario,
+      datosUser: usuario
+    });
+  } catch (error) {
+    console.error("Error al obtener citas:", error);
+    return res.status(500).json({ error: "Ocurrió un error al obtener los registros" });
+  }
+};
+
+export const getHorariosDisponiblesSep = async (req: Request, res: Response): Promise<any> => {
+  try {
+    const { fecha } = req.params;
+    const limite = 3;
+
+    const citas = await CitaSep.findAll({
+      where: { fecha_cita: fecha },
+    });
+
+    const horariosDisponibles = await HorarioCitasSep.findAll({
+      order: [["id", "ASC"]],
+    });
+
+   
+
+    const sedes = await Sede.findAll();
+    const resultado: any[] = [];
+
+    horariosDisponibles.forEach(h => {
+      const sedesDisponibles: { sede_id: number; sede_texto: string }[] = [];
+
+      sedes.forEach(s => {
+        const cantidadCitas = citas.filter(
+          c => c.horario_id === h.id && c.sede_id === s.id
+        ).length;
+
+        if (cantidadCitas < limite) {
+          sedesDisponibles.push({ sede_id: s.id, sede_texto: s.sede });
+        }
+      });
+
+      if (sedesDisponibles.length > 0) {
+        resultado.push({
+          horario_id: h.id,
+          horario_texto: `${h.horario_inicio} - ${h.horario_fin}`,
+          sedes: sedesDisponibles
+        });
+      }
+    });
+
+    return res.json({ horarios: resultado });
+
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Error al obtener horarios disponibles" });
+  }
+};
+
+
+export const saveCitaSep = async (req: Request, res: Response): Promise<any> => {
+  try {
+    const { body } = req;
+    const limite = 3;
+
+
+    const citaExistente = await CitaSep.findOne({
+      where: { rfc: body.rfc }
+    });
+
+    if (citaExistente) {
+      return res.status(400).json({
+        status: 400,
+        msg: "Ya existe una cita registrada con ese RFC"
+      });
+    }
+  
+    console.log('body.fecha_cita:', body.fecha_cita);
+    console.log('typeof:', typeof body.fecha_cita);
+
+    const cantidadCitas = await CitaSep.count({
+      where: {
+        horario_id: body.horario_id,
+        fecha_cita: body.fecha_cita
+      }
+    });
+
+    if (cantidadCitas >= limite) {
+      return res.status(400).json({
+        status: 400,
+        msg: "Este horario ya está ocupado para la fecha y sede seleccionada"
+      });
+    }
+
+    const folio: number = Math.floor(10000000 + Math.random() * 90000000);
+
+    const cita = await CitaSep.create({
+      horario_id: body.horario_id,
+      sede_id: body.sede_id,
+      rfc: body.rfc,
+      fecha_cita: body.fecha_cita,
+      folio: folio,
+    });
+
+    const horarios = await HorarioCitasSep.findOne({
+      where: { id: body.horario_id }
+    });
+    const horario = horarios ? `${horarios.horario_inicio} - ${horarios.horario_fin}` : '';
+    const sede2 = (await Sede.findOne({ where: { id: body.sede_id } }))?.sede || "";
+
+    const Validacion = await dp_fum_datos_generales.findOne({
+      where: { f_rfc: body.rfc },
+      attributes: ["f_nombre", "f_primer_apellido", "f_segundo_apellido", "f_sexo", "f_fecha_nacimiento"]
+    });
+
+    if (!Validacion) {
+      throw new Error("No se encontró información para el RFC proporcionado");
+    }
+
+    const nombreCompleto = [
+      Validacion.f_nombre,
+      Validacion.f_primer_apellido,
+      Validacion.f_segundo_apellido
+    ].filter(Boolean).join(" ");
+
+    const sexo = Validacion.f_sexo || "";
+
+    let edad = "";
+    if (Validacion.f_fecha_nacimiento) {
+      const nacimiento = new Date(Validacion.f_fecha_nacimiento);
+      const hoy = new Date();
+      edad = (hoy.getFullYear() - nacimiento.getFullYear()).toString();
+      const mes = hoy.getMonth() - nacimiento.getMonth();
+      if (mes < 0 || (mes === 0 && hoy.getDate() < nacimiento.getDate())) {
+        edad = (parseInt(edad) - 1).toString();
+      }
+    }
+
+    return res.json({
+      status: 200,
+      msg: "Cita registrada correctamente",
+    });
+  } catch (error) {
+    console.error('Error al guardar la cita:', error);
+    return res.status(500).json({ msg: 'Error interno del servidor' });
+  }
+};
+
+
+export const generarPdfAcuseSep = async (req: Request, res: Response) => {
+  try {
+    const { rfc } = req.params;
+
+    const cita = await CitaSep.findOne({
+      where: { rfc: rfc },
+      include: [
+        {
+          model: Sede,
+          as: "Sede",
+          attributes: ["id", "sede"]
+        },
+        {
+          model: HorarioCitasSep,
+          as: "HorarioCita",
+          attributes: ["horario_inicio", "horario_fin"]
+        }
+      ],
+      order: [["fecha_cita", "ASC"], ["horario_id", "ASC"]]
+    });
+
+    const Validacion = await dp_fum_datos_generales.findOne({
+      where: { f_rfc: rfc },
+      attributes: ["f_nombre", "f_primer_apellido", "f_segundo_apellido", "f_sexo", "f_fecha_nacimiento", "f_curp"]
+    });
+
+    if (!Validacion) {
+      throw new Error("No se encontró información para el RFC proporcionado");
+    }
+    const sede2 = (await Sede.findOne({ where: { id: cita?.sede_id } }))?.sede || "";
+    const nombreCompleto = [
+      Validacion.f_nombre,
+      Validacion.f_primer_apellido,
+      Validacion.f_segundo_apellido
+    ].filter(Boolean).join(" ");
+
+    const sexo = Validacion.f_sexo || "";
+    let curp1 = Validacion.f_curp || "";
+    console.log(Validacion);
+    let edad = "";
+    if (Validacion.f_fecha_nacimiento) {
+      const nacimiento = new Date(Validacion.f_fecha_nacimiento);
+      const hoy = new Date();
+      edad = (hoy.getFullYear() - nacimiento.getFullYear()).toString();
+      const mes = hoy.getMonth() - nacimiento.getMonth();
+      if (mes < 0 || (mes === 0 && hoy.getDate() < nacimiento.getDate())) {
+        edad = (parseInt(edad) - 1).toString();
+      }
+    }
+
+    if (!cita) {
+      return res.status(404).json({ error: "No se encontró la cita" });
+    }
+
+
+    const citaHora =  cita?.HorarioCita?.horario_inicio + '-' + cita?.HorarioCita?.horario_fin;
+    const pdfBuffer = await generarPDFBufferSep({
+      folio: cita.folio,
+      nombreCompleto: nombreCompleto,
+      sexo: '',
+      edad: edad,
+      curp: curp1,
+      fecha: cita.fecha_cita,
+      sede: sede2,
+      horario: citaHora,
+      citaId: cita.id
+    });
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `attachment; filename="acuse.pdf"`);
+    res.send(pdfBuffer);
+
+  } catch (error) {
+    console.error("❌ Error generando Acuse:", error);
+    res.status(500).json({ error: "Error generando Acuse" });
+  }
+};
+
+
+export async function generarPDFBufferSep(data: PDFDataSep): Promise<Buffer> {
+  return new Promise(async (resolve, reject) => {
+    const doc = new PDFDocument({ size: "LETTER", margin: 50 });
+    const chunks: any[] = [];
+
+    const pdfDir = path.join(process.cwd(), "storage/public/pdfs");
+    if (!fs.existsSync(pdfDir)) {
+      fs.mkdirSync(pdfDir, { recursive: true });
+    }
+
+    const fileName = `acuse_${data.folio}.pdf`;
+    const filePath = path.join(pdfDir, fileName);
+    const relativePath = path.join("storage", "public", "pdfs", fileName);
+    console.log(relativePath)
+    // const writeStream = fs.createWriteStream(filePath);
+    // doc.pipe(writeStream);
+
+    doc.on("data", (chunk: any) => chunks.push(chunk));
+    doc.on("end", async () => {
+      try {
+        // Guardar la ruta del PDF en la tabla citas
+        // await Cita.update(
+        //   { path: relativePath },
+        //   { where: { id: data.citaId } }
+        // );
+
+
+        resolve(Buffer.concat(chunks));
+      } catch (error) {
+        reject(error);
+      }
+    });
+    doc.on("error", reject);
+
+    // ===== CONTENIDO DEL PDF =====
+    doc.image(path.join(__dirname, "../assets/salud_page_mem.jpg"), 0, 0, {
+      width: doc.page.width,
+      height: doc.page.height,
+    });
+
+    doc.moveDown(6);
+    doc
+      .fontSize(18)
+      .font("Helvetica-Bold")
+      .fillColor("#7d0037") // ✅ Aplica el color
+      .text("PROGRAMA DE CREDENCIALIZACIÓN Y ACTUALIZACIÓN DE CARTA TESTAMENTARIA DEL ISSEMYM", {
+        align: "center",
+      })
+      .fillColor("black");
+
+    doc.moveDown(2);
+    doc.font("Helvetica").fontSize(12).text(`Folio: ${data.folio}`, { align: "right" });
+    doc.font("Helvetica").fontSize(12).text(`Fecha cita: ${data.fecha}`, { align: "right" });
+    doc.fontSize(12)
+      .font("Helvetica")
+      .text(`Servidor público: ${data.nombreCompleto} | Edad: ${data.edad} años` , { align: "left" })
+      .text(`CURP: ${data.curp}`, { align: "left" })
+      .text(`Ubicación: ${data.sede}`, { align: "left" })
+      .text(`Horario: ${data.horario}`, { align: "left" });
+
+    doc.moveDown();
+    doc.fontSize(11).text(
+      "SUTEYM Poder Legislativo del Estado de México organiza el programa de Credencialización y actualización de Carta Testamentaria del ISSEMYM.",
+      { align: "justify" }
+    );
+
+    doc.moveDown();
+    doc.fontSize(11).text(
+      "De acuerdo al reglamento para la afiliación de Derechohabientes del Instituto de Seguridad Social del Estado de México y Municipios, que indica la vigencia de la credencialización. Artpiculo 7.- Los derechohabientes tienen la obligación de renovar la identificación institucional; para el caso de menores de edad, su renovación será cada cinco años hasta cumplir 18 años, en el caso de mayores de edad, será cada diez años. En caso de presentarse alguna duda, error o requerir asistencia relacionada con el acceso, comunícate a las extensiones 5506 y 5517 del Departamento de Desarrollo y Actualización Tecnológica.",
+      { align: "justify" }
+    );
+
+    doc.moveDown();
+    doc.fontSize(11).text(
+      "Para acceder a este beneficio, es indispensable presentar en el día y hora asignados.",
+      { align: "justify" }
+    );
+    doc.moveDown();
+    // doc.fontSize(11).text(
+    //   "Si no se presenta alguno de estos documentos el día de la cita, no podrá realizar su examen y este se dará por perdido. Aviso de Privacidad",
+    //   { align: "justify" }
+    // );
+
+    // doc.moveDown();
+    // doc.font("Helvetica-Bold").fontSize(10).text("Aviso de Privacidad", { align: "left" });
+    // doc.font("Helvetica").fontSize(9).text("Consúltalo en:", { align: "left" });
+    // doc.font("Helvetica")
+    //   .fontSize(9)
+    //   .text(
+    //     "https://legislacion.legislativoedomex.gob.mx/storage/documentos/avisosprivacidad/expediente-clinico.pdf",
+    //     { align: "left" }
+    //   );
+
+    doc.end();
+  });
+}
+
+
+
+
 

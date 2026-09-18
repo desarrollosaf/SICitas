@@ -1,16 +1,16 @@
 {
   "development": {
-     "username": "usr_citas",
-     "password": "z1LhbiYGsTsvf1HfnSVP",
-     "database": "adminplem_citas",
-     "host": "192.168.36.53",
+     "username": "root",
+     "password": "",
+     "database": "sicitas",
+     "host": "localhost",
      "dialect": "mysql"
   },
   "production": {
-    "username": "usr_citas",
-    "password": "z1LhbiYGsTsvf1HfnSVP",
-    "database": "adminplem_citas",
-    "host": "192.168.36.53",
+    "username": "root",
+    "password": "",
+    "database": "sicitas",
+    "host": "localhost",
     "dialect": "mysql"
   }
 }
