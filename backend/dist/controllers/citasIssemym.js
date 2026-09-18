@@ -888,6 +888,7 @@ const saveCitaSep = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
     try {
         const { body } = req;
         const limite = 3;
+        console.log('*** body  **** ', body);
         const citaExistente = yield citas_sep_1.default.findOne({
             where: { rfc: body.rfc }
         });

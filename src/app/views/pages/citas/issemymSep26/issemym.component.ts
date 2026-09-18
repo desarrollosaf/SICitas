@@ -398,5 +398,17 @@ export class IssemymComponent {
     });
   }
 
+  seleccionarTramite(id: number, event: Event) {
+    const checked = (event.target as HTMLInputElement).checked;
+    if (checked) {
+      if (!this.tramitesSeleccionados.includes(id)) {
+        this.tramitesSeleccionados.push(id);
+      }
+    } else {
+      this.tramitesSeleccionados =
+        this.tramitesSeleccionados.filter(tramite => tramite !== id);
+    }
+  }   
+
 }
 
