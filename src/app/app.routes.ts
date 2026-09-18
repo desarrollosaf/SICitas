@@ -44,6 +44,10 @@ export const routes: Routes = [
         path: 'citasIssemym',
         loadComponent: () => import('./views/pages/citas/issemym/issemym.component').then(c => c.IssemymComponent)
       },
+       {
+        path: 'citasSep',
+        loadComponent: () => import('./views/pages/citas/issemymSep26/issemym.component').then(c => c.IssemymComponent)
+      },
       {
         path: 'reportes',
         canActivateChild: [UserAccessGuard],

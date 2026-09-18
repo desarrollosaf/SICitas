@@ -11,6 +11,7 @@ import Cita from '../models/citas'
 import citasLicencia from '../models/citas_licencias'
 import citasIssemym from '../models/citas_issemym'
 import citasSalud from '../models/citas_salud'
+import CitaSep from '../models/citas_sep'
 
 export const ReadUser = async (req: Request, res: Response): Promise<any> => {
     const listUser = await User.findAll();
@@ -101,7 +102,7 @@ export const LoginUser = async (req: Request, res: Response, next: NextFunction)
                 },
             ],
         })
-        console.log(user.datos_user)
+        console.log('este es el user' , user.datos_user)
         if (!user) {
             return res.status(400).json({
                 msg: `Usuario no existe con el rfc ${rfc}`
@@ -145,11 +146,11 @@ export const LoginUser = async (req: Request, res: Response, next: NextFunction)
     //         }
     //     }
     // }else{
-        const totalCitas = await citasSalud.count();
-        const citaUser = await citasSalud.findOne({
+        const totalCitas = await CitaSep.count();
+        const citaUser = await CitaSep.findOne({
             where: { rfc: rfc }
         });
-        if (totalCitas >= 500) {
+        if (totalCitas >= 140) {
             if (!citaUser) {
                 return res.status(416).json({
                     msg: "Ya no hay lugares disponibles."

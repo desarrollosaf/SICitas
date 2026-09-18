@@ -53,4 +53,23 @@ export class CitasIssemymService {
       responseType: 'blob'
     });
   }
+
+  //citas septiembre 26
+  getcitaSepRFC(rfc: String): Observable<any> {
+    return this.http.get<any>(`${this.myAppUrl}${this.myAPIUrl}/getCitaSepServidor/${rfc}`)
+  }
+
+  getCitasSep(fecha: String): Observable<any> {
+    return this.http.get<any>(`${this.myAppUrl}${this.myAPIUrl}/gethorariosSep/${fecha}`)
+  }
+
+  saveCitaSep(data:any): Observable<string> {
+    return this.http.post<string>(`${this.myAppUrl}${this.myAPIUrl}/saveCitaSep/`,data)
+  }
+
+  generarPdfinalSep(rfc: string): Observable<Blob> {
+    return this.http.get(`${this.myAppUrl}${this.myAPIUrl}/pdfAcuseSep/${rfc}`, {
+      responseType: 'blob'
+    });
+  }
 }
