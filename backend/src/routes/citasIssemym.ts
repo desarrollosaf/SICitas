@@ -20,4 +20,4 @@ router.get("/api/citasIssemym/gethorariosSep/:fecha", getHorariosDisponiblesSep 
 router.post("/api/citasIssemym/saveCitaSep/", saveCitaSep);
 router.get("/api/citasIssemym/pdfAcuseSep/:rfc", generarPdfAcuseSep);
 
-export default router
+export default router;

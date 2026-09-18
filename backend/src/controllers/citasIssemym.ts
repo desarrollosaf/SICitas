@@ -1006,8 +1006,6 @@ export const getHorariosDisponiblesSep = async (req: Request, res: Response): Pr
       order: [["id", "ASC"]],
     });
 
-   
-
     const sedes = await Sede.findAll();
     const resultado: any[] = [];
 
@@ -1047,7 +1045,6 @@ export const saveCitaSep = async (req: Request, res: Response): Promise<any> => 
     const { body } = req;
     const limite = 3;
 
-console.log('*****body **** ', body);
     const citaExistente = await CitaSep.findOne({
       where: { rfc: body.rfc }
     });

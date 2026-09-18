@@ -77,7 +77,7 @@ export class IssemymComponent {
     this.currentUser = this._userService.currentUserValue;
     this._citasService.getcitaSepRFC(this.currentUser.rfc).subscribe({
       next: (response: any) => {
-        this.datosCita = response
+        this.datosCita = response;
         if (response.citas.length > 0) {
           this.mostrarCalendario = true;
         }
