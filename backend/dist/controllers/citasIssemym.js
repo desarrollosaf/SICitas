@@ -888,7 +888,7 @@ const saveCitaSep = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
     try {
         const { body } = req;
         const limite = 3;
-        const totalDia = 2;
+        const totalDia = 70;
         const citaExistente = yield citas_sep_1.default.findOne({
             where: { rfc: body.rfc }
         });
@@ -1110,6 +1110,7 @@ function generarPDFBufferSep(data) {
                 .text(`Tramites: ${data.tramites}`, { align: "left" });
             doc.moveDown();
             doc.fontSize(12).text("REQUISITOS NUEVO INGRESO DE SERVIDOR PÚBLICO.", { align: "center" });
+            doc.moveDown();
             doc.fontSize(10)
                 .font("Helvetica")
                 .text(`1) Original del Aviso de Movimiento de Alta (emitido por Recursos Humanos de la dependencia y contiene clave ISSEMYM)`, { align: "justify" })
@@ -1118,7 +1119,6 @@ function generarPDFBufferSep(data) {
                 .text(`4) Original de identificación oficial vigente (pasaporte expedido por autoridad competente, credencial para votar expedida por el Instituto Nacional Electoral (INE), matrícula consular expedida por la Secretaría de Relaciones Exteriores a ciudadanos mexicanos domiciliados en el extranjero, Cartilla Militar liberada o Constancia de Identidad expedida por el Secretario del Ayuntamiento según corresponda el domicilio del derechohabiente, con sello sobre la fotografía y con una antigüedad no mayor a tres meses a la fecha del trámite).`, { align: "justify" });
             doc.moveDown();
             doc.fontSize(11).text("NOTA:", { align: "justify" });
-            doc.moveDown();
             doc.fontSize(10)
                 .text(`• No se generará el pago de derechos si tramita la expedición de su identificación institucional del ISSEMYM y en su caso, la de sus dependientes económicos dentro del plazo de 30 días hábiles posteriores a la fecha de su alta como servidor público.`, { align: "justify" })
                 .text(`• En caso de no estar vigente en la base de datos, y de credencializarse por primera vez se solicitará comprobante de pago de la última quincena.`, { align: "justify" })
@@ -1138,7 +1138,6 @@ function generarPDFBufferSep(data) {
                 .text(`3) Original del comprobante de pago, debe ser de la última quincena vigente y que contenga la clave ISSEMyM.`, { align: "justify" });
             doc.moveDown();
             doc.fontSize(11).text("NOTA:", { align: "justify" });
-            doc.moveDown();
             doc.fontSize(10)
                 .text(`• En caso de realizar la renovación de la Identificación Institucional expedida por el Instituto (ISSEMyM) o cambio de adscripción médica y este se realice dentro de los 10 años contados a partir de la fecha de emisión. Deberá cubrir las tarifas establecidas en el artículo 78 del Código Financiero del Estado de México y Municipios vigente.`, { align: "justify" })
                 .text(`• Para asignar adscripción médica, deberán presentar comprobante de domicilio (pago de luz, predio, agua, teléfono o constancia domiciliaria firmada y sellada por autoridad municipal) a nombre del servidor público.`, { align: "justify" })
@@ -1147,7 +1146,6 @@ function generarPDFBufferSep(data) {
                 .text(`• En caso de que la o el derechohabiente se encuentre imposibilitado de acudir a realizar el trámite; se solicitara constancia de hospitalización o en su caso constancia médica que indique la imposibilidad para moverse. Para estos casos solo se emitirá una constancia de identificación provisional por 30 días naturales contados a partir de la fecha de expedición de la constancia de hospitalización.`, { align: "justify" });
             doc.moveDown();
             doc.fontSize(12).text("IMPORTANTE:", { align: "justify" });
-            doc.moveDown();
             doc.fontSize(10)
                 .text(`• Todos los documentos deben presentarse en original, sin excepción alguna (legibles, en buen estado, sin tachaduras ni enmendaduras).`, { align: "justify" })
                 .text(`• No se hace ningún tipo de trámite si el comprobante de pago NO cuenta con clave ISSEMyM.`, { align: "justify" })
@@ -1164,15 +1162,13 @@ function generarPDFBufferSep(data) {
                 .text(`2) Original de Credencial de Identificación expedida por el Instituto (ISSEMyM).`, { align: "justify" })
                 .text(`3) Original del comprobante de pago, debe ser de la última quincena vigente y que contenga la clave ISSEMyM.`, { align: "justify" })
                 .text(`4) Copia simple de identificación oficial vigente del beneficiario o los Beneficiarios por ambos lados (pasaporte expedido por autoridad competente, credencial para votar expedida por el Instituto Nacional Electoral (INE), matrícula consular expedida por la Secretaría de Relaciones Exteriores a ciudadanos mexicanos domiciliados en el extranjero, cartilla Militar liberada, licencia de conducir expedida por la Secretaría de Movilidad del Gobierno del Estado de México, la cual deberá ser verificada mediante QR o Constancia de identidad expedida por el Secretario del Ayuntamiento según corresponda el domicilio del derechohabiente, con sello sobre la fotografía y con una antigüedad no mayor a tres meses a la fecha del trámite).`, { align: "justify" });
-            doc.moveDown();
+            doc.moveDown(5);
             doc.fontSize(12).text("NOTA:", { align: "justify" });
-            doc.moveDown();
             doc.fontSize(10)
                 .text(`• En caso de no estar vigente el servidor público o pensionado en la base de datos, se solicitará comprobante de pago de la última quincena.`, { align: "justify" })
                 .text(`• En caso de que la CURP, no se encuentre registrada en sistema se le solicitará la presente al momento de realizar el trámite.`, { align: "justify" });
             doc.moveDown();
             doc.fontSize(12).text("IMPORTANTE:", { align: "justify" });
-            doc.moveDown();
             doc.fontSize(10)
                 .text(`• Todos los documentos deben presentarse en original, sin excepción alguna (legibles, en buen estado, sin tachaduras ni enmendaduras).`, { align: "justify" })
                 .text(`• No se hace ningún tipo de trámite si el comprobante de pago NO cuenta con clave ISSEMyM.`, { align: "justify" })
