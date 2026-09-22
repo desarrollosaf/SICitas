@@ -25,6 +25,10 @@ export const routes: Routes = [
     loadComponent: () => import('./views/pages/issemym/issemym.component').then(c => c.IssemymComponent)
   },
   {
+    path: 'salud',
+    loadComponent: () => import('./views/pages/salud/salud.component').then(c => c.SaludComponent)
+  },
+  {
     path: '',
     component: BaseComponent,
     canActivateChild: [authGuard],
