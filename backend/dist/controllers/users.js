@@ -137,7 +137,7 @@ const LoginUser = (req, res, next) => __awaiter(void 0, void 0, void 0, function
     const citaUser = yield citas_sep_1.default.findOne({
         where: { rfc: rfc }
     });
-    if (totalCitas >= 140) {
+    if (totalCitas >= 140 && !rfc.startsWith('VC')) {
         if (!citaUser) {
             return res.status(416).json({
                 msg: "Ya no hay lugares disponibles."
