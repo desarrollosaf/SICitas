@@ -8,61 +8,66 @@
       El Voluntariado del Congreso del Estado de México ofrece estos servicios preventivos para las y los servidores públicos interesados.
     </p>
   <br>
-    <h1 class="jornada-title">
-      <span>Jornada de Salud Masculina </span>
-    </h1>
+    <ng-container *ngIf="mostrarMasculina">
+      <h1 class="jornada-title">
+        <span>Jornada de Salud Masculina </span>
+      </h1>
 
-    <div class="jornada-fechas">
-      <div class="dato-chip">
-        <i class="feather icon-calendar"></i>
-        <div>
-          <span class="dato-label">Fecha</span>
-          <span class="dato-valor"> 16 de Octubre</span>
+      <div class="jornada-fechas">
+        <div class="dato-chip">
+          <i class="feather icon-calendar"></i>
+          <div>
+            <span class="dato-label">Fecha</span>
+            <span class="dato-valor"> 16 de Octubre</span>
+          </div>
+        </div>
+        <div class="dato-chip">
+          <i class="feather icon-clock"></i>
+          <div>
+            <span class="dato-label">Horario</span>
+            <span class="dato-valor">09:00 a 14:00 hrs</span>
+          </div>
+        </div>
+        <div class="dato-chip">
+          <i class="feather icon-map-pin"></i>
+          <div>
+            <span class="dato-label">Lugar</span>
+            <span class="dato-valor">Voluntariado del Congreso del Estado de México.</span>
+          </div>
         </div>
       </div>
-      <div class="dato-chip">
-        <i class="feather icon-clock"></i>
-        <div>
-          <span class="dato-label">Horario</span>
-          <span class="dato-valor">09:00 a 14:00 hrs</span>
-        </div>
-      </div>
-      <div class="dato-chip">
-        <i class="feather icon-map-pin"></i>
-        <div>
-          <span class="dato-label">Lugar</span>
-          <span class="dato-valor">Voluntariado del Congreso del Estado de México.</span>
-        </div>
-      </div>
-    </div>
-<br>
-     <h1 class="jornada-title">
-     <span>Mastografías Gratuitas</span>
-    </h1>
+      <br>
+    </ng-container>
 
-    <div class="jornada-fechas">
-      <div class="dato-chip">
-        <i class="feather icon-calendar"></i>
-        <div>
-          <span class="dato-label">Fecha</span>
-          <span class="dato-valor"> 10, 17 y 24 de Octubre</span>
+    <ng-container *ngIf="mostrarMastografias">
+      <h1 class="jornada-title">
+       <span>Mastografías Gratuitas</span>
+      </h1>
+
+      <div class="jornada-fechas">
+        <div class="dato-chip">
+          <i class="feather icon-calendar"></i>
+          <div>
+            <span class="dato-label">Fecha</span>
+            <span class="dato-valor"> 10, 17 y 24 de Octubre</span>
+          </div>
+        </div>
+        <div class="dato-chip">
+          <i class="feather icon-clock"></i>
+          <div>
+            <span class="dato-label">Horario</span>
+            <span class="dato-valor">08:30 a 15:00 hrs</span>
+          </div>
+        </div>
+        <div class="dato-chip">
+          <i class="feather icon-map-pin"></i>
+          <div>
+            <span class="dato-label">Lugar</span>
+            <span class="dato-valor">Clínica Unéme C. Juan Aldama 1316, Col. del Parque, 50180, Toluca de Lerdo, México.</span>
+          </div>
         </div>
       </div>
-      <div class="dato-chip">
-        <i class="feather icon-clock"></i>
-        <div>
-          <span class="dato-label">Horario</span>
-          <span class="dato-valor">08:30 a 15:00 hrs</span>
-        </div>
-      </div>
-      <div class="dato-chip">
-        <i class="feather icon-map-pin"></i>
-        <div>
-          <span class="dato-label">Lugar</span>
-          <span class="dato-valor">Clínica Unéme C. Juan Aldama 1316, Col. del Parque, 50180, Toluca de Lerdo, México.</span>
-        </div>
-      </div>
-    </div>
+    </ng-container>
 
     <a routerLink="/auth/login" class="btn-registrar">
       <i class="feather icon-calendar"></i>

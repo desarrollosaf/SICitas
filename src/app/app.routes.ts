@@ -29,6 +29,10 @@ export const routes: Routes = [
     loadComponent: () => import('./views/pages/salud/salud.component').then(c => c.SaludComponent)
   },
   {
+    path: 'salud/:tipo',
+    loadComponent: () => import('./views/pages/salud/salud.component').then(c => c.SaludComponent)
+  },
+  {
     path: '',
     component: BaseComponent,
     canActivateChild: [authGuard],
