@@ -60,6 +60,37 @@
   line-height: 1.1;
 }
 
+.jornada-subtitulo {
+  font-size: 1.5rem;
+  color: #7b1f3a;
+  font-weight: 800;
+  margin: 0 0 6px;
+  line-height: 1.15;
+}
+
+.octubre-rosa {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #2d2d2d;
+  margin: 0 0 10px;
+  line-height: 1.1;
+
+  strong {
+    color: #e0479e;
+  }
+}
+
+.octubre-rosa-sub {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #666;
+  text-transform: none;
+  margin-top: 2px;
+}
+
 .jornada-title span {
   background: linear-gradient(90deg, #a32145, #d94f6a);
   -webkit-background-clip: text;
@@ -144,6 +175,52 @@
 .servicios-panel {
   text-align: left;
   margin-top: 20px;
+}
+
+.indicaciones-panel {
+  text-align: left;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px dashed #eee0d3;
+}
+
+.indicaciones-titulo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #7b1f3a;
+  font-size: 1.05rem;
+  font-weight: 800;
+  margin-bottom: 10px;
+}
+
+.indicaciones-bloque {
+  margin-bottom: 12px;
+}
+
+.indicaciones-subtitulo {
+  display: inline-block;
+  background: #7b1f3a;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 4px 12px;
+  border-radius: 4px;
+  margin-bottom: 6px;
+}
+
+.indicaciones-bloque ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.indicaciones-bloque li {
+  font-size: 0.84rem;
+  color: #4a4038;
+  line-height: 1.4;
+  margin-bottom: 3px;
 }
 
 .servicios-grid {

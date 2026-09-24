@@ -104,7 +104,18 @@ export class GeneralComponent {
         this.highlightedDates = this.eventosCal.map(
           (evento: any) => evento.fecha_cita
         );
-        setTimeout(() => this.calendarComponent?.getApi().render());
+
+        const fechaMasCercana = this.highlightedDates
+          .slice()
+          .sort()[0];
+
+        setTimeout(() => {
+          const api = this.calendarComponent?.getApi();
+          api?.render();
+          if (fechaMasCercana) {
+            api?.gotoDate(fechaMasCercana);
+          }
+        });
       },
       error: (e: HttpErrorResponse) => {
         this.cargandoCitas = false;
@@ -131,7 +142,6 @@ export class GeneralComponent {
   calendarOptions: CalendarOptions = {
     plugins: [dayGridPlugin, interactionPlugin],
     initialView: 'dayGridMonth',
-    initialDate: '2026-09-24',
     locale: 'es',
     buttonText: {
       today: 'Hoy',
