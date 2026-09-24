@@ -150,13 +150,13 @@ export const LoginUser = async (req: Request, res: Response, next: NextFunction)
         const citaUser = await CitaSep.findOne({
             where: { rfc: rfc }
         });
-        if (totalCitas >= 140 && !rfc.startsWith('VC')) {
-            if (!citaUser) {
-                return res.status(416).json({
-                    msg: "Ya no hay lugares disponibles."
-                });
-            }
-        }
+        // if (totalCitas >= 140 && !rfc.startsWith('VC')) {
+        //     if (!citaUser) {
+        //         return res.status(416).json({
+        //             msg: "Ya no hay lugares disponibles."
+        //         });
+        //     }
+        // }
     // }
 
 
