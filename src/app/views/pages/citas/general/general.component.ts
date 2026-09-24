@@ -79,10 +79,18 @@ export class GeneralComponent {
     });
   }
 
+  cargandoCitas = false;
+
   ngOnInit(): void {
     this.currentUser = this._userService.currentUserValue;
+    this.cargarDatos();
+  }
+
+  cargarDatos(): void {
+    this.cargandoCitas = true;
     this._citasService.getcitas(this.currentUser.rfc).subscribe({
       next: (response: any) => {
+        this.cargandoCitas = false;
         this.datosCita = response.resultados.citas;
         this.eventosCal = response.resultados.eventos;
         this.calendarOptions = {
@@ -98,6 +106,7 @@ export class GeneralComponent {
         );
       },
       error: (e: HttpErrorResponse) => {
+        this.cargandoCitas = false;
         if (e.status == 400) {
           Swal.fire({
             position: 'center',
@@ -252,6 +261,7 @@ export class GeneralComponent {
       
           this.mostrarCalendario = true;
           this.modalRef.close();
+          this.cargarDatos();
         }
       },
       error: (e: HttpErrorResponse) => {

@@ -71,7 +71,11 @@ export const getGeneral = async (req: Request, res: Response): Promise<any> => {
         }
     }
 
-    const eventos = await agendaEventos.findAll();
+    const eventos = await agendaEventos.findAll({
+        where: {
+            organizador: { [Op.notIn]: ['0', ''] }
+        }
+    });
 
     const resultados = {
         'citas': citas,
@@ -115,24 +119,39 @@ export const getEvento = async (req: Request, res: Response): Promise<any> => {
                 order: [['id', 'ASC']]
             });
 
-            if(evento.total_citas_dia != null){
-                if (citas < evento.total_citas_dia) {
-                    horariosDisponibles.forEach(h => {
+            const horaInicioEvento = evento.hora_inicio?.slice(0, 5);
+            const horaTerminoEvento = evento.hora_termino?.slice(0, 5);
+
+            const horariosEnRango = horariosDisponibles.filter((h: any) => {
+                if (!horaInicioEvento || !horaTerminoEvento) return true;
+                return h.horario_inicio >= horaInicioEvento && h.horario_fin <= horaTerminoEvento;
+            });
+
+            const sinTopeDiario = !evento.total_citas_dia || citas < evento.total_citas_dia;
+
+            if (sinTopeDiario) {
+                const limitePorHorario = evento.limite_horario || 1;
+
+                const citasPorHorario = await CitasGeneral.findAll({
+                    where: { evento_id: evento.id },
+                    attributes: ['horario_id']
+                });
+
+                const conteoPorHorario: Record<number, number> = {};
+                citasPorHorario.forEach((c: any) => {
+                    conteoPorHorario[c.horario_id] = (conteoPorHorario[c.horario_id] || 0) + 1;
+                });
+
+                horariosEnRango
+                    .filter((h: any) => (conteoPorHorario[h.id] || 0) < limitePorHorario)
+                    .forEach((h: any) => {
                         resultado.push({
                             horario_id: h.id,
                             horario_texto: `${h.horario_inicio} - ${h.horario_fin}`,
                         });
                     });
-                }
-            }else{
-                horariosDisponibles.forEach(h => {
-                    resultado.push({
-                        horario_id: h.id,
-                        horario_texto: `${h.horario_inicio} - ${h.horario_fin}`,
-                    });
-                });
             }
-        
+
     }
   
     const respuesta = {

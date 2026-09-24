@@ -5,7 +5,7 @@ const sequelize = new sequelize_1.Sequelize('adminplem_saf', 'usr_citas', 'z1Lhb
     host: '192.168.36.53',
     dialect: 'mysql',
     define: {
-        freezeTableName: true
+        freezeTableName: true //test
     }
 });
 exports.default = sequelize;
