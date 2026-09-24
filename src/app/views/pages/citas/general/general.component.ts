@@ -159,23 +159,24 @@ export class GeneralComponent {
              this.abrirModal(response.evento);
              this.evento_id = response.evento.id;
             this.horarios = response.horarios;
+            console.log('horarios de base ', response.horarios )
             this.tramites = response.evento.m_tramites;
             if (response.evento.sede) {
-              console.log('entra if de sede')
-              this.horarios = (response.horarios || []).filter((horario: any) =>
-                horario.sedes.some((sede: any) => sede.sede_id)
-              );
-              this.horarios.forEach(horario => {
-                horario.sedes = horario.sedes.filter(sede => sede.sede_id);
-              });
+      
+              // this.horarios = (response.horarios || []).filter((horario: any) =>
+              //   horario.sedes.some((sede: any) => sede.sede_id)
+              // );
+              // this.horarios.forEach(horario => {
+              //   response.evento.sede = response.evento.sede.filter((sede:any) => sede.sede_id);
+              // });
 
               this.horaSeleccionada2 = null;
               this.sedeSeleccionada = response.evento.sede;
+             
               // this.sedesDisponibles2 = this.horarios.length > 0 ? this.horarios[0].sedes : [];
             } else {
-                console.log('entra else de sede')
               this.horarios = response.horarios || [];
-              this.sedeSeleccionada = response.evento.sedell;
+              this.sedeSeleccionada = response.evento.sede;
               this.sedesDisponibles2 = [];
             }
             // console.log(this.horarios);
@@ -313,7 +314,6 @@ export class GeneralComponent {
   abrirModal(evento: any) {
     this.personaSeleccionada = evento;
     this.sedeSeleccionada = evento.sede;
-    
 
     if (this.sedeSeleccionada) {
       this.sedesDisponibles2 = [this.getSedeById(this.sedeSeleccionada)];
