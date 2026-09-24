@@ -139,6 +139,42 @@ export class GeneralComponent {
     });
   }
 
+  abrirCitaParaFecha(fechaStr: string, fecha: Date): void {
+    if (!this.highlightedDates.includes(fechaStr)) {
+      console.log('Fecha no permitida:', fechaStr);
+      return;
+    }
+
+    this.selectedDate = fecha;
+    this.fechaCitaEnvio = fechaStr;
+    this.fechaFormateadaM = fecha.toLocaleDateString('es-MX', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+
+    this._citasService.getEvento(fechaStr).subscribe({
+      next: (response: any) => {
+        this.abrirModal(response.evento);
+        this.evento_id = response.evento.id;
+        this.horarios = response.horarios;
+        this.tramites = response.evento.m_tramites;
+        if (response.evento.sede) {
+          this.horaSeleccionada2 = null;
+          this.sedeSeleccionada = response.evento.sede;
+        } else {
+          this.horarios = response.horarios || [];
+          this.sedeSeleccionada = response.evento.sede;
+          this.sedesDisponibles2 = [];
+        }
+      },
+      error: (e: HttpErrorResponse) => {
+        const msg = e.error?.msg || 'Error desconocido';
+        console.error('Error del servidor:', msg);
+      }
+    });
+  }
+
   calendarOptions: CalendarOptions = {
     plugins: [dayGridPlugin, interactionPlugin],
     initialView: 'dayGridMonth',
@@ -155,62 +191,12 @@ export class GeneralComponent {
     weekends: true,
     dayMaxEvents: true,
     dateClick: (info) => {
-      const clickedDate = info.dateStr;
-      if (this.highlightedDates.includes(clickedDate)) {
-        this.selectedDate = info.date;
-        this.fechaCitaEnvio = clickedDate;
-        this.fechaFormateadaM = info.date.toLocaleDateString('es-MX', {
-          day: 'numeric',
-          month: 'long',
-          year: 'numeric'
-        });
-        this._citasService.getEvento(clickedDate).subscribe({
-          next: (response: any) => {
-             this.abrirModal(response.evento);
-             this.evento_id = response.evento.id;
-            this.horarios = response.horarios;
-            console.log('horarios de base ', response.horarios )
-            this.tramites = response.evento.m_tramites;
-            if (response.evento.sede) {
-      
-              // this.horarios = (response.horarios || []).filter((horario: any) =>
-              //   horario.sedes.some((sede: any) => sede.sede_id)
-              // );
-              // this.horarios.forEach(horario => {
-              //   response.evento.sede = response.evento.sede.filter((sede:any) => sede.sede_id);
-              // });
+      this.abrirCitaParaFecha(info.dateStr, info.date);
+    },
 
-              this.horaSeleccionada2 = null;
-              this.sedeSeleccionada = response.evento.sede;
-             
-              // this.sedesDisponibles2 = this.horarios.length > 0 ? this.horarios[0].sedes : [];
-            } else {
-              this.horarios = response.horarios || [];
-              this.sedeSeleccionada = response.evento.sede;
-              this.sedesDisponibles2 = [];
-            }
-            // console.log(this.horarios);
-        //     if (!this.horarios || this.horarios.length === 0) {
-        //       this.modalService.dismissAll();
-        //       Swal.fire({
-        //         icon: 'warning',
-        //         title: 'Sin horarios disponibles',
-        //         text: 'Ya no hay horarios disponibles para esta fecha.',
-        //         showConfirmButton: false,
-        //         timer:2000,
-        //       });
-        //       return;
-        // }
-          },
-          error: (e: HttpErrorResponse) => {
-            const msg = e.error?.msg || 'Error desconocido';
-            console.error('Error del servidor:', msg);
-          }
-        });
-      
-      } else {
-        console.log('Fecha no permitida:', clickedDate);
-      }
+    eventClick: (info) => {
+      const fechaStr = info.event.startStr.split('T')[0];
+      this.abrirCitaParaFecha(fechaStr, info.event.start as Date);
     },
 
     dayCellDidMount: (info) => {
@@ -358,6 +344,52 @@ export class GeneralComponent {
       this.limpiaf();
       this.viewState = 'lista';
     });
+  }
+
+  getIndicacionesEvento(eventoNombre: string | undefined): { titulo: string; items: string[] }[] {
+    const nombre = (eventoNombre || '').toLowerCase();
+
+    if (nombre.includes('vasectom')) {
+      return [
+        { titulo: 'Antes', items: [
+          'Bañarse y acudir con higiene adecuada.',
+          'Llevar ropa interior ajustada o de soporte.',
+          'Informar sobre medicamentos y condiciones de salud.'
+        ]},
+        { titulo: 'Procedimiento', items: [
+          'Se cortan y bloquean los conductos deferentes.',
+          'Dura aproximadamente 20-30 minutos.'
+        ]},
+        { titulo: 'Ventajas', items: [
+          'Muy efectiva.',
+          'No afecta hormonas ni función sexual.',
+          'No requiere hospitalización.'
+        ]},
+        { titulo: 'Recuperación', items: [
+          'Regreso a casa el mismo día.',
+          'Reposo relativo 24-48 horas.',
+          'Evitar esfuerzos según indicación médica.',
+          'La protección no es inmediata: usar otro anticonceptivo hasta confirmar con análisis de semen.'
+        ]}
+      ];
+    }
+
+    if (nombre.includes('mastograf')) {
+      return [
+        { titulo: 'Requisitos y documentos', items: [
+          'Acudir bañada sin vello axilar, sin crema o desodorante.'
+        ]},
+        { titulo: 'Presentar', items: [
+          'Copias de credencial de elector, CURP y acta de nacimiento actualizada.',
+          'Si cuentas con derechohabiencia, copia de carnet o credencial con número de afiliación (IMSS, ISSSTE o ISSEMYM).',
+          '1 sobre tamaño carta con nombre completo e indicando "Congreso del Estado de México".',
+          '1 CD-R marca Verbatim o alguna otra, excepto Sony y HP.',
+          'Estudios previos, si los tienes.'
+        ]}
+      ];
+    }
+
+    return [];
   }
 
   getSedeById(id: number) {
