@@ -5,7 +5,7 @@ const sequelizeCuestionarios = new sequelize_1.Sequelize('adminplem_citas', 'usr
     host: '192.168.36.53',
     dialect: 'mysql',
     define: {
-        freezeTableName: true
+        freezeTableName: true //test
     }
 });
 exports.default = sequelizeCuestionarios;

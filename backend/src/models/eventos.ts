@@ -19,6 +19,7 @@ class agendaEventos extends Model {
   declare total_citas_dia: number;
   declare limite_horario: number;
   declare organizador: string;
+  declare genero: string | null;
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
 
@@ -72,6 +73,10 @@ agendaEventos.init(
     },
     organizador:{
       type: DataTypes.STRING,
+      allowNull: true,
+    },
+    genero:{
+      type: DataTypes.STRING(1),
       allowNull: true,
     },
     createdAt: DataTypes.DATE,

@@ -15,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.acuse = exports.savecita = exports.getEvento = exports.getGeneral = void 0;
 exports.generarPDFBufferSep = generarPDFBufferSep;
 exports.generarPDFBufferGen = generarPDFBufferGen;
+const sequelize_1 = require("sequelize");
 const dp_fum_datos_generales_1 = require("../models/fun/dp_fum_datos_generales");
 const dp_datospersonales_1 = require("../models/fun/dp_datospersonales");
 const fun_1 = __importDefault(require("../database/fun"));
@@ -60,7 +61,21 @@ const getGeneral = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             console.log(cita);
         }
     }
-    const eventos = yield eventos_1.default.findAll();
+    const hoy = new Date().toLocaleDateString('en-CA');
+    let eventos = yield eventos_1.default.findAll({
+        where: {
+            organizador: { [sequelize_1.Op.notIn]: ['0', ''] },
+            fecha_cita: { [sequelize_1.Op.gt]: hoy }
+        }
+    });
+    const solicitante = yield dp_fum_datos_generales_1.dp_fum_datos_generales.findOne({
+        where: { f_rfc: rfc },
+        attributes: ['f_sexo']
+    });
+    const sexo = solicitante === null || solicitante === void 0 ? void 0 : solicitante.f_sexo;
+    if (sexo === 'H' || sexo === 'M') {
+        eventos = eventos.filter((evento) => !evento.genero || evento.genero === sexo);
+    }
     const resultados = {
         'citas': citas,
         'eventos': eventos
@@ -70,6 +85,7 @@ const getGeneral = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
 });
 exports.getGeneral = getGeneral;
 const getEvento = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
     const { fecha } = req.params;
     const resultado = [];
     const evento = yield eventos_1.default.findOne({
@@ -96,18 +112,27 @@ const getEvento = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const horariosDisponibles = yield modeloHorarios.findAll({
             order: [['id', 'ASC']]
         });
-        if (evento.total_citas_dia != null) {
-            if (citas < evento.total_citas_dia) {
-                horariosDisponibles.forEach(h => {
-                    resultado.push({
-                        horario_id: h.id,
-                        horario_texto: `${h.horario_inicio} - ${h.horario_fin}`,
-                    });
-                });
-            }
-        }
-        else {
-            horariosDisponibles.forEach(h => {
+        const horaInicioEvento = (_a = evento.hora_inicio) === null || _a === void 0 ? void 0 : _a.slice(0, 5);
+        const horaTerminoEvento = (_b = evento.hora_termino) === null || _b === void 0 ? void 0 : _b.slice(0, 5);
+        const horariosEnRango = horariosDisponibles.filter((h) => {
+            if (!horaInicioEvento || !horaTerminoEvento)
+                return true;
+            return h.horario_inicio >= horaInicioEvento && h.horario_fin <= horaTerminoEvento;
+        });
+        const sinTopeDiario = !evento.total_citas_dia || citas < evento.total_citas_dia;
+        if (sinTopeDiario) {
+            const limitePorHorario = evento.limite_horario || 1;
+            const citasPorHorario = yield citas_general_1.default.findAll({
+                where: { evento_id: evento.id },
+                attributes: ['horario_id']
+            });
+            const conteoPorHorario = {};
+            citasPorHorario.forEach((c) => {
+                conteoPorHorario[c.horario_id] = (conteoPorHorario[c.horario_id] || 0) + 1;
+            });
+            horariosEnRango
+                .filter((h) => (conteoPorHorario[h.id] || 0) < limitePorHorario)
+                .forEach((h) => {
                 resultado.push({
                     horario_id: h.id,
                     horario_texto: `${h.horario_inicio} - ${h.horario_fin}`,
@@ -213,14 +238,18 @@ const savecita = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 });
 exports.savecita = savecita;
 const acuse = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
     try {
         const { id } = req.params;
         const cita = yield citas_general_1.default.findOne({
             where: { id: id },
             include: {
                 model: eventos_1.default,
-                as: 'mEvento'
+                as: 'mEvento',
+                include: [{
+                        model: sedes_1.default,
+                        as: 'mSede'
+                    }]
             }
         });
         const Validacion = yield dp_fum_datos_generales_1.dp_fum_datos_generales.findOne({
@@ -230,7 +259,6 @@ const acuse = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         if (!Validacion) {
             throw new Error("No se encontró información para el RFC proporcionado");
         }
-        const sede2 = ((_b = (yield sedes_1.default.findOne({ where: { id: (_a = cita === null || cita === void 0 ? void 0 : cita.mEvento) === null || _a === void 0 ? void 0 : _a.sede } }))) === null || _b === void 0 ? void 0 : _b.sede) || "";
         const nombreCompleto = [
             Validacion.f_nombre,
             Validacion.f_primer_apellido,
@@ -262,19 +290,19 @@ const acuse = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             }).filter((tramite) => tramite !== undefined);
         }
         else {
-            tramites = (_c = cita.mEvento) === null || _c === void 0 ? void 0 : _c.evento;
+            tramites = (_a = cita.mEvento) === null || _a === void 0 ? void 0 : _a.evento;
         }
-        if (((_d = cita.mEvento) === null || _d === void 0 ? void 0 : _d.horarios) === true) {
-            console.log('cita.mEvento?.table_horarios ', (_e = cita.mEvento) === null || _e === void 0 ? void 0 : _e.table_horarios);
-            const model = cuestionariosConnection_1.default.models[(_f = cita.mEvento) === null || _f === void 0 ? void 0 : _f.table_horarios];
+        if (((_b = cita.mEvento) === null || _b === void 0 ? void 0 : _b.horarios) === true) {
+            console.log('cita.mEvento?.table_horarios ', (_c = cita.mEvento) === null || _c === void 0 ? void 0 : _c.table_horarios);
+            const model = cuestionariosConnection_1.default.models[(_d = cita.mEvento) === null || _d === void 0 ? void 0 : _d.table_horarios];
             if (!model) {
-                throw new Error(`No existe el modelo: ${(_g = cita.mEvento) === null || _g === void 0 ? void 0 : _g.table_horarios}`);
+                throw new Error(`No existe el modelo: ${(_e = cita.mEvento) === null || _e === void 0 ? void 0 : _e.table_horarios}`);
             }
             const horario = yield model.findByPk(cita.horario_id);
             citaHora = horario.horario_inicio + '-' + horario.horario_fin;
         }
         else {
-            citaHora = 'Presentarse en la sede indicada a las ' + ((_h = cita.mEvento) === null || _h === void 0 ? void 0 : _h.hora_inicio);
+            citaHora = 'Presentarse en la sede indicada a las ' + ((_f = cita.mEvento) === null || _f === void 0 ? void 0 : _f.hora_inicio);
         }
         const pdfBuffer = yield generarPDFBufferGen({
             folio: cita.folio,
@@ -283,12 +311,12 @@ const acuse = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             edad: edad,
             curp: curp1,
             fecha: cita.fecha_cita,
-            sede: (_k = (_j = cita.mEvento) === null || _j === void 0 ? void 0 : _j.mSede) === null || _k === void 0 ? void 0 : _k.sede,
+            sede: (_h = (_g = cita.mEvento) === null || _g === void 0 ? void 0 : _g.mSede) === null || _h === void 0 ? void 0 : _h.sede,
             horario: citaHora,
             citaId: cita.id,
             tramites: tramites,
-            evento: (_l = cita.mEvento) === null || _l === void 0 ? void 0 : _l.evento,
-            organizador: (_m = cita.mEvento) === null || _m === void 0 ? void 0 : _m.organizador,
+            evento: (_j = cita.mEvento) === null || _j === void 0 ? void 0 : _j.evento,
+            organizador: (_k = cita.mEvento) === null || _k === void 0 ? void 0 : _k.organizador,
         });
         res.setHeader("Content-Type", "application/pdf");
         res.setHeader("Content-Disposition", `attachment; filename="acuse.pdf"`);

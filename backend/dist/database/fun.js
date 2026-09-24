@@ -5,7 +5,7 @@ const sequelizefun = new sequelize_1.Sequelize('adminplem_administracion', 'usr_
     host: '192.168.36.53',
     dialect: 'mysql',
     define: {
-        freezeTableName: true // evita que Sequelize pluralice
+        freezeTableName: true
     }
 });
 exports.default = sequelizefun;

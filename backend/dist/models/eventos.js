@@ -59,6 +59,10 @@ agendaEventos.init({
         type: sequelize_1.DataTypes.STRING,
         allowNull: true,
     },
+    genero: {
+        type: sequelize_1.DataTypes.STRING(1),
+        allowNull: true,
+    },
     createdAt: sequelize_1.DataTypes.DATE,
     updatedAt: sequelize_1.DataTypes.DATE,
 }, {
