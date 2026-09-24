@@ -73,12 +73,23 @@ export const getGeneral = async (req: Request, res: Response): Promise<any> => {
 
     const hoy = new Date().toLocaleDateString('en-CA');
 
-    const eventos = await agendaEventos.findAll({
+    let eventos = await agendaEventos.findAll({
         where: {
             organizador: { [Op.notIn]: ['0', ''] },
             fecha_cita: { [Op.gt]: hoy }
         }
     });
+
+    const solicitante = await dp_fum_datos_generales.findOne({
+        where: { f_rfc: rfc },
+        attributes: ['f_sexo']
+    });
+
+    const sexo = solicitante?.f_sexo;
+
+    if (sexo === 'H' || sexo === 'M') {
+        eventos = eventos.filter((evento: any) => !evento.genero || evento.genero === sexo);
+    }
 
     const resultados = {
         'citas': citas,

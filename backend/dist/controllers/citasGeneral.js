@@ -62,12 +62,20 @@ const getGeneral = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         }
     }
     const hoy = new Date().toLocaleDateString('en-CA');
-    const eventos = yield eventos_1.default.findAll({
+    let eventos = yield eventos_1.default.findAll({
         where: {
             organizador: { [sequelize_1.Op.notIn]: ['0', ''] },
             fecha_cita: { [sequelize_1.Op.gt]: hoy }
         }
     });
+    const solicitante = yield dp_fum_datos_generales_1.dp_fum_datos_generales.findOne({
+        where: { f_rfc: rfc },
+        attributes: ['f_sexo']
+    });
+    const sexo = solicitante === null || solicitante === void 0 ? void 0 : solicitante.f_sexo;
+    if (sexo === 'H' || sexo === 'M') {
+        eventos = eventos.filter((evento) => !evento.genero || evento.genero === sexo);
+    }
     const resultados = {
         'citas': citas,
         'eventos': eventos
