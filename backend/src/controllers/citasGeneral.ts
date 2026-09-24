@@ -71,9 +71,12 @@ export const getGeneral = async (req: Request, res: Response): Promise<any> => {
         }
     }
 
+    const hoy = new Date().toLocaleDateString('en-CA');
+
     const eventos = await agendaEventos.findAll({
         where: {
-            organizador: { [Op.notIn]: ['0', ''] }
+            organizador: { [Op.notIn]: ['0', ''] },
+            fecha_cita: { [Op.gt]: hoy }
         }
     });
 

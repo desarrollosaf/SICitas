@@ -57,7 +57,7 @@ export class GeneralComponent {
   modalRef: NgbModalRef;
   viewState: 'lista' | 'enviar-link' | 'atender' = 'lista';
   mostrarCalendario = false;
-  highlightedDates: string[] = ['2026-09-24', '2026-09-25'];
+  highlightedDates: string[] = [];
   horarios: {
     horario_id: number;
     horario_texto: string;
@@ -104,6 +104,7 @@ export class GeneralComponent {
         this.highlightedDates = this.eventosCal.map(
           (evento: any) => evento.fecha_cita
         );
+        setTimeout(() => this.calendarComponent?.getApi().render());
       },
       error: (e: HttpErrorResponse) => {
         this.cargandoCitas = false;
