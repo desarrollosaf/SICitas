@@ -130,12 +130,26 @@ export const getEvento = async (req: Request, res: Response): Promise<any> => {
             const sinTopeDiario = !evento.total_citas_dia || citas < evento.total_citas_dia;
 
             if (sinTopeDiario) {
-                horariosEnRango.forEach((h: any) => {
-                    resultado.push({
-                        horario_id: h.id,
-                        horario_texto: `${h.horario_inicio} - ${h.horario_fin}`,
-                    });
+                const limitePorHorario = evento.limite_horario || 1;
+
+                const citasPorHorario = await CitasGeneral.findAll({
+                    where: { evento_id: evento.id },
+                    attributes: ['horario_id']
                 });
+
+                const conteoPorHorario: Record<number, number> = {};
+                citasPorHorario.forEach((c: any) => {
+                    conteoPorHorario[c.horario_id] = (conteoPorHorario[c.horario_id] || 0) + 1;
+                });
+
+                horariosEnRango
+                    .filter((h: any) => (conteoPorHorario[h.id] || 0) < limitePorHorario)
+                    .forEach((h: any) => {
+                        resultado.push({
+                            horario_id: h.id,
+                            horario_texto: `${h.horario_inicio} - ${h.horario_fin}`,
+                        });
+                    });
             }
 
     }

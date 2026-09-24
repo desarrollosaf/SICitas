@@ -111,7 +111,18 @@ const getEvento = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         });
         const sinTopeDiario = !evento.total_citas_dia || citas < evento.total_citas_dia;
         if (sinTopeDiario) {
-            horariosEnRango.forEach((h) => {
+            const limitePorHorario = evento.limite_horario || 1;
+            const citasPorHorario = yield citas_general_1.default.findAll({
+                where: { evento_id: evento.id },
+                attributes: ['horario_id']
+            });
+            const conteoPorHorario = {};
+            citasPorHorario.forEach((c) => {
+                conteoPorHorario[c.horario_id] = (conteoPorHorario[c.horario_id] || 0) + 1;
+            });
+            horariosEnRango
+                .filter((h) => (conteoPorHorario[h.id] || 0) < limitePorHorario)
+                .forEach((h) => {
                 resultado.push({
                     horario_id: h.id,
                     horario_texto: `${h.horario_inicio} - ${h.horario_fin}`,
