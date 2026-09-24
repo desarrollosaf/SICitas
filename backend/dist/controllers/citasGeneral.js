@@ -61,9 +61,11 @@ const getGeneral = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             console.log(cita);
         }
     }
+    const hoy = new Date().toLocaleDateString('en-CA');
     const eventos = yield eventos_1.default.findAll({
         where: {
-            organizador: { [sequelize_1.Op.notIn]: ['0', ''] }
+            organizador: { [sequelize_1.Op.notIn]: ['0', ''] },
+            fecha_cita: { [sequelize_1.Op.gt]: hoy }
         }
     });
     const resultados = {
