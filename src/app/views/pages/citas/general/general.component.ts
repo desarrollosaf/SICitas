@@ -151,21 +151,21 @@ export class GeneralComponent {
             this.horarios = response.horarios;
             this.tramites = response.evento.m_tramites;
             if (response.evento.sede) {
-              console.log('entra if de sede')
-              this.horarios = (response.horarios || []).filter((horario: any) =>
-                horario.sedes.some((sede: any) => sede.sede_id)
-              );
-              this.horarios.forEach(horario => {
-                horario.sedes = horario.sedes.filter(sede => sede.sede_id);
-              });
+      
+              // this.horarios = (response.horarios || []).filter((horario: any) =>
+              //   horario.sedes.some((sede: any) => sede.sede_id)
+              // );
+              // this.horarios.forEach(horario => {
+              //   response.evento.sede = response.evento.sede.filter((sede:any) => sede.sede_id);
+              // });
 
               this.horaSeleccionada2 = null;
               this.sedeSeleccionada = response.evento.sede;
+             
               // this.sedesDisponibles2 = this.horarios.length > 0 ? this.horarios[0].sedes : [];
             } else {
-                console.log('entra else de sede')
               this.horarios = response.horarios || [];
-              this.sedeSeleccionada = response.evento.sedell;
+              this.sedeSeleccionada = response.evento.sede;
               this.sedesDisponibles2 = [];
             }
             // console.log(this.horarios);
@@ -302,7 +302,6 @@ export class GeneralComponent {
   abrirModal(evento: any) {
     this.personaSeleccionada = evento;
     this.sedeSeleccionada = evento.sede;
-    
 
     if (this.sedeSeleccionada) {
       this.sedesDisponibles2 = [this.getSedeById(this.sedeSeleccionada)];
@@ -342,7 +341,9 @@ export class GeneralComponent {
   getSedeById(id: number) {
     const allSedes = [
       { sede_id: 1, sede_texto: 'San Rafael 108' },
-      { sede_id: 2, sede_texto: 'Sede 2' },
+      { sede_id: 2, sede_texto: 'Salón Benito Juárez' },
+      { sede_id: 3, sede_texto: 'Estacionamiento de la dirección general de comunicación social' },
+      { sede_id: 4, sede_texto: 'Clínica Uneme (C. Juan Aldama 1316, Col. del Parque, 50180, Toluca de Lerdo, Méx.)' },
     ];
     return allSedes.find(sede => sede.sede_id === id) || { sede_id: id, sede_texto: 'Sede desconocida' };
   }
