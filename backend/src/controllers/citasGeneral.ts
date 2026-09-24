@@ -278,7 +278,11 @@ export const acuse = async (req: Request, res: Response) => {
       where: { id: id },
       include:{
         model: agendaEventos,
-        as: 'mEvento'
+        as: 'mEvento',
+        include: [{
+          model: Sede,
+          as: 'mSede'
+        }]
       }
     });
 
@@ -290,7 +294,6 @@ export const acuse = async (req: Request, res: Response) => {
     if (!Validacion) {
       throw new Error("No se encontró información para el RFC proporcionado");
     }
-    const sede2 = (await Sede.findOne({ where: { id: cita?.mEvento?.sede } }))?.sede || "";
     const nombreCompleto = [
       Validacion.f_nombre,
       Validacion.f_primer_apellido,

@@ -353,7 +353,10 @@ export class GeneralComponent {
   getSedeById(id: number) {
     const allSedes = [
       { sede_id: 1, sede_texto: 'San Rafael 108' },
-      { sede_id: 2, sede_texto: 'Sede 2' },
+      { sede_id: 2, sede_texto: 'Salón Benito Juárez' },
+      { sede_id: 3, sede_texto: 'Estacionamiento de la dirección general de comunicación social' },
+      { sede_id: 4, sede_texto: 'Clínica Uneme (C. Juan Aldama 1316, Col. del Parque, 50180, Toluca de Lerdo, Méx.)' },
+      { sede_id: 5, sede_texto: 'Voluntariado del Congreso del Estado de México (Calle Plutarco González número 111, Col. La Merced y Alameda, Toluca de Lerdo, Méx.)' },
     ];
     return allSedes.find(sede => sede.sede_id === id) || { sede_id: id, sede_texto: 'Sede desconocida' };
   }
