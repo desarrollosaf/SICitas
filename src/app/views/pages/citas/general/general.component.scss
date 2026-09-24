@@ -1,0 +1,66 @@
+.citas-panel {
+  background: #fff;
+  border: 1px solid #eee0e5;
+  border-radius: 12px;
+  padding: 16px;
+  height: 100%;
+}
+
+.citas-panel-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #7b1f3a;
+  font-weight: 700;
+  margin-bottom: 14px;
+
+  i {
+    font-size: 1.1rem;
+  }
+}
+
+.table thead th {
+  background: #7b1f3a;
+  color: #fff;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  border: none;
+  padding: 10px 8px;
+}
+
+.table tbody td {
+  font-size: 0.86rem;
+  padding: 10px 8px;
+  vertical-align: middle;
+}
+
+.folio-badge {
+  background: #fbe6ec;
+  color: #7b1f3a;
+  font-weight: 600;
+  padding: 6px 10px;
+  border-radius: 20px;
+}
+
+.acuse-link {
+  cursor: pointer;
+  display: inline-flex;
+
+  &:hover {
+    opacity: 0.75;
+  }
+}
+
+.calendar-wrapper {
+  background: #fff;
+  border: 1px solid #eee0e5;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+@media (max-width: 991px) {
+  .citas-panel {
+    margin-bottom: 0;
+  }
+}
