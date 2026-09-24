@@ -25,6 +25,7 @@ const citas_1 = __importDefault(require("../routes/citas"));
 const citasLicencias_1 = __importDefault(require("../routes/citasLicencias"));
 const citasIssemym_1 = __importDefault(require("../routes/citasIssemym"));
 const citasSalud_1 = __importDefault(require("../routes/citasSalud"));
+const citasGeneral_1 = __importDefault(require("../routes/citasGeneral"));
 class Server {
     constructor() {
         this.app = (0, express_1.default)();
@@ -47,6 +48,7 @@ class Server {
         this.app.use(citasLicencias_1.default);
         this.app.use(citasIssemym_1.default);
         this.app.use(citasSalud_1.default);
+        this.app.use(citasGeneral_1.default);
     }
     midlewares() {
         this.app.use(express_1.default.json());

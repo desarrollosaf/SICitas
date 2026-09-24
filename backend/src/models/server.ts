@@ -11,7 +11,7 @@ import routeCitas from "../routes/citas";
 import routeCitasLicencias from "../routes/citasLicencias";
 import routeCitasIssemym from "../routes/citasIssemym";
 import routeSalud from "../routes/citasSalud";
-
+import routeCitasGeneral from "../routes/citasGeneral";
 class Server {
 
     private app: Application
@@ -42,6 +42,7 @@ class Server {
         this.app.use(routeCitasLicencias)
         this.app.use(routeCitasIssemym)
         this.app.use(routeSalud)
+        this.app.use(routeCitasGeneral)
     }
 
     
