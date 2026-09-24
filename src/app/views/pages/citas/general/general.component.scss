@@ -52,6 +52,18 @@
   }
 }
 
+::ng-deep .dia-disponible {
+  background-color: #d1e7dd !important;
+  border: 2px solid #0f5132 !important;
+  cursor: pointer;
+}
+
+::ng-deep .dia-no-disponible {
+  background-color: #f0f0f0 !important;
+  opacity: 0.4;
+  pointer-events: none;
+}
+
 .calendar-wrapper {
   background: #fff;
   border: 1px solid #eee0e5;

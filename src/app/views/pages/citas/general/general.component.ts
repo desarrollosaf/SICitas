@@ -199,19 +199,10 @@ export class GeneralComponent {
       this.abrirCitaParaFecha(fechaStr, info.event.start as Date);
     },
 
-    dayCellDidMount: (info) => {
-      const dateStr = info.date.toISOString().split('T')[0];
+    dayCellClassNames: (arg) => {
+      const dateStr = arg.date.toISOString().split('T')[0];
       const isEnabled = this.highlightedDates.includes(dateStr);
-
-      if (!isEnabled) {
-        info.el.style.backgroundColor = '#f0f0f0';
-        info.el.style.opacity = '0.4';
-        info.el.style.pointerEvents = 'none';
-      } else {
-        info.el.style.backgroundColor = '#d1e7dd';
-        info.el.style.border = '2px solid #0f5132';
-        info.el.style.cursor = 'pointer';
-      }
+      return isEnabled ? ['dia-disponible'] : ['dia-no-disponible'];
     }
   };
 

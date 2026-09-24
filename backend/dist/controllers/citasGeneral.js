@@ -165,29 +165,42 @@ const savecita = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             }
         });
         console.log('evento  ', evento);
-        let limite = 1;
-        if (evento === null || evento === void 0 ? void 0 : evento.limite_horario) {
-            limite = evento === null || evento === void 0 ? void 0 : evento.limite_horario;
-        }
-        console.log('limite ', limite);
         if (citaExistente) {
             return res.status(400).json({
                 status: 400,
                 msg: "Ya existe una cita registrada con ese RFC"
             });
         }
-        const cantidadCitas = yield citas_general_1.default.count({
-            where: {
-                horario_id: body.horario_id,
-                evento_id: body.evento
-            }
-        });
-        console.log('cantidadCitas ', cantidadCitas);
-        if (cantidadCitas >= limite) {
-            return res.status(400).json({
-                status: 400,
-                msg: "Este horario ya no tiene ocupo para la fecha seleccionada"
+        if ((evento === null || evento === void 0 ? void 0 : evento.horarios) === true) {
+            const limite = (evento === null || evento === void 0 ? void 0 : evento.limite_horario) || 1;
+            const cantidadCitas = yield citas_general_1.default.count({
+                where: {
+                    horario_id: body.horario_id,
+                    evento_id: body.evento
+                }
             });
+            console.log('cantidadCitas por horario ', cantidadCitas, 'limite ', limite);
+            if (cantidadCitas >= limite) {
+                return res.status(400).json({
+                    status: 400,
+                    msg: "Este horario ya no tiene cupo para la fecha seleccionada"
+                });
+            }
+        }
+        else if (evento === null || evento === void 0 ? void 0 : evento.total_citas_dia) {
+            const cantidadCitasDia = yield citas_general_1.default.count({
+                where: {
+                    fecha_cita: body.fecha_cita,
+                    evento_id: body.evento
+                }
+            });
+            console.log('cantidadCitasDia ', cantidadCitasDia, 'total_citas_dia ', evento.total_citas_dia);
+            if (cantidadCitasDia >= evento.total_citas_dia) {
+                return res.status(400).json({
+                    status: 400,
+                    msg: "Ya no hay lugares disponibles para la fecha seleccionada"
+                });
+            }
         }
         const folio = Math.floor(10000000 + Math.random() * 90000000);
         console.log('folio ', folio);

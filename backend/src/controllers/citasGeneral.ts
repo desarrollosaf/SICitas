@@ -195,14 +195,7 @@ console.log('citaExistente ',citaExistente);
         }
     });
     console.log('evento  ',evento);
-    let limite = 1;
 
-    if(evento?.limite_horario){
-        limite = evento?.limite_horario;
-    }
-    
-    console.log('limite ', limite)
-    
     if (citaExistente) {
       return res.status(400).json({
         status: 400,
@@ -210,20 +203,40 @@ console.log('citaExistente ',citaExistente);
       });
     }
 
-    const cantidadCitas = await CitasGeneral.count({
-      where: {
-        horario_id: body.horario_id,
-        evento_id: body.evento
-      }
-    });
+    if (evento?.horarios === true) {
+        const limite = evento?.limite_horario || 1;
 
-    console.log('cantidadCitas ',cantidadCitas)
+        const cantidadCitas = await CitasGeneral.count({
+          where: {
+            horario_id: body.horario_id,
+            evento_id: body.evento
+          }
+        });
 
-    if (cantidadCitas >= limite) {
-      return res.status(400).json({
-        status: 400,
-        msg: "Este horario ya no tiene ocupo para la fecha seleccionada"
-      });
+        console.log('cantidadCitas por horario ', cantidadCitas, 'limite ', limite);
+
+        if (cantidadCitas >= limite) {
+          return res.status(400).json({
+            status: 400,
+            msg: "Este horario ya no tiene cupo para la fecha seleccionada"
+          });
+        }
+    } else if (evento?.total_citas_dia) {
+        const cantidadCitasDia = await CitasGeneral.count({
+          where: {
+            fecha_cita: body.fecha_cita,
+            evento_id: body.evento
+          }
+        });
+
+        console.log('cantidadCitasDia ', cantidadCitasDia, 'total_citas_dia ', evento.total_citas_dia);
+
+        if (cantidadCitasDia >= evento.total_citas_dia) {
+          return res.status(400).json({
+            status: 400,
+            msg: "Ya no hay lugares disponibles para la fecha seleccionada"
+          });
+        }
     }
 
 
