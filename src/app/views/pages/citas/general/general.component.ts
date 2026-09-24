@@ -149,6 +149,7 @@ export class GeneralComponent {
              this.abrirModal(response.evento);
              this.evento_id = response.evento.id;
             this.horarios = response.horarios;
+            console.log('horarios de base ', response.horarios )
             this.tramites = response.evento.m_tramites;
             if (response.evento.sede) {
       
