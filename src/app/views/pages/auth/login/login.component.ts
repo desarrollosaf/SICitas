@@ -61,7 +61,6 @@ export class LoginComponent implements OnInit {
 
     this._userService.login(user).subscribe({
       next: (response: any) => {
-        console.log('componente ', response);
         const userData = response.user;
         const bandera = response.bandera;
         const from = response.from;
@@ -75,7 +74,7 @@ export class LoginComponent implements OnInit {
           // }else if( from == 'issemym'){
           //   this.router.navigate(['/citasIssemym']); 
           // }else{
-             this.router.navigate(['/citasSep']);
+             this.router.navigate(['/citasGeneral']);
           // }
         } else {
           // console.log('admin')

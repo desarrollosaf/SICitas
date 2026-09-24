@@ -1,0 +1,10 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const citasGeneral_1 = require("../controllers/citasGeneral");
+const router = (0, express_1.Router)();
+router.get("/api/citasGeneral/getGeneral/:rfc", citasGeneral_1.getGeneral);
+router.get("/api/citasGeneral/getEvento/:fecha", citasGeneral_1.getEvento);
+router.post("/api/citasGeneral/savecita/", citasGeneral_1.savecita);
+router.get("/api/citasGeneral/pdf/:id", citasGeneral_1.acuse);
+exports.default = router;

@@ -994,9 +994,9 @@ export const getCitaSep = async(req: Request, res: Response): Promise<any> => {
   }
 };
 
-export const getHorariosDisponiblesSep = async (req: Request, res: Response): Promise<any> => {
+export const getHorariosDisponiblesSep = async (fecha: string): Promise<any> => {
   try {
-    const { fecha } = req.params;
+    // const { fecha } = req.params;
     const limite = 3;
 
     const citas = await CitaSep.findAll({
@@ -1032,11 +1032,11 @@ export const getHorariosDisponiblesSep = async (req: Request, res: Response): Pr
       }
     });
 
-    return res.json({ horarios: resultado });
+    return resultado;
 
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: "Error al obtener horarios disponibles" });
+    return 0;
   }
 };
 

@@ -847,9 +847,9 @@ const getCitaSep = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     }
 });
 exports.getCitaSep = getCitaSep;
-const getHorariosDisponiblesSep = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getHorariosDisponiblesSep = (fecha) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { fecha } = req.params;
+        // const { fecha } = req.params;
         const limite = 3;
         const citas = yield citas_sep_1.default.findAll({
             where: { fecha_cita: fecha },
@@ -875,11 +875,11 @@ const getHorariosDisponiblesSep = (req, res) => __awaiter(void 0, void 0, void 0
                 });
             }
         });
-        return res.json({ horarios: resultado });
+        return resultado;
     }
     catch (error) {
         console.error(error);
-        return res.status(500).json({ error: "Error al obtener horarios disponibles" });
+        return 0;
     }
 });
 exports.getHorariosDisponiblesSep = getHorariosDisponiblesSep;

@@ -64,7 +64,11 @@ export const routes: Routes = [
       {
       path: 'citasSalud',
       loadChildren: () => import('./views/pages/citas/issemym2026/issemym26.route').then(c => c.default)
-    },
+      },
+      {
+      path: 'citasGeneral',
+      loadComponent: () => import('./views/pages/citas/general/general.component').then(c => c.GeneralComponent)
+      },
     ]
   },
   {
