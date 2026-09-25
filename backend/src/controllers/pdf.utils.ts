@@ -3,7 +3,8 @@ import path from "path";
 
 export async function generarReporteCitasPDF(
   fechap: string,
-  citas: any[]
+  citas: any[], 
+  evento: any[],
 ): Promise<Buffer> {
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument({ size: "A4", margin: 50 });
@@ -31,7 +32,7 @@ export async function generarReporteCitasPDF(
 
       // Encabezado
       doc.font("Helvetica-Bold").fontSize(20).fillColor("#7d0037")
-        .text("Reporte de Citas", { align: "center" });
+        .text("Reporte de Citas de "+evento.evento , { align: "center" });
 
       doc.font("Helvetica").fontSize(12).fillColor("black");
       doc.text(`Fecha: ${fechap}`, { align: "center" });
@@ -56,11 +57,9 @@ export async function generarReporteCitasPDF(
       for (const cita of citas) {
         const nombre = cita.datos_user?.nombre_completo || "Nombre desconocido";
         const curp = cita.datos_user?.f_curp || "Sin curp";
-        const correo = cita.correo ?? "Sin correo";
-        const telefono = cita.telefono ?? "Sin teléfono";
         const clave = cita.datos_user?.f_clave_issemym ?? "Sin clave";
         const adscripcion = cita.adscripcion ?? "Sin adscripción";
-        citasTexto += `• ${nombre} | CURP: ${curp} | Clave ISSEMYM: ${clave} | Tel: ${telefono} | Correo: ${correo} | Adscripción: ${adscripcion} \n\n`;
+        citasTexto += `• ${nombre} | CURP: ${curp} | Clave ISSEMYM: ${clave} | Adscripción: ${adscripcion} \n\n`;
       }
       
       // Calcular altura de la fila ajustada

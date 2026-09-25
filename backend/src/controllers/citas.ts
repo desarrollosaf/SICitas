@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import Cita from "../models/citas";
 import HorarioCita from "../models/horarios_citas"; // ✅ corregido
 import Sede from "../models/sedes";
-import { Op } from "sequelize";
+import { Op, where } from "sequelize";
 import { Sequelize, Model, DataTypes } from 'sequelize';
 import UsersSafs from '../models/saf/users';
 import SUsuario from '../models/saf/s_usuario';
@@ -28,6 +28,9 @@ import citasSalud from "../models/citas_salud";
 import HorariosSalud from "../models/horarios_salud";
 import CitaSep from "../models/citas_sep";
 import HorarioCitasSep from "../models/horarios_citas_sep";
+import CitasGeneral from "../models/citas_general";
+import Tramites from "../models/tramites";
+import sequelizeCuestionarios from "../database/cuestionariosConnection";
 
 
 dp_datospersonales.initModel(sequelizefun);
@@ -332,17 +335,8 @@ export const getCita = async (req: Request, res: Response): Promise<any> => {
 export const getcitasFecha = async (req: Request, res: Response): Promise<any> => {
   try {
     const { fecha, rfc } = req.params;
-    const prefijo = rfc.substring(0, 3).toUpperCase();
-
-    let sedeFilter: any = {};
-    if (prefijo === "JSV") {
-      sedeFilter = { sede_id: 2 };
-    } else if (prefijo === "JSC") {
-      sedeFilter = { sede_id: 1 };
-    }
-
     //tabla de citas
-    const eventos = await agendaEventos.findAll({
+    const evento = await agendaEventos.findOne({
       where:{
         fecha_cita: fecha
       }, 
@@ -350,209 +344,113 @@ export const getcitasFecha = async (req: Request, res: Response): Promise<any> =
 
     let resultado: any[] = [];
     let horarios = [] as any[];  
-    for (const element of eventos) {
+    let personas = [] as any[];   
     let obj = {
-        'evento': element.evento,
-        'fecha': element.fecha_cita,
-        horarios: horarios
-      };
+      'evento_id': evento?.id,
+      'evento': evento?.evento,
+      'fecha': evento?.fecha_cita,
+      horarios: horarios, 
+      'citas': personas,
+    };
 
-      if(element.evento === 'Credencialización')
-      {
-        const horarios = await HorarioIssemym.findAll({
-          order: [['horario_inicio', 'ASC']]
-        })
-        
-        for (const hora of horarios) {
-          const cita = await citasIssemym.findOne({
-            where:{
-              horario_id: hora.id,
-              fecha_cita: fecha
-            }
-          })
+   
 
-          if(cita){
-            const datosg = await dp_fum_datos_generales.findOne({
-              where:{
-                f_rfc: cita?.rfc
-              }
-            })
-        
-            obj.horarios.push({
-                rango: `${hora.horario_inicio} - ${hora.horario_fin}`,
-                nombre: `${datosg?.f_nombre} ${datosg?.f_primer_apellido} ${datosg?.f_segundo_apellido}`,
-                rfc: `${datosg?.f_rfc}`,
-                num: `${cita.telefono}`
-              });
-            
-          }else{
-            obj.horarios.push({ 
-              rango: `${hora.horario_inicio} - ${hora.horario_fin}`,
-              nombre: null,
-              rfc: null
-            });
-          }
-        }
+    if(evento?.horarios == true){
+      const modeloHorarios = sequelizeCuestionarios.models[evento.table_horarios];
+
+      if (!modeloHorarios) {
+          throw new Error(
+          `No existe el modelo: ${evento.table_horarios}`
+          );
       }
 
-      if(element.evento === 'Licencias')
-      {
-        const horariosLi = await HorarioLicencia.findAll()
+      const horariosDisponibles = await modeloHorarios.findAll({
+          order: [['id', 'ASC']]
+      });
 
-        for (const hora of horariosLi) {
-          const cita = await citasLicencia.findOne({
+
+      for (const hora of horariosDisponibles) {
+          let personas = [];
+          const citas = await CitasGeneral.findAll({
             where:{
               horario_id: hora.id,
-              fecha_cita: fecha
+              evento_id: evento.id,
             }
           })
-          if(cita){
-            const datosg = await dp_datospersonales.findOne({
-              where:{
-                f_rfc: cita?.rfc
-              }
-            })
-          
-        obj.horarios.push({
-            rango: `${hora.horario_inicio} - ${hora.horario_fin}`,
-            nombre: `${datosg?.f_nombre} ${datosg?.f_primer_apellido} ${datosg?.f_segundo_apellido}`,
-            rfc: `${datosg?.f_rfc}`,
-            num: `${cita.telefono}`
-          });
-        }else{
-          obj.horarios.push({
-            rango: `${hora.horario_inicio} - ${hora.horario_fin}`,
-            nombre: null,
-            rfc: null
-          });
-        }
-      };
-    }
-    if(element.evento === 'Salud')
-      {
-        const citas = await citasSalud.findAll({
-          where: {
-            fecha_cita: fecha
-          }
-        })
-        for (const cita of citas) {
-          if(cita){
-            const datosg = await dp_datospersonales.findOne({
-              where:{
-                f_rfc: cita?.rfc
-              }
-            })
-            const ads = await SUsuario.findOne({
-              where: {
-                N_Usuario: cita?.rfc
-              }, 
-              include:[
-                {
-                  model: Departamento,
-                  as: "departamento"
-                }
-              ]
-            }); 
-          
-        obj.horarios.push({
-            nombre: `${datosg?.f_nombre} ${datosg?.f_primer_apellido} ${datosg?.f_segundo_apellido}`,
-            rfc: `${datosg?.f_rfc}`,
-            num: `${cita.telefono}`,
-            correo: `${cita.correo}`,
-            issemym: `${datosg?.f_clave_issemym}`,
-            adscripcion: `${ads?.departamento?.nombre_completo}`,
-          });
-        }
-      };
-    }
 
-    if(element.evento === 'Credencialización y Actualización de Carta Testamentaria')
-      {
-        const horarios = await HorarioCitasSep.findAll({
-          order: [['horario_inicio', 'ASC']]
-        })
-        
-        for (const hora of horarios) {
-          const cita = await CitaSep.findAll({
-            where:{
-              horario_id: hora.id,
-              fecha_cita: fecha
-            }
-          })
-          for(const ci of cita){
-            if(ci){
-              const datosg = await dp_fum_datos_generales.findOne({
-                where:{
-                  f_rfc: ci?.rfc
-                }
-              })
-        
-              const ads = await SUsuario.findOne({
-                where: {
-                  N_Usuario: ci?.rfc
-                }, 
-                include:[
-                  {
-                    model: Departamento,
-                    as: "departamento"
-                  }
-                ]
-              }); 
-            
-             const rango = `${hora.horario_inicio} - ${hora.horario_fin}`;
-              let horario = obj.horarios.find(
-                (h) => h.rango === rango
-              );
-
-              const tramites = ci.tramites.split(',').map((tramite: string) => {
-                const id = Number(tramite.trim());
-                  if (id === 1) {
-                    return 'Credencialización ';
-                  }
-
-                  if (id === 2) {
-                    return 'Actualización de Carta testamentaria';
-                  }
-              });
-
-
-              const persona = {
-                nombre: `${datosg?.f_nombre} ${datosg?.f_primer_apellido} ${datosg?.f_segundo_apellido}`,
-                rfc: datosg?.f_rfc,
-                issemym: datosg?.f_clave_issemym,
-                adscripcion: ads?.departamento?.nombre_completo, 
-                tramites: tramites,
-              };
-
-              if (!horario) {
-                obj.horarios.push({
-                  rango,
-                  personas: [persona]
+          if(citas.length > 0){
+            for (const cita of citas) {
+                const datosg = await dp_fum_datos_generales.findOne({
+                    where: {
+                        f_rfc: cita.rfc_solicitante
+                    }
                 });
-              } else {
-                horario.personas.push(persona);
-              }
-              // obj.horarios.push({
-              //     rango: `${hora.horario_inicio} - ${hora.horario_fin}`,
-              //     servidor: {
-              //       nombre: `${datosg?.f_nombre} ${datosg?.f_primer_apellido} ${datosg?.f_segundo_apellido}`,
-              //       rfc: `${datosg?.f_rfc}`,
-              //       issemym: `${datosg?.f_clave_issemym}`,
-              //       adscripcion: `${ads?.departamento?.nombre_completo}`,
-              //     }
-              // });
+                 const adscripcion = await SUsuario.findOne({
+                    where: { 
+                      N_Usuario: cita.rfc_solicitante
+                    }, 
+                    include: [
+                      {
+                        model: Departamento,
+                        as: "departamento"
+                      }
+                    ]
+                  })
+
+                personas.push({
+                    nombre: `${datosg?.f_nombre ?? ''} ${datosg?.f_primer_apellido ?? ''} ${datosg?.f_segundo_apellido ?? ''}`.trim(),
+                    rfc: datosg?.f_rfc ?? '',
+                    issemym: datosg?.f_clave_issemym ?? '', 
+                    adscripcion: adscripcion?.departamento?.nombre_completo, 
+                }) 
             }
           }
+          obj.horarios.push({
+              rango: `${hora.horario_inicio} - ${hora.horario_fin}`,
+              personas: personas
+          });
         }
-      }
+    }else{
+       const citas = await CitasGeneral.findAll({
+          where:{
+            evento_id: evento?.id,
+          }
+        });
+        if(citas.length > 0){
+            for (const cita of citas) {
+              const datosg = await dp_fum_datos_generales.findOne({
+                  where: {
+                      f_rfc: cita.rfc_solicitante
+                  }
+              });
+              const adscripcion = await SUsuario.findOne({
+                  where: { 
+                    N_Usuario: cita.rfc_solicitante
+                  }, 
+                  include: [
+                    {
+                      model: Departamento,
+                      as: "departamento"
+                    }
+                  ]
+                })
+
+              personas.push({
+                nombre: `${datosg?.f_nombre ?? ''} ${datosg?.f_primer_apellido ?? ''} ${datosg?.f_segundo_apellido ?? ''}`.trim(),
+                rfc: datosg?.f_rfc ?? '',
+                issemym: datosg?.f_clave_issemym ?? '', 
+                adscripcion: adscripcion?.departamento?.nombre_completo, 
+              }) 
+          }
+        }
+    }
+
     resultado = [obj];
-  }
 
     return res.json({
       msg: "Horarios con citas agrupadas",
       horarios: resultado
     });
-
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: "Ocurrió un error al obtener los registros" });
@@ -681,94 +579,43 @@ export async function generarPDFBuffer(data: PDFData): Promise<Buffer> {
 
 export const generarPDFCitas = async (req: Request, res: Response) => {
   try {
-    const { fecha, sedeId } = req.params;
+    const { id } = req.params;
     let citas: any;
     let horarios: any;
-    const eventos = await agendaEventos.findOne({
-      where: {
-        fecha_cita: fecha
+    const evento = await agendaEventos.findOne({
+      where:{
+        'id': id
+      },
+      include:[
+        {
+          model: CitasGeneral, 
+          as: 'm_citasG'
+        },
+        {
+          model: Sede,
+          as:'mSede'
+        }
+      ]
+  })
+
+    if(evento?.horarios === true){
+      const modeloHorarios = sequelizeCuestionarios.models[evento.table_horarios]
+        
+      if (!modeloHorarios) {
+        throw new Error(
+        `No existe el modelo: ${evento.table_horarios}`
+        );
       }
-    })
 
-    if(eventos?.evento === 'Credencialización'){
-      horarios = await HorarioIssemym.findAll({
-        order: [["id", "ASC"]],
-        raw: true
+      const horariosDisponibles = await modeloHorarios.findAll({
+          order: [['id', 'ASC']]
       });
-
-
-      citas = await citasIssemym.findAll({
-        where: {
-          fecha_cita: { [Op.eq]: fecha },
-          sede_id: sedeId
-        },
-        include: [
-          {
-            model: Sede,
-            as: "Sede",
-            attributes: ["sede"]
-          }
-        ],
-        order: [["horario_id", "ASC"]],
-        raw: false
-      }) as (Cita & { Sede?: { sede: string }, usuario?: any })[];
-    }else if(eventos?.evento === 'Licencias'){
-      horarios = await HorarioLicencia.findAll({
-        order: [["id", "ASC"]],
-        raw: true
-      });
-      citas = await citasLicencia.findAll({
-        where: {
-          fecha_cita: { [Op.eq]: fecha },
-          sede_id: sedeId
-        },
-        include: [
-          {
-            model: Sede,
-            as: "Sede",
-            attributes: ["sede"]
-          }
-        ],
-        order: [["horario_id", "ASC"]],
-        raw: false
-      }) as (Cita & { Sede?: { sede: string }, usuario?: any })[];
-    }else if(eventos?.evento === 'Salud'){
-  
-      citas = await citasSalud.findAll({
-        where: {
-          fecha_cita: { [Op.eq]: fecha },
-        },
-        order: [["createdAt", "ASC"]],
-        raw: false
-      }) as (Cita & { usuario?: any })[];
-    }else if(eventos?.evento === 'Credencialización y Actualización de Carta Testamentaria'){
-      horarios = await HorarioCitasSep.findAll({
-        order: [["id", "ASC"]],
-        raw: true
-      });
-
-      citas = await CitaSep.findAll({
-        where: {
-          fecha_cita: { [Op.eq]: fecha },
-          sede_id: sedeId
-        },
-        include: [
-          {
-            model: Sede,
-            as: "Sede",
-            attributes: ["sede"]
-          }
-        ],
-        order: [["horario_id", "ASC"]],
-        raw: false
-      }) as (Cita & { Sede?: { sede: string }, usuario?: any })[];
     }
-    
-    // Obtener datos extra (nombre completo de usuario)
+      // Obtener datos extra (nombre completo de usuario)
+    citas = evento?.m_citasG;
     for (const cita of citas) {
-      if (cita.rfc) {
         const datos = await dp_fum_datos_generales.findOne({
-          where: { f_rfc: cita.rfc },
+          where: { f_rfc: cita.rfc_solicitante },
           attributes: [
             [Sequelize.literal(`CONCAT(f_nombre, ' ', f_primer_apellido, ' ', f_segundo_apellido)`), 'nombre_completo'], 'f_curp', 'f_clave_issemym'
           ],
@@ -777,7 +624,7 @@ export const generarPDFCitas = async (req: Request, res: Response) => {
 
         const adscripcion = await SUsuario.findOne({
           where: { 
-            N_Usuario: cita.rfc
+            N_Usuario: cita.rfc_solicitante
           }, 
           include: [
             {
@@ -789,13 +636,11 @@ export const generarPDFCitas = async (req: Request, res: Response) => {
       
         if (datos) {
           (cita as any).datos_user = datos;
-         
         }
         if(adscripcion){
-           (cita as any).adscripcion = adscripcion?.departamento?.nombre_completo; // ✅ lo agregas directamente
+          (cita as any).adscripcion = adscripcion?.departamento?.nombre_completo; // ✅ lo agregas directamente
         }
       }
-    }
  
     function formatearFecha(fechaStr: string) {
       const [año, mes, dia] = fechaStr.split("-").map(Number);
@@ -807,12 +652,12 @@ export const generarPDFCitas = async (req: Request, res: Response) => {
       };
       return fechaObj.toLocaleDateString("es-ES", opciones);
     }
-    const fechap = formatearFecha(fecha);
-    const pdfBuffer = await generarReporteCitasPDF(fechap, citas);
+    const fechap = formatearFecha(evento.fecha_cita);
+    const pdfBuffer = await generarReporteCitasPDF(fechap, citas, evento);
 
     // Retornar el PDF
     res.setHeader("Content-Type", "application/pdf");
-    res.setHeader("Content-Disposition", `attachment; filename="Reporte-${fecha}-sede${sedeId}.pdf"`);
+    res.setHeader("Content-Disposition", `attachment; filename="Reporte-${evento.fecha_cita}-sede${evento.mSede?.sede}.pdf"`);
     res.send(pdfBuffer);
 
   } catch (error) {
@@ -911,101 +756,46 @@ export const generarPdfAcuse = async (req: Request, res: Response) => {
 
 export const generarExcelCitas = async (req: Request, res: Response) => {
   try {
-    const { fecha, sedeId } = req.params;
+    const { id } = req.params;
 
-    // const horarios = await HorarioCita.findAll({
-    //   order: [["id", "ASC"]],
-    //   raw: true
-    // });
     let citas: any;
     let sedeNombre: any;
     let horarios: any;
     const eve = await agendaEventos.findOne({
       where:{
-        fecha_cita: fecha
-      }
+        id: id
+      }, 
+      include:[
+        {
+          model:CitasGeneral, 
+          as:'m_citasG',
+        },
+      ]
     })
-
-    if(eve?.evento === 'Credencialización'){
-        horarios = await HorarioIssemym.findAll({
-          order: [["id", "ASC"]],
-          raw: true
-        });
-        citas = await citasIssemym.findAll({
-          where: {
-            fecha_cita: { [Op.eq]: fecha },
-          },
-          include: [
-            {
-              model: Sede,
-              as: "Sede",
-              attributes: ["sede"]
-            }
-          ],
-          order: [["horario_id", "ASC"]],
-          raw: false
-        }) as (Cita & { Sede?: { sede: string }, usuario?: any })[];
-        sedeNombre = citas[0]?.Sede?.sede || "SIN SEDE";
-  
-    }else if(eve?.evento === 'Licencias'){
-        horarios = await HorarioLicencia.findAll({
-          order: [["id", "ASC"]],
-          raw: true
-        });
-
-
-        citas = await citasLicencia.findAll({
-          where: {
-            fecha_cita: { [Op.eq]: fecha },
-          },
-          include: [
-            {
-              model: Sede,
-              as: "Sede",
-              attributes: ["sede"]
-            }
-          ],
-          order: [["horario_id", "ASC"]],
-          raw: false
-        }) as (Cita & { Sede?: { sede: string }, usuario?: any })[];
-
-        sedeNombre = citas[0]?.Sede?.sede || "SIN SEDE";
-    }else if(eve?.evento === 'Salud'){
-        citas = await citasSalud.findAll({
-          where: {
-            fecha_cita: { [Op.eq]: fecha },
-          },
-        
-          order: [["createdAt", "ASC"]],
-          raw: false
-        }) as (Cita & { usuario?: any })[];
-    }else if(eve?.evento === 'Credencialización y Actualización de Carta Testamentaria'){
-        horarios = await HorarioCitasSep.findAll({
-          order: [["id", "ASC"]],
-          raw: true
-        });
-        citas = await CitaSep.findAll({
-          where: {
-            fecha_cita: { [Op.eq]: fecha },
-          },
-          include: [
-            {
-              model: Sede,
-              as: "Sede",
-              attributes: ["sede"]
-            }
-          ],
-          order: [["horario_id", "ASC"]],
-          raw: false
-        }) as (Cita & { Sede?: { sede: string }, usuario?: any })[];
-        sedeNombre = citas[0]?.Sede?.sede || "SIN SEDE";
-  
-    }
+   
+    citas = eve?.m_citasG;
+    sedeNombre = eve?.mSede?.sede || "SIN SEDE";
     
     for (const cita of citas) {
-      if (cita.rfc) {
+      if(eve?.horarios == true){ 
+        const modeloHorarios = sequelizeCuestionarios.models[eve.table_horarios];
+        
+        if (!modeloHorarios) {
+          throw new Error(
+          `No existe el modelo: ${eve.table_horarios}`
+          );
+        }
+      
+        const horarioCita = await modeloHorarios.findOne({
+          where:{
+            'id': cita.horario_id
+          }
+        });
+
+        (cita as any).horario = horarioCita?.horario_inicio + ' - '+ horarioCita?.horario_fin;
+      }
         const datos = await dp_fum_datos_generales.findOne({
-          where: { f_rfc: cita.rfc },
+          where: { f_rfc: cita.rfc_solicitante },
           attributes: [
             [Sequelize.literal(`CONCAT(f_nombre, ' ', f_primer_apellido, ' ', f_segundo_apellido)`), "nombre_completo"], "f_clave_issemym"
           ],
@@ -1017,7 +807,7 @@ export const generarExcelCitas = async (req: Request, res: Response) => {
         }
 
         const usuario = await SUsuario.findOne({
-          where: { N_Usuario: cita.rfc },
+          where: { N_Usuario: cita.rfc_solicitante },
           attributes: ["N_Usuario"],
           include: [
             { model: Dependencia, as: "dependencia", attributes: ["nombre_completo"] },
@@ -1029,7 +819,7 @@ export const generarExcelCitas = async (req: Request, res: Response) => {
 
         const ads = await SUsuario.findOne({
           where:{
-            N_Usuario: cita.rfc
+            N_Usuario: cita.rfc_solicitante
           }, 
           include:[
             {
@@ -1044,22 +834,24 @@ export const generarExcelCitas = async (req: Request, res: Response) => {
         if(ads){
           (cita as any).adscripcion = ads?.departamento?.nombre_completo;
         }
-      }
+      
     }
 
-    const esSalud = eve?.evento === 'Salud';
-
     const workbook = new ExcelJS.Workbook();
-    const sheet = workbook.addWorksheet("Reporte de Citas");
+    const sheet = workbook.addWorksheet("Reporte de Citas "+eve?.evento);
 
     // Agregar título general arriba
-    const titulo = `Citas ${fecha}`;
+    const titulo = `Citas para ${eve?.evento} del ${eve?.fecha_cita}`;
     sheet.addRow([titulo]);
     const titleRow = sheet.getRow(1);
     titleRow.font = { size: 14, bold: true };
-    const headers = esSalud
-      ? ["Nombre", "Correo", "Teléfono", "Clave ISSEMYM", "Adscripción", "Antígeno prostático", "Papanicolau"]
-      : ["Nombre", "Correo", "Teléfono", "Clave ISSEMYM", "Adscripción"];
+    let headers = [];
+    if(eve?.horarios == true){
+       headers = ["Nombre", "Clave ISSEMYM", "Adscripción", "Cita"];
+    }else{
+       headers = ["Nombre", "Clave ISSEMYM", "Adscripción"];
+    }
+    
     const ultimaColumna = String.fromCharCode(64 + headers.length);
     sheet.mergeCells(`A1:${ultimaColumna}1`); // Unir las columnas para el título
     titleRow.alignment = { horizontal: "center" };
@@ -1075,20 +867,19 @@ export const generarExcelCitas = async (req: Request, res: Response) => {
 
     // Datos
     for (const cita of citas) {
-      console.log('cita   ', cita);
       const nombre =
         (cita as any).datos_user?.nombre_completo || "Nombre desconocido";
-      const correo = cita.correo ?? "Sin correo";
-      const telefono = cita.telefono ?? "Sin teléfono";
       const clave = cita.datos_user.f_clave_issemym ?? "Sin clave";
       const adscripcion = cita.adscripcion ?? "Sin adscripción";
-
-      const fila = [nombre, correo, telefono, clave, adscripcion];
-      if (esSalud) {
-        fila.push((cita as any).antigeno_prostatico ? "Sí" : "No");
-        fila.push((cita as any).papanicolau ? "Sí" : "No");
+      const horario = cita.horario;
+      let fila = []
+      if(eve?.horarios == true){
+        fila = [nombre, clave, adscripcion, horario];
+      }else{
+        fila = [nombre, clave, adscripcion];
       }
-
+     
+    
       sheet.addRow(fila);
     }
       
@@ -1112,7 +903,7 @@ export const generarExcelCitas = async (req: Request, res: Response) => {
     );
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename="Reporte-${fecha}-sede${sedeNombre}.xlsx"`
+      `attachment; filename="Reporte-${eve?.fecha_cita}-sede${sedeNombre}.xlsx"`
     );
     res.send(buffer);
 
@@ -1234,17 +1025,15 @@ export const getEventos = async(req: Request, res: Response): Promise<any> => {
   const eventos = await agendaEventos.findAll({
     include: [
       {
-        model: CitaSep,
-        as: "m_citasSep",
-        required: false,
+        model: CitasGeneral,
+        as: "m_citasG",
+      },
+      {
+        model: Tramites,
+        as:"m_tramites"
       }
     ]
   })
-
-  // const resultado = eventos.map(ev => ({
-  //     fecha_cita: ev.fecha_cita,
-  //     total_issemym: ev.m_citasI?.length,
-  //     total_licencias: ev.m_citasL?.length,
 
   return res.json({
       eventos: eventos

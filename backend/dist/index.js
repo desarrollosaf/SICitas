@@ -9,6 +9,7 @@ const t_dependencia_1 = __importDefault(require("./models/saf/t_dependencia"));
 const t_direccion_1 = __importDefault(require("./models/saf/t_direccion"));
 const server_1 = __importDefault(require("./models/server"));
 const sesion_cuestionario_1 = __importDefault(require("./models/sesion_cuestionario"));
+require("./models/asocioaciones");
 const server = new server_1.default();
 const models = {
     SUsuario: s_usuario_1.default,
