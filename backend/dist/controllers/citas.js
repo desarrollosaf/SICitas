@@ -18,7 +18,6 @@ const citas_1 = __importDefault(require("../models/citas"));
 const horarios_citas_1 = __importDefault(require("../models/horarios_citas")); // ✅ corregido
 const sedes_1 = __importDefault(require("../models/sedes"));
 const sequelize_1 = require("sequelize");
-const sequelize_2 = require("sequelize");
 const s_usuario_1 = __importDefault(require("../models/saf/s_usuario"));
 const t_dependencia_1 = __importDefault(require("../models/saf/t_dependencia"));
 const t_direccion_1 = __importDefault(require("../models/saf/t_direccion"));
@@ -31,14 +30,12 @@ const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
 const pdf_utils_1 = require("./pdf.utils");
 const exceljs_1 = __importDefault(require("exceljs"));
-const citas_issemym_1 = __importDefault(require("../models/citas_issemym"));
-const horarios_issemym_1 = __importDefault(require("../models/horarios_issemym"));
 const eventos_1 = __importDefault(require("../models/eventos"));
-const citas_licencias_1 = __importDefault(require("../models/citas_licencias"));
-const horarios_licencias_1 = __importDefault(require("../models/horarios_licencias"));
-const citas_salud_1 = __importDefault(require("../models/citas_salud"));
 const citas_sep_1 = __importDefault(require("../models/citas_sep"));
 const horarios_citas_sep_1 = __importDefault(require("../models/horarios_citas_sep"));
+const citas_general_1 = __importDefault(require("../models/citas_general"));
+const tramites_1 = __importDefault(require("../models/tramites"));
+const cuestionariosConnection_1 = __importDefault(require("../database/cuestionariosConnection"));
 dp_datospersonales_1.dp_datospersonales.initModel(fun_1.default);
 dp_fum_datos_generales_1.dp_fum_datos_generales.initModel(fun_1.default);
 const getHorariosDisponibles = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -294,112 +291,51 @@ const getCita = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 });
 exports.getCita = getCita;
 const getcitasFecha = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
     try {
         const { fecha, rfc } = req.params;
-        const prefijo = rfc.substring(0, 3).toUpperCase();
-        let sedeFilter = {};
-        if (prefijo === "JSV") {
-            sedeFilter = { sede_id: 2 };
-        }
-        else if (prefijo === "JSC") {
-            sedeFilter = { sede_id: 1 };
-        }
         //tabla de citas
-        const eventos = yield eventos_1.default.findAll({
+        const evento = yield eventos_1.default.findOne({
             where: {
                 fecha_cita: fecha
             },
         });
         let resultado = [];
         let horarios = [];
-        for (const element of eventos) {
-            let obj = {
-                'evento': element.evento,
-                'fecha': element.fecha_cita,
-                horarios: horarios
-            };
-            if (element.evento === 'Credencialización') {
-                const horarios = yield horarios_issemym_1.default.findAll({
-                    order: [['horario_inicio', 'ASC']]
+        let personas = [];
+        let obj = {
+            'evento_id': evento === null || evento === void 0 ? void 0 : evento.id,
+            'evento': evento === null || evento === void 0 ? void 0 : evento.evento,
+            'fecha': evento === null || evento === void 0 ? void 0 : evento.fecha_cita,
+            horarios: horarios,
+            'citas': personas,
+        };
+        if ((evento === null || evento === void 0 ? void 0 : evento.horarios) == true) {
+            const modeloHorarios = cuestionariosConnection_1.default.models[evento.table_horarios];
+            if (!modeloHorarios) {
+                throw new Error(`No existe el modelo: ${evento.table_horarios}`);
+            }
+            const horariosDisponibles = yield modeloHorarios.findAll({
+                order: [['id', 'ASC']]
+            });
+            for (const hora of horariosDisponibles) {
+                let personas = [];
+                const citas = yield citas_general_1.default.findAll({
+                    where: {
+                        horario_id: hora.id,
+                        evento_id: evento.id,
+                    }
                 });
-                for (const hora of horarios) {
-                    const cita = yield citas_issemym_1.default.findOne({
-                        where: {
-                            horario_id: hora.id,
-                            fecha_cita: fecha
-                        }
-                    });
-                    if (cita) {
+                if (citas.length > 0) {
+                    for (const cita of citas) {
                         const datosg = yield dp_fum_datos_generales_1.dp_fum_datos_generales.findOne({
                             where: {
-                                f_rfc: cita === null || cita === void 0 ? void 0 : cita.rfc
+                                f_rfc: cita.rfc_solicitante
                             }
                         });
-                        obj.horarios.push({
-                            rango: `${hora.horario_inicio} - ${hora.horario_fin}`,
-                            nombre: `${datosg === null || datosg === void 0 ? void 0 : datosg.f_nombre} ${datosg === null || datosg === void 0 ? void 0 : datosg.f_primer_apellido} ${datosg === null || datosg === void 0 ? void 0 : datosg.f_segundo_apellido}`,
-                            rfc: `${datosg === null || datosg === void 0 ? void 0 : datosg.f_rfc}`,
-                            num: `${cita.telefono}`
-                        });
-                    }
-                    else {
-                        obj.horarios.push({
-                            rango: `${hora.horario_inicio} - ${hora.horario_fin}`,
-                            nombre: null,
-                            rfc: null
-                        });
-                    }
-                }
-            }
-            if (element.evento === 'Licencias') {
-                const horariosLi = yield horarios_licencias_1.default.findAll();
-                for (const hora of horariosLi) {
-                    const cita = yield citas_licencias_1.default.findOne({
-                        where: {
-                            horario_id: hora.id,
-                            fecha_cita: fecha
-                        }
-                    });
-                    if (cita) {
-                        const datosg = yield dp_datospersonales_1.dp_datospersonales.findOne({
+                        const adscripcion = yield s_usuario_1.default.findOne({
                             where: {
-                                f_rfc: cita === null || cita === void 0 ? void 0 : cita.rfc
-                            }
-                        });
-                        obj.horarios.push({
-                            rango: `${hora.horario_inicio} - ${hora.horario_fin}`,
-                            nombre: `${datosg === null || datosg === void 0 ? void 0 : datosg.f_nombre} ${datosg === null || datosg === void 0 ? void 0 : datosg.f_primer_apellido} ${datosg === null || datosg === void 0 ? void 0 : datosg.f_segundo_apellido}`,
-                            rfc: `${datosg === null || datosg === void 0 ? void 0 : datosg.f_rfc}`,
-                            num: `${cita.telefono}`
-                        });
-                    }
-                    else {
-                        obj.horarios.push({
-                            rango: `${hora.horario_inicio} - ${hora.horario_fin}`,
-                            nombre: null,
-                            rfc: null
-                        });
-                    }
-                }
-                ;
-            }
-            if (element.evento === 'Salud') {
-                const citas = yield citas_salud_1.default.findAll({
-                    where: {
-                        fecha_cita: fecha
-                    }
-                });
-                for (const cita of citas) {
-                    if (cita) {
-                        const datosg = yield dp_datospersonales_1.dp_datospersonales.findOne({
-                            where: {
-                                f_rfc: cita === null || cita === void 0 ? void 0 : cita.rfc
-                            }
-                        });
-                        const ads = yield s_usuario_1.default.findOne({
-                            where: {
-                                N_Usuario: cita === null || cita === void 0 ? void 0 : cita.rfc
+                                N_Usuario: cita.rfc_solicitante
                             },
                             include: [
                                 {
@@ -408,89 +344,54 @@ const getcitasFecha = (req, res) => __awaiter(void 0, void 0, void 0, function* 
                                 }
                             ]
                         });
-                        obj.horarios.push({
-                            nombre: `${datosg === null || datosg === void 0 ? void 0 : datosg.f_nombre} ${datosg === null || datosg === void 0 ? void 0 : datosg.f_primer_apellido} ${datosg === null || datosg === void 0 ? void 0 : datosg.f_segundo_apellido}`,
-                            rfc: `${datosg === null || datosg === void 0 ? void 0 : datosg.f_rfc}`,
-                            num: `${cita.telefono}`,
-                            correo: `${cita.correo}`,
-                            issemym: `${datosg === null || datosg === void 0 ? void 0 : datosg.f_clave_issemym}`,
-                            adscripcion: `${(_a = ads === null || ads === void 0 ? void 0 : ads.departamento) === null || _a === void 0 ? void 0 : _a.nombre_completo}`,
+                        personas.push({
+                            nombre: `${(_a = datosg === null || datosg === void 0 ? void 0 : datosg.f_nombre) !== null && _a !== void 0 ? _a : ''} ${(_b = datosg === null || datosg === void 0 ? void 0 : datosg.f_primer_apellido) !== null && _b !== void 0 ? _b : ''} ${(_c = datosg === null || datosg === void 0 ? void 0 : datosg.f_segundo_apellido) !== null && _c !== void 0 ? _c : ''}`.trim(),
+                            rfc: (_d = datosg === null || datosg === void 0 ? void 0 : datosg.f_rfc) !== null && _d !== void 0 ? _d : '',
+                            issemym: (_e = datosg === null || datosg === void 0 ? void 0 : datosg.f_clave_issemym) !== null && _e !== void 0 ? _e : '',
+                            adscripcion: (_f = adscripcion === null || adscripcion === void 0 ? void 0 : adscripcion.departamento) === null || _f === void 0 ? void 0 : _f.nombre_completo,
                         });
                     }
                 }
-                ;
-            }
-            if (element.evento === 'Credencialización y Actualización de Carta Testamentaria') {
-                const horarios = yield horarios_citas_sep_1.default.findAll({
-                    order: [['horario_inicio', 'ASC']]
+                obj.horarios.push({
+                    rango: `${hora.horario_inicio} - ${hora.horario_fin}`,
+                    personas: personas
                 });
-                for (const hora of horarios) {
-                    const cita = yield citas_sep_1.default.findAll({
+            }
+        }
+        else {
+            const citas = yield citas_general_1.default.findAll({
+                where: {
+                    evento_id: evento === null || evento === void 0 ? void 0 : evento.id,
+                }
+            });
+            if (citas.length > 0) {
+                for (const cita of citas) {
+                    const datosg = yield dp_fum_datos_generales_1.dp_fum_datos_generales.findOne({
                         where: {
-                            horario_id: hora.id,
-                            fecha_cita: fecha
+                            f_rfc: cita.rfc_solicitante
                         }
                     });
-                    for (const ci of cita) {
-                        if (ci) {
-                            const datosg = yield dp_fum_datos_generales_1.dp_fum_datos_generales.findOne({
-                                where: {
-                                    f_rfc: ci === null || ci === void 0 ? void 0 : ci.rfc
-                                }
-                            });
-                            const ads = yield s_usuario_1.default.findOne({
-                                where: {
-                                    N_Usuario: ci === null || ci === void 0 ? void 0 : ci.rfc
-                                },
-                                include: [
-                                    {
-                                        model: t_departamento_1.default,
-                                        as: "departamento"
-                                    }
-                                ]
-                            });
-                            const rango = `${hora.horario_inicio} - ${hora.horario_fin}`;
-                            let horario = obj.horarios.find((h) => h.rango === rango);
-                            const tramites = ci.tramites.split(',').map((tramite) => {
-                                const id = Number(tramite.trim());
-                                if (id === 1) {
-                                    return 'Credencialización ';
-                                }
-                                if (id === 2) {
-                                    return 'Actualización de Carta testamentaria';
-                                }
-                            });
-                            const persona = {
-                                nombre: `${datosg === null || datosg === void 0 ? void 0 : datosg.f_nombre} ${datosg === null || datosg === void 0 ? void 0 : datosg.f_primer_apellido} ${datosg === null || datosg === void 0 ? void 0 : datosg.f_segundo_apellido}`,
-                                rfc: datosg === null || datosg === void 0 ? void 0 : datosg.f_rfc,
-                                issemym: datosg === null || datosg === void 0 ? void 0 : datosg.f_clave_issemym,
-                                adscripcion: (_b = ads === null || ads === void 0 ? void 0 : ads.departamento) === null || _b === void 0 ? void 0 : _b.nombre_completo,
-                                tramites: tramites,
-                            };
-                            if (!horario) {
-                                obj.horarios.push({
-                                    rango,
-                                    personas: [persona]
-                                });
+                    const adscripcion = yield s_usuario_1.default.findOne({
+                        where: {
+                            N_Usuario: cita.rfc_solicitante
+                        },
+                        include: [
+                            {
+                                model: t_departamento_1.default,
+                                as: "departamento"
                             }
-                            else {
-                                horario.personas.push(persona);
-                            }
-                            // obj.horarios.push({
-                            //     rango: `${hora.horario_inicio} - ${hora.horario_fin}`,
-                            //     servidor: {
-                            //       nombre: `${datosg?.f_nombre} ${datosg?.f_primer_apellido} ${datosg?.f_segundo_apellido}`,
-                            //       rfc: `${datosg?.f_rfc}`,
-                            //       issemym: `${datosg?.f_clave_issemym}`,
-                            //       adscripcion: `${ads?.departamento?.nombre_completo}`,
-                            //     }
-                            // });
-                        }
-                    }
+                        ]
+                    });
+                    personas.push({
+                        nombre: `${(_g = datosg === null || datosg === void 0 ? void 0 : datosg.f_nombre) !== null && _g !== void 0 ? _g : ''} ${(_h = datosg === null || datosg === void 0 ? void 0 : datosg.f_primer_apellido) !== null && _h !== void 0 ? _h : ''} ${(_j = datosg === null || datosg === void 0 ? void 0 : datosg.f_segundo_apellido) !== null && _j !== void 0 ? _j : ''}`.trim(),
+                        rfc: (_k = datosg === null || datosg === void 0 ? void 0 : datosg.f_rfc) !== null && _k !== void 0 ? _k : '',
+                        issemym: (_l = datosg === null || datosg === void 0 ? void 0 : datosg.f_clave_issemym) !== null && _l !== void 0 ? _l : '',
+                        adscripcion: (_m = adscripcion === null || adscripcion === void 0 ? void 0 : adscripcion.departamento) === null || _m === void 0 ? void 0 : _m.nombre_completo,
+                    });
                 }
             }
-            resultado = [obj];
         }
+        resultado = [obj];
         return res.json({
             msg: "Horarios con citas agrupadas",
             horarios: resultado
@@ -579,115 +480,76 @@ function generarPDFBuffer(data) {
     });
 }
 const generarPDFCitas = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
+    var _a, _b;
     try {
-        const { fecha, sedeId } = req.params;
+        const { id } = req.params;
         let citas;
         let horarios;
-        const eventos = yield eventos_1.default.findOne({
+        const evento = yield eventos_1.default.findOne({
             where: {
-                fecha_cita: fecha
-            }
+                'id': id
+            },
+            include: [
+                {
+                    model: citas_general_1.default,
+                    as: 'm_citasG'
+                },
+                {
+                    model: sedes_1.default,
+                    as: 'mSede'
+                }
+            ]
         });
-        if ((eventos === null || eventos === void 0 ? void 0 : eventos.evento) === 'Credencialización') {
-            horarios = yield horarios_issemym_1.default.findAll({
-                order: [["id", "ASC"]],
-                raw: true
+        if ((evento === null || evento === void 0 ? void 0 : evento.horarios) === true) {
+            const modeloHorarios = cuestionariosConnection_1.default.models[evento.table_horarios];
+            if (!modeloHorarios) {
+                throw new Error(`No existe el modelo: ${evento.table_horarios}`);
+            }
+            const horariosDisponibles = yield modeloHorarios.findAll({
+                order: [['id', 'ASC']]
             });
-            citas = (yield citas_issemym_1.default.findAll({
-                where: {
-                    fecha_cita: { [sequelize_1.Op.eq]: fecha },
-                    sede_id: sedeId
-                },
-                include: [
-                    {
-                        model: sedes_1.default,
-                        as: "Sede",
-                        attributes: ["sede"]
-                    }
-                ],
-                order: [["horario_id", "ASC"]],
-                raw: false
-            }));
-        }
-        else if ((eventos === null || eventos === void 0 ? void 0 : eventos.evento) === 'Licencias') {
-            horarios = yield horarios_licencias_1.default.findAll({
-                order: [["id", "ASC"]],
-                raw: true
-            });
-            citas = (yield citas_licencias_1.default.findAll({
-                where: {
-                    fecha_cita: { [sequelize_1.Op.eq]: fecha },
-                    sede_id: sedeId
-                },
-                include: [
-                    {
-                        model: sedes_1.default,
-                        as: "Sede",
-                        attributes: ["sede"]
-                    }
-                ],
-                order: [["horario_id", "ASC"]],
-                raw: false
-            }));
-        }
-        else if ((eventos === null || eventos === void 0 ? void 0 : eventos.evento) === 'Salud') {
-            citas = (yield citas_salud_1.default.findAll({
-                where: {
-                    fecha_cita: { [sequelize_1.Op.eq]: fecha },
-                },
-                order: [["createdAt", "ASC"]],
-                raw: false
-            }));
-        }
-        else if ((eventos === null || eventos === void 0 ? void 0 : eventos.evento) === 'Credencialización y Actualización de Carta Testamentaria') {
-            horarios = yield horarios_citas_sep_1.default.findAll({
-                order: [["id", "ASC"]],
-                raw: true
-            });
-            citas = (yield citas_sep_1.default.findAll({
-                where: {
-                    fecha_cita: { [sequelize_1.Op.eq]: fecha },
-                    sede_id: sedeId
-                },
-                include: [
-                    {
-                        model: sedes_1.default,
-                        as: "Sede",
-                        attributes: ["sede"]
-                    }
-                ],
-                order: [["horario_id", "ASC"]],
-                raw: false
-            }));
         }
         // Obtener datos extra (nombre completo de usuario)
+        citas = evento === null || evento === void 0 ? void 0 : evento.m_citasG;
         for (const cita of citas) {
-            if (cita.rfc) {
-                const datos = yield dp_fum_datos_generales_1.dp_fum_datos_generales.findOne({
-                    where: { f_rfc: cita.rfc },
-                    attributes: [
-                        [sequelize_2.Sequelize.literal(`CONCAT(f_nombre, ' ', f_primer_apellido, ' ', f_segundo_apellido)`), 'nombre_completo'], 'f_curp', 'f_clave_issemym'
-                    ],
-                    raw: true
-                });
-                const adscripcion = yield s_usuario_1.default.findOne({
+            if ((evento === null || evento === void 0 ? void 0 : evento.horarios) == true) {
+                const modeloHorarios = cuestionariosConnection_1.default.models[evento.table_horarios];
+                if (!modeloHorarios) {
+                    throw new Error(`No existe el modelo: ${evento.table_horarios}`);
+                }
+                const hora = yield modeloHorarios.findOne({
                     where: {
-                        N_Usuario: cita.rfc
-                    },
-                    include: [
-                        {
-                            model: t_departamento_1.default,
-                            as: "departamento"
-                        }
-                    ]
+                        'id': cita.horario_id
+                    }
                 });
-                if (datos) {
-                    cita.datos_user = datos;
-                }
-                if (adscripcion) {
-                    cita.adscripcion = (_a = adscripcion === null || adscripcion === void 0 ? void 0 : adscripcion.departamento) === null || _a === void 0 ? void 0 : _a.nombre_completo; // ✅ lo agregas directamente
-                }
+                cita.horas = hora.horario_inicio + ' - ' + hora.horario_fin;
+            }
+            else {
+                cita.horas = evento === null || evento === void 0 ? void 0 : evento.hora_inicio;
+            }
+            const datos = yield dp_fum_datos_generales_1.dp_fum_datos_generales.findOne({
+                where: { f_rfc: cita.rfc_solicitante },
+                attributes: [
+                    [sequelize_1.Sequelize.literal(`CONCAT(f_nombre, ' ', f_primer_apellido, ' ', f_segundo_apellido)`), 'nombre_completo'], 'f_curp', 'f_clave_issemym'
+                ],
+                raw: true
+            });
+            const adscripcion = yield s_usuario_1.default.findOne({
+                where: {
+                    N_Usuario: cita.rfc_solicitante
+                },
+                include: [
+                    {
+                        model: t_departamento_1.default,
+                        as: "departamento"
+                    }
+                ]
+            });
+            if (datos) {
+                cita.datos_user = datos;
+            }
+            if (adscripcion) {
+                cita.adscripcion = (_a = adscripcion === null || adscripcion === void 0 ? void 0 : adscripcion.departamento) === null || _a === void 0 ? void 0 : _a.nombre_completo; // ✅ lo agregas directamente
             }
         }
         function formatearFecha(fechaStr) {
@@ -700,11 +562,11 @@ const generarPDFCitas = (req, res) => __awaiter(void 0, void 0, void 0, function
             };
             return fechaObj.toLocaleDateString("es-ES", opciones);
         }
-        const fechap = formatearFecha(fecha);
-        const pdfBuffer = yield (0, pdf_utils_1.generarReporteCitasPDF)(fechap, citas);
+        const fechap = formatearFecha(evento.fecha_cita);
+        const pdfBuffer = yield (0, pdf_utils_1.generarReporteCitasPDF)(fechap, citas, evento);
         // Retornar el PDF
         res.setHeader("Content-Type", "application/pdf");
-        res.setHeader("Content-Disposition", `attachment; filename="Reporte-${fecha}-sede${sedeId}.pdf"`);
+        res.setHeader("Content-Disposition", `attachment; filename="Reporte-${evento.fecha_cita}-sede${(_b = evento.mSede) === null || _b === void 0 ? void 0 : _b.sede}.pdf"`);
         res.send(pdfBuffer);
     }
     catch (error) {
@@ -787,145 +649,88 @@ const generarPdfAcuse = (req, res) => __awaiter(void 0, void 0, void 0, function
 });
 exports.generarPdfAcuse = generarPdfAcuse;
 const generarExcelCitas = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o;
+    var _a, _b, _c, _d, _e, _f;
     try {
-        const { fecha, sedeId } = req.params;
-        // const horarios = await HorarioCita.findAll({
-        //   order: [["id", "ASC"]],
-        //   raw: true
-        // });
+        const { id } = req.params;
         let citas;
         let sedeNombre;
         let horarios;
         const eve = yield eventos_1.default.findOne({
             where: {
-                fecha_cita: fecha
-            }
+                id: id
+            },
+            include: [
+                {
+                    model: citas_general_1.default,
+                    as: 'm_citasG',
+                },
+            ]
         });
-        if ((eve === null || eve === void 0 ? void 0 : eve.evento) === 'Credencialización') {
-            horarios = yield horarios_issemym_1.default.findAll({
-                order: [["id", "ASC"]],
-                raw: true
-            });
-            citas = (yield citas_issemym_1.default.findAll({
-                where: {
-                    fecha_cita: { [sequelize_1.Op.eq]: fecha },
-                },
-                include: [
-                    {
-                        model: sedes_1.default,
-                        as: "Sede",
-                        attributes: ["sede"]
-                    }
-                ],
-                order: [["horario_id", "ASC"]],
-                raw: false
-            }));
-            sedeNombre = ((_b = (_a = citas[0]) === null || _a === void 0 ? void 0 : _a.Sede) === null || _b === void 0 ? void 0 : _b.sede) || "SIN SEDE";
-        }
-        else if ((eve === null || eve === void 0 ? void 0 : eve.evento) === 'Licencias') {
-            horarios = yield horarios_licencias_1.default.findAll({
-                order: [["id", "ASC"]],
-                raw: true
-            });
-            citas = (yield citas_licencias_1.default.findAll({
-                where: {
-                    fecha_cita: { [sequelize_1.Op.eq]: fecha },
-                },
-                include: [
-                    {
-                        model: sedes_1.default,
-                        as: "Sede",
-                        attributes: ["sede"]
-                    }
-                ],
-                order: [["horario_id", "ASC"]],
-                raw: false
-            }));
-            sedeNombre = ((_d = (_c = citas[0]) === null || _c === void 0 ? void 0 : _c.Sede) === null || _d === void 0 ? void 0 : _d.sede) || "SIN SEDE";
-        }
-        else if ((eve === null || eve === void 0 ? void 0 : eve.evento) === 'Salud') {
-            citas = (yield citas_salud_1.default.findAll({
-                where: {
-                    fecha_cita: { [sequelize_1.Op.eq]: fecha },
-                },
-                order: [["createdAt", "ASC"]],
-                raw: false
-            }));
-        }
-        else if ((eve === null || eve === void 0 ? void 0 : eve.evento) === 'Credencialización y Actualización de Carta Testamentaria') {
-            horarios = yield horarios_citas_sep_1.default.findAll({
-                order: [["id", "ASC"]],
-                raw: true
-            });
-            citas = (yield citas_sep_1.default.findAll({
-                where: {
-                    fecha_cita: { [sequelize_1.Op.eq]: fecha },
-                },
-                include: [
-                    {
-                        model: sedes_1.default,
-                        as: "Sede",
-                        attributes: ["sede"]
-                    }
-                ],
-                order: [["horario_id", "ASC"]],
-                raw: false
-            }));
-            sedeNombre = ((_f = (_e = citas[0]) === null || _e === void 0 ? void 0 : _e.Sede) === null || _f === void 0 ? void 0 : _f.sede) || "SIN SEDE";
-        }
+        citas = eve === null || eve === void 0 ? void 0 : eve.m_citasG;
+        sedeNombre = ((_a = eve === null || eve === void 0 ? void 0 : eve.mSede) === null || _a === void 0 ? void 0 : _a.sede) || "SIN SEDE";
         for (const cita of citas) {
-            if (cita.rfc) {
-                const datos = yield dp_fum_datos_generales_1.dp_fum_datos_generales.findOne({
-                    where: { f_rfc: cita.rfc },
-                    attributes: [
-                        [sequelize_2.Sequelize.literal(`CONCAT(f_nombre, ' ', f_primer_apellido, ' ', f_segundo_apellido)`), "nombre_completo"], "f_clave_issemym"
-                    ],
-                    raw: true
-                });
-                if (datos) {
-                    cita.datos_user = datos;
+            if ((eve === null || eve === void 0 ? void 0 : eve.horarios) == true) {
+                const modeloHorarios = cuestionariosConnection_1.default.models[eve.table_horarios];
+                if (!modeloHorarios) {
+                    throw new Error(`No existe el modelo: ${eve.table_horarios}`);
                 }
-                const usuario = yield s_usuario_1.default.findOne({
-                    where: { N_Usuario: cita.rfc },
-                    attributes: ["N_Usuario"],
-                    include: [
-                        { model: t_dependencia_1.default, as: "dependencia", attributes: ["nombre_completo"] },
-                        { model: t_direccion_1.default, as: "direccion", attributes: ["nombre_completo"] },
-                        { model: t_departamento_1.default, as: "departamento", attributes: ["nombre_completo"] }
-                    ],
-                    raw: true
-                });
-                const ads = yield s_usuario_1.default.findOne({
+                const horarioCita = yield modeloHorarios.findOne({
                     where: {
-                        N_Usuario: cita.rfc
-                    },
-                    include: [
-                        {
-                            model: t_departamento_1.default,
-                            as: "departamento"
-                        }
-                    ]
+                        'id': cita.horario_id
+                    }
                 });
-                if (usuario) {
-                    cita.setDataValue("dependencia", usuario);
-                }
-                if (ads) {
-                    cita.adscripcion = (_g = ads === null || ads === void 0 ? void 0 : ads.departamento) === null || _g === void 0 ? void 0 : _g.nombre_completo;
-                }
+                cita.horario = (horarioCita === null || horarioCita === void 0 ? void 0 : horarioCita.horario_inicio) + ' - ' + (horarioCita === null || horarioCita === void 0 ? void 0 : horarioCita.horario_fin);
+            }
+            else {
+                cita.horario = eve === null || eve === void 0 ? void 0 : eve.hora_inicio;
+            }
+            const datos = yield dp_fum_datos_generales_1.dp_fum_datos_generales.findOne({
+                where: { f_rfc: cita.rfc_solicitante },
+                attributes: [
+                    [sequelize_1.Sequelize.literal(`CONCAT(f_nombre, ' ', f_primer_apellido, ' ', f_segundo_apellido)`), "nombre_completo"], "f_clave_issemym"
+                ],
+                raw: true
+            });
+            if (datos) {
+                cita.datos_user = datos;
+            }
+            const usuario = yield s_usuario_1.default.findOne({
+                where: { N_Usuario: cita.rfc_solicitante },
+                attributes: ["N_Usuario"],
+                include: [
+                    { model: t_dependencia_1.default, as: "dependencia", attributes: ["nombre_completo"] },
+                    { model: t_direccion_1.default, as: "direccion", attributes: ["nombre_completo"] },
+                    { model: t_departamento_1.default, as: "departamento", attributes: ["nombre_completo"] }
+                ],
+                raw: true
+            });
+            const ads = yield s_usuario_1.default.findOne({
+                where: {
+                    N_Usuario: cita.rfc_solicitante
+                },
+                include: [
+                    {
+                        model: t_departamento_1.default,
+                        as: "departamento"
+                    }
+                ]
+            });
+            if (usuario) {
+                cita.setDataValue("dependencia", usuario);
+            }
+            if (ads) {
+                cita.adscripcion = (_b = ads === null || ads === void 0 ? void 0 : ads.departamento) === null || _b === void 0 ? void 0 : _b.nombre_completo;
             }
         }
-        const esSalud = (eve === null || eve === void 0 ? void 0 : eve.evento) === 'Salud';
         const workbook = new exceljs_1.default.Workbook();
-        const sheet = workbook.addWorksheet("Reporte de Citas");
+        const sheet = workbook.addWorksheet("Reporte de Citas " + (eve === null || eve === void 0 ? void 0 : eve.evento));
         // Agregar título general arriba
-        const titulo = `Citas ${fecha}`;
+        const titulo = `Citas para ${eve === null || eve === void 0 ? void 0 : eve.evento} del ${eve === null || eve === void 0 ? void 0 : eve.fecha_cita}`;
         sheet.addRow([titulo]);
         const titleRow = sheet.getRow(1);
         titleRow.font = { size: 14, bold: true };
-        const headers = esSalud
-            ? ["Nombre", "Correo", "Teléfono", "Clave ISSEMYM", "Adscripción", "Antígeno prostático", "Papanicolau"]
-            : ["Nombre", "Correo", "Teléfono", "Clave ISSEMYM", "Adscripción"];
+        let headers = [];
+        headers = ["Nombre", "Clave ISSEMYM", "Adscripción", "Cita"];
         const ultimaColumna = String.fromCharCode(64 + headers.length);
         sheet.mergeCells(`A1:${ultimaColumna}1`); // Unir las columnas para el título
         titleRow.alignment = { horizontal: "center" };
@@ -938,21 +743,15 @@ const generarExcelCitas = (req, res) => __awaiter(void 0, void 0, void 0, functi
         headerRow.alignment = { horizontal: "center" };
         // Datos
         for (const cita of citas) {
-            console.log('cita   ', cita);
-            const nombre = ((_h = cita.datos_user) === null || _h === void 0 ? void 0 : _h.nombre_completo) || "Nombre desconocido";
-            const correo = (_j = cita.correo) !== null && _j !== void 0 ? _j : "Sin correo";
-            const telefono = (_k = cita.telefono) !== null && _k !== void 0 ? _k : "Sin teléfono";
-            const clave = (_l = cita.datos_user.f_clave_issemym) !== null && _l !== void 0 ? _l : "Sin clave";
-            const adscripcion = (_m = cita.adscripcion) !== null && _m !== void 0 ? _m : "Sin adscripción";
-            const fila = [nombre, correo, telefono, clave, adscripcion];
-            if (esSalud) {
-                fila.push(cita.antigeno_prostatico ? "Sí" : "No");
-                fila.push(cita.papanicolau ? "Sí" : "No");
-            }
+            const nombre = ((_c = cita.datos_user) === null || _c === void 0 ? void 0 : _c.nombre_completo) || "Nombre desconocido";
+            const clave = (_d = cita.datos_user.f_clave_issemym) !== null && _d !== void 0 ? _d : "Sin clave";
+            const adscripcion = (_e = cita.adscripcion) !== null && _e !== void 0 ? _e : "Sin adscripción";
+            const horario = cita.horario;
+            let fila = [nombre, clave, adscripcion, horario];
             sheet.addRow(fila);
         }
         // Ajustar ancho columnas automáticamente
-        (_o = sheet.columns) === null || _o === void 0 ? void 0 : _o.forEach(column => {
+        (_f = sheet.columns) === null || _f === void 0 ? void 0 : _f.forEach(column => {
             if (column && typeof column.eachCell === "function") {
                 let maxLength = 0;
                 column.eachCell({ includeEmpty: true }, cell => {
@@ -964,7 +763,7 @@ const generarExcelCitas = (req, res) => __awaiter(void 0, void 0, void 0, functi
         });
         const buffer = yield workbook.xlsx.writeBuffer();
         res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-        res.setHeader("Content-Disposition", `attachment; filename="Reporte-${fecha}-sede${sedeNombre}.xlsx"`);
+        res.setHeader("Content-Disposition", `attachment; filename="Reporte-${eve === null || eve === void 0 ? void 0 : eve.fecha_cita}-sede${sedeNombre}.xlsx"`);
         res.send(buffer);
     }
     catch (error) {
@@ -994,7 +793,7 @@ const generalExcel = (req, res) => __awaiter(void 0, void 0, void 0, function* (
                     where: { f_rfc: cita.rfc },
                     attributes: [
                         "f_curp",
-                        [sequelize_2.Sequelize.literal(`CONCAT(f_nombre, ' ', f_primer_apellido, ' ', f_segundo_apellido)`), "nombre_completo"],
+                        [sequelize_1.Sequelize.literal(`CONCAT(f_nombre, ' ', f_primer_apellido, ' ', f_segundo_apellido)`), "nombre_completo"],
                     ],
                     raw: true,
                 });
@@ -1071,16 +870,15 @@ const getEventos = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     const eventos = yield eventos_1.default.findAll({
         include: [
             {
-                model: citas_sep_1.default,
-                as: "m_citasSep",
-                required: false,
+                model: citas_general_1.default,
+                as: "m_citasG",
+            },
+            {
+                model: tramites_1.default,
+                as: "m_tramites"
             }
         ]
     });
-    // const resultado = eventos.map(ev => ({
-    //     fecha_cita: ev.fecha_cita,
-    //     total_issemym: ev.m_citasI?.length,
-    //     total_licencias: ev.m_citasL?.length,
     return res.json({
         eventos: eventos
     });

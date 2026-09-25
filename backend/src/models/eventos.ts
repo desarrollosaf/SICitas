@@ -1,11 +1,5 @@
 import { Model, DataTypes, CreationOptional, ForeignKey } from 'sequelize';
 import sequelize from '../database/cuestionariosConnection';
-import citasIssemym from './citas_issemym';
-import citasLicencia from './citas_licencias';
-import citasSalud from './citas_salud';
-import CitaSep from './citas_sep';
-import Tramites from './tramites';
-import Sede from './sedes';
 
 class agendaEventos extends Model {
   declare id: CreationOptional<number>;
@@ -14,18 +8,15 @@ class agendaEventos extends Model {
   declare hora_inicio: string;
   declare hora_termino: string;
   declare sede: number;
-  declare horarios: Boolean;
+  declare horarios: boolean;
   declare table_horarios: string;
   declare total_citas_dia: number;
   declare limite_horario: number;
   declare organizador: string;
+  declare genero: string | null;
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
-
-  declare mSede?: Sede; 
 }
-
-
 
 agendaEventos.init(
   {
@@ -74,6 +65,10 @@ agendaEventos.init(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    genero:{
+      type: DataTypes.STRING(1),
+      allowNull: true,
+    },
     createdAt: DataTypes.DATE,
     updatedAt: DataTypes.DATE,
   },
@@ -83,39 +78,6 @@ agendaEventos.init(
     timestamps: true,
   }
 );
-
-agendaEventos.hasMany(citasIssemym,{
-    foreignKey: "fecha_cita",
-    sourceKey: "fecha_cita",
-    as: "m_citasI"
-});
-
-agendaEventos.hasMany(citasLicencia,{
-    foreignKey: "fecha_cita",
-    sourceKey: "fecha_cita",
-    as: "m_citasL"
-});
-
-
-agendaEventos.hasMany(citasSalud,{
-    foreignKey: "fecha_cita",
-    sourceKey: "fecha_cita",
-    as: "m_citasS"
-});
-
-agendaEventos.hasMany(CitaSep,{
-    foreignKey: "fecha_cita",
-    sourceKey: "fecha_cita",
-    as: "m_citasSep"
-});
-
-agendaEventos.hasMany(Tramites,{
-    foreignKey: "evento_id",
-    as: "m_tramites"
-});
-
-
-agendaEventos.belongsTo(Sede, { foreignKey: "sede", as: "mSede" });
 
 
 export default agendaEventos;

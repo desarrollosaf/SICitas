@@ -5,12 +5,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const sequelize_1 = require("sequelize");
 const cuestionariosConnection_1 = __importDefault(require("../database/cuestionariosConnection"));
-const citas_issemym_1 = __importDefault(require("./citas_issemym"));
-const citas_licencias_1 = __importDefault(require("./citas_licencias"));
-const citas_salud_1 = __importDefault(require("./citas_salud"));
-const citas_sep_1 = __importDefault(require("./citas_sep"));
-const tramites_1 = __importDefault(require("./tramites"));
-const sedes_1 = __importDefault(require("./sedes"));
 class agendaEventos extends sequelize_1.Model {
 }
 agendaEventos.init({
@@ -59,6 +53,10 @@ agendaEventos.init({
         type: sequelize_1.DataTypes.STRING,
         allowNull: true,
     },
+    genero: {
+        type: sequelize_1.DataTypes.STRING(1),
+        allowNull: true,
+    },
     createdAt: sequelize_1.DataTypes.DATE,
     updatedAt: sequelize_1.DataTypes.DATE,
 }, {
@@ -66,29 +64,4 @@ agendaEventos.init({
     tableName: 'agenda_eventos',
     timestamps: true,
 });
-agendaEventos.hasMany(citas_issemym_1.default, {
-    foreignKey: "fecha_cita",
-    sourceKey: "fecha_cita",
-    as: "m_citasI"
-});
-agendaEventos.hasMany(citas_licencias_1.default, {
-    foreignKey: "fecha_cita",
-    sourceKey: "fecha_cita",
-    as: "m_citasL"
-});
-agendaEventos.hasMany(citas_salud_1.default, {
-    foreignKey: "fecha_cita",
-    sourceKey: "fecha_cita",
-    as: "m_citasS"
-});
-agendaEventos.hasMany(citas_sep_1.default, {
-    foreignKey: "fecha_cita",
-    sourceKey: "fecha_cita",
-    as: "m_citasSep"
-});
-agendaEventos.hasMany(tramites_1.default, {
-    foreignKey: "evento_id",
-    as: "m_tramites"
-});
-agendaEventos.belongsTo(sedes_1.default, { foreignKey: "sede", as: "mSede" });
 exports.default = agendaEventos;

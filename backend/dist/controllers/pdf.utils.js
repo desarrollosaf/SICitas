@@ -15,10 +15,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.generarReporteCitasPDF = generarReporteCitasPDF;
 const pdfkit_1 = __importDefault(require("pdfkit"));
 const path_1 = __importDefault(require("path"));
-function generarReporteCitasPDF(fechap, citas) {
+function generarReporteCitasPDF(fechap, citas, evento) {
     return __awaiter(this, void 0, void 0, function* () {
         return new Promise((resolve, reject) => {
-            var _a, _b, _c, _d, _e, _f, _g;
+            var _a, _b, _c, _d, _e;
             const doc = new pdfkit_1.default({ size: "A4", margin: 50 });
             const chunks = [];
             doc.on("data", (chunk) => chunks.push(chunk));
@@ -38,7 +38,7 @@ function generarReporteCitasPDF(fechap, citas) {
                 doc.y = 115; // Fijar posición inicial en cada página
                 // Encabezado
                 doc.font("Helvetica-Bold").fontSize(20).fillColor("#7d0037")
-                    .text("Reporte de Citas", { align: "center" });
+                    .text("Reporte de Citas de " + evento.evento, { align: "center" });
                 doc.font("Helvetica").fontSize(12).fillColor("black");
                 doc.text(`Fecha: ${fechap}`, { align: "center" });
                 doc.moveDown(1);
@@ -57,11 +57,10 @@ function generarReporteCitasPDF(fechap, citas) {
             for (const cita of citas) {
                 const nombre = ((_a = cita.datos_user) === null || _a === void 0 ? void 0 : _a.nombre_completo) || "Nombre desconocido";
                 const curp = ((_b = cita.datos_user) === null || _b === void 0 ? void 0 : _b.f_curp) || "Sin curp";
-                const correo = (_c = cita.correo) !== null && _c !== void 0 ? _c : "Sin correo";
-                const telefono = (_d = cita.telefono) !== null && _d !== void 0 ? _d : "Sin teléfono";
-                const clave = (_f = (_e = cita.datos_user) === null || _e === void 0 ? void 0 : _e.f_clave_issemym) !== null && _f !== void 0 ? _f : "Sin clave";
-                const adscripcion = (_g = cita.adscripcion) !== null && _g !== void 0 ? _g : "Sin adscripción";
-                citasTexto += `• ${nombre} | CURP: ${curp} | Clave ISSEMYM: ${clave} | Tel: ${telefono} | Correo: ${correo} | Adscripción: ${adscripcion} \n\n`;
+                const clave = (_d = (_c = cita.datos_user) === null || _c === void 0 ? void 0 : _c.f_clave_issemym) !== null && _d !== void 0 ? _d : "Sin clave";
+                const adscripcion = (_e = cita.adscripcion) !== null && _e !== void 0 ? _e : "Sin adscripción";
+                const horas = cita.horas;
+                citasTexto += `• ${nombre} | CURP: ${curp} | Clave ISSEMYM: ${clave} | Adscripción: ${adscripcion} | Cita: ${horas} \n\n`;
             }
             // Calcular altura de la fila ajustada
             const citasWidth = 500;

@@ -57,7 +57,7 @@ export class GeneralComponent {
   modalRef: NgbModalRef;
   viewState: 'lista' | 'enviar-link' | 'atender' = 'lista';
   mostrarCalendario = false;
-  highlightedDates: string[] = ['2026-09-24', '2026-09-25'];
+  highlightedDates: string[] = [];
   horarios: {
     horario_id: number;
     horario_texto: string;
@@ -79,10 +79,18 @@ export class GeneralComponent {
     });
   }
 
+  cargandoCitas = false;
+
   ngOnInit(): void {
     this.currentUser = this._userService.currentUserValue;
+    this.cargarDatos();
+  }
+
+  cargarDatos(): void {
+    this.cargandoCitas = true;
     this._citasService.getcitas(this.currentUser.rfc).subscribe({
       next: (response: any) => {
+        this.cargandoCitas = false;
         this.datosCita = response.resultados.citas;
         this.eventosCal = response.resultados.eventos;
         this.calendarOptions = {
@@ -96,8 +104,10 @@ export class GeneralComponent {
         this.highlightedDates = this.eventosCal.map(
           (evento: any) => evento.fecha_cita
         );
+        setTimeout(() => this.calendarComponent?.getApi().render());
       },
       error: (e: HttpErrorResponse) => {
+        this.cargandoCitas = false;
         if (e.status == 400) {
           Swal.fire({
             position: 'center',
@@ -252,6 +262,7 @@ export class GeneralComponent {
       
           this.mostrarCalendario = true;
           this.modalRef.close();
+          this.cargarDatos();
         }
       },
       error: (e: HttpErrorResponse) => {
@@ -345,6 +356,7 @@ export class GeneralComponent {
       { sede_id: 2, sede_texto: 'Salón Benito Juárez' },
       { sede_id: 3, sede_texto: 'Estacionamiento de la dirección general de comunicación social' },
       { sede_id: 4, sede_texto: 'Clínica Uneme (C. Juan Aldama 1316, Col. del Parque, 50180, Toluca de Lerdo, Méx.)' },
+      { sede_id: 5, sede_texto: 'Voluntariado del Congreso del Estado de México (Calle Plutarco González número 111, Col. La Merced y Alameda, Toluca de Lerdo, Méx.)' },
     ];
     return allSedes.find(sede => sede.sede_id === id) || { sede_id: id, sede_texto: 'Sede desconocida' };
   }

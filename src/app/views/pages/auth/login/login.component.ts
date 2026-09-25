@@ -68,16 +68,8 @@ export class LoginComponent implements OnInit {
         this._userService.setCurrentUser(userData);
         console.log(bandera)
         if (bandera) {
-          // console.log('from', from)
-          // if( from == 'licencias'){
-          //   this.router.navigate(['/citasLicencias']);   
-          // }else if( from == 'issemym'){
-          //   this.router.navigate(['/citasIssemym']); 
-          // }else{
              this.router.navigate(['/citasGeneral']);
-          // }
         } else {
-          // console.log('admin')
           this.router.navigate(['/reportes']);
         }
       },

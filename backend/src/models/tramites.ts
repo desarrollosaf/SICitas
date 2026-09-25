@@ -13,8 +13,6 @@ class Tramites extends Model {
   declare updatedAt: CreationOptional<Date>;
 }
 
-
-
 Tramites.init(
   {
     id: {

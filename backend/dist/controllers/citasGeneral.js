@@ -15,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.acuse = exports.savecita = exports.getEvento = exports.getGeneral = void 0;
 exports.generarPDFBufferSep = generarPDFBufferSep;
 exports.generarPDFBufferGen = generarPDFBufferGen;
+const sequelize_1 = require("sequelize");
 const dp_fum_datos_generales_1 = require("../models/fun/dp_fum_datos_generales");
 const dp_datospersonales_1 = require("../models/fun/dp_datospersonales");
 const fun_1 = __importDefault(require("../database/fun"));
@@ -60,7 +61,13 @@ const getGeneral = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             console.log(cita);
         }
     }
-    const eventos = yield eventos_1.default.findAll();
+    const hoy = new Date().toLocaleDateString('en-CA');
+    const eventos = yield eventos_1.default.findAll({
+        where: {
+            organizador: { [sequelize_1.Op.notIn]: ['0', ''] },
+            fecha_cita: { [sequelize_1.Op.gt]: hoy }
+        }
+    });
     const resultados = {
         'citas': citas,
         'eventos': eventos
@@ -70,6 +77,7 @@ const getGeneral = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
 });
 exports.getGeneral = getGeneral;
 const getEvento = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
     const { fecha } = req.params;
     const resultado = [];
     const evento = yield eventos_1.default.findOne({
@@ -96,18 +104,27 @@ const getEvento = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const horariosDisponibles = yield modeloHorarios.findAll({
             order: [['id', 'ASC']]
         });
-        if (evento.total_citas_dia != null) {
-            if (citas < evento.total_citas_dia) {
-                horariosDisponibles.forEach(h => {
-                    resultado.push({
-                        horario_id: h.id,
-                        horario_texto: `${h.horario_inicio} - ${h.horario_fin}`,
-                    });
-                });
-            }
-        }
-        else {
-            horariosDisponibles.forEach(h => {
+        const horaInicioEvento = (_a = evento.hora_inicio) === null || _a === void 0 ? void 0 : _a.slice(0, 5);
+        const horaTerminoEvento = (_b = evento.hora_termino) === null || _b === void 0 ? void 0 : _b.slice(0, 5);
+        const horariosEnRango = horariosDisponibles.filter((h) => {
+            if (!horaInicioEvento || !horaTerminoEvento)
+                return true;
+            return h.horario_inicio >= horaInicioEvento && h.horario_fin <= horaTerminoEvento;
+        });
+        const sinTopeDiario = !evento.total_citas_dia || citas < evento.total_citas_dia;
+        if (sinTopeDiario) {
+            const limitePorHorario = evento.limite_horario || 1;
+            const citasPorHorario = yield citas_general_1.default.findAll({
+                where: { evento_id: evento.id },
+                attributes: ['horario_id']
+            });
+            const conteoPorHorario = {};
+            citasPorHorario.forEach((c) => {
+                conteoPorHorario[c.horario_id] = (conteoPorHorario[c.horario_id] || 0) + 1;
+            });
+            horariosEnRango
+                .filter((h) => (conteoPorHorario[h.id] || 0) < limitePorHorario)
+                .forEach((h) => {
                 resultado.push({
                     horario_id: h.id,
                     horario_texto: `${h.horario_inicio} - ${h.horario_fin}`,
