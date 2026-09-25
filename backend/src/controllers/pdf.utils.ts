@@ -59,7 +59,8 @@ export async function generarReporteCitasPDF(
         const curp = cita.datos_user?.f_curp || "Sin curp";
         const clave = cita.datos_user?.f_clave_issemym ?? "Sin clave";
         const adscripcion = cita.adscripcion ?? "Sin adscripción";
-        citasTexto += `• ${nombre} | CURP: ${curp} | Clave ISSEMYM: ${clave} | Adscripción: ${adscripcion} \n\n`;
+        const horas = cita.horas;
+        citasTexto += `• ${nombre} | CURP: ${curp} | Clave ISSEMYM: ${clave} | Adscripción: ${adscripcion} | Cita: ${horas} \n\n`;
       }
       
       // Calcular altura de la fila ajustada

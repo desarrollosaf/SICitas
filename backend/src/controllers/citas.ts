@@ -614,6 +614,24 @@ export const generarPDFCitas = async (req: Request, res: Response) => {
       // Obtener datos extra (nombre completo de usuario)
     citas = evento?.m_citasG;
     for (const cita of citas) {
+      if(evento?.horarios == true){
+        const modeloHorarios = sequelizeCuestionarios.models[evento.table_horarios];
+
+        if (!modeloHorarios) {
+          throw new Error(
+          `No existe el modelo: ${evento.table_horarios}`
+          );
+        }
+
+        const hora = await modeloHorarios.findOne({
+          where:{
+            'id': cita.horario_id
+          }
+        });
+         (cita as any).horas = hora.horario_inicio+ ' - '+ hora.horario_fin;
+      }else{
+        (cita as any).horas = evento?.hora_inicio;
+      }
         const datos = await dp_fum_datos_generales.findOne({
           where: { f_rfc: cita.rfc_solicitante },
           attributes: [
@@ -690,10 +708,6 @@ export const generarPdfAcuse = async (req: Request, res: Response) => {
       ],
       order: [["fecha_cita", "ASC"], ["horario_id", "ASC"]]
     });
-
-
-
-
 
     const Validacion = await dp_fum_datos_generales.findOne({
       where: { f_rfc: rfc },
@@ -793,6 +807,8 @@ export const generarExcelCitas = async (req: Request, res: Response) => {
         });
 
         (cita as any).horario = horarioCita?.horario_inicio + ' - '+ horarioCita?.horario_fin;
+      }else{
+        (cita as any).horario = eve?.hora_inicio;
       }
         const datos = await dp_fum_datos_generales.findOne({
           where: { f_rfc: cita.rfc_solicitante },
@@ -834,7 +850,6 @@ export const generarExcelCitas = async (req: Request, res: Response) => {
         if(ads){
           (cita as any).adscripcion = ads?.departamento?.nombre_completo;
         }
-      
     }
 
     const workbook = new ExcelJS.Workbook();
@@ -846,12 +861,8 @@ export const generarExcelCitas = async (req: Request, res: Response) => {
     const titleRow = sheet.getRow(1);
     titleRow.font = { size: 14, bold: true };
     let headers = [];
-    if(eve?.horarios == true){
-       headers = ["Nombre", "Clave ISSEMYM", "Adscripción", "Cita"];
-    }else{
-       headers = ["Nombre", "Clave ISSEMYM", "Adscripción"];
-    }
-    
+    headers = ["Nombre", "Clave ISSEMYM", "Adscripción", "Cita"];
+  
     const ultimaColumna = String.fromCharCode(64 + headers.length);
     sheet.mergeCells(`A1:${ultimaColumna}1`); // Unir las columnas para el título
     titleRow.alignment = { horizontal: "center" };
@@ -872,13 +883,7 @@ export const generarExcelCitas = async (req: Request, res: Response) => {
       const clave = cita.datos_user.f_clave_issemym ?? "Sin clave";
       const adscripcion = cita.adscripcion ?? "Sin adscripción";
       const horario = cita.horario;
-      let fila = []
-      if(eve?.horarios == true){
-        fila = [nombre, clave, adscripcion, horario];
-      }else{
-        fila = [nombre, clave, adscripcion];
-      }
-     
+      let fila = [nombre, clave, adscripcion, horario];
     
       sheet.addRow(fila);
     }

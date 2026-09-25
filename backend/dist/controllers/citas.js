@@ -512,6 +512,21 @@ const generarPDFCitas = (req, res) => __awaiter(void 0, void 0, void 0, function
         // Obtener datos extra (nombre completo de usuario)
         citas = evento === null || evento === void 0 ? void 0 : evento.m_citasG;
         for (const cita of citas) {
+            if ((evento === null || evento === void 0 ? void 0 : evento.horarios) == true) {
+                const modeloHorarios = cuestionariosConnection_1.default.models[evento.table_horarios];
+                if (!modeloHorarios) {
+                    throw new Error(`No existe el modelo: ${evento.table_horarios}`);
+                }
+                const hora = yield modeloHorarios.findOne({
+                    where: {
+                        'id': cita.horario_id
+                    }
+                });
+                cita.horas = hora.horario_inicio + ' - ' + hora.horario_fin;
+            }
+            else {
+                cita.horas = evento === null || evento === void 0 ? void 0 : evento.hora_inicio;
+            }
             const datos = yield dp_fum_datos_generales_1.dp_fum_datos_generales.findOne({
                 where: { f_rfc: cita.rfc_solicitante },
                 attributes: [
@@ -666,6 +681,9 @@ const generarExcelCitas = (req, res) => __awaiter(void 0, void 0, void 0, functi
                 });
                 cita.horario = (horarioCita === null || horarioCita === void 0 ? void 0 : horarioCita.horario_inicio) + ' - ' + (horarioCita === null || horarioCita === void 0 ? void 0 : horarioCita.horario_fin);
             }
+            else {
+                cita.horario = eve === null || eve === void 0 ? void 0 : eve.hora_inicio;
+            }
             const datos = yield dp_fum_datos_generales_1.dp_fum_datos_generales.findOne({
                 where: { f_rfc: cita.rfc_solicitante },
                 attributes: [
@@ -712,12 +730,7 @@ const generarExcelCitas = (req, res) => __awaiter(void 0, void 0, void 0, functi
         const titleRow = sheet.getRow(1);
         titleRow.font = { size: 14, bold: true };
         let headers = [];
-        if ((eve === null || eve === void 0 ? void 0 : eve.horarios) == true) {
-            headers = ["Nombre", "Clave ISSEMYM", "Adscripción", "Cita"];
-        }
-        else {
-            headers = ["Nombre", "Clave ISSEMYM", "Adscripción"];
-        }
+        headers = ["Nombre", "Clave ISSEMYM", "Adscripción", "Cita"];
         const ultimaColumna = String.fromCharCode(64 + headers.length);
         sheet.mergeCells(`A1:${ultimaColumna}1`); // Unir las columnas para el título
         titleRow.alignment = { horizontal: "center" };
@@ -734,13 +747,7 @@ const generarExcelCitas = (req, res) => __awaiter(void 0, void 0, void 0, functi
             const clave = (_d = cita.datos_user.f_clave_issemym) !== null && _d !== void 0 ? _d : "Sin clave";
             const adscripcion = (_e = cita.adscripcion) !== null && _e !== void 0 ? _e : "Sin adscripción";
             const horario = cita.horario;
-            let fila = [];
-            if ((eve === null || eve === void 0 ? void 0 : eve.horarios) == true) {
-                fila = [nombre, clave, adscripcion, horario];
-            }
-            else {
-                fila = [nombre, clave, adscripcion];
-            }
+            let fila = [nombre, clave, adscripcion, horario];
             sheet.addRow(fila);
         }
         // Ajustar ancho columnas automáticamente

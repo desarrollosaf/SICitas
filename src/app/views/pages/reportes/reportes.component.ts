@@ -517,11 +517,8 @@ descargarExcel() {
 getEventos(){
   this._citasService.getEventos().subscribe({
       next: (response: any) => {
-        console.log('response ', response)
         response.eventos.forEach((cita: any) => {
             let totalRegistros = cita.m_citasG.length;
-
-            console.log('total de registros por evento  ', totalRegistros)
             const fechaHora = `${cita.fecha_cita}T00:00:00`;
             const nuevoEvento = {
               title: `${totalRegistros} Citas ${cita.evento}`,

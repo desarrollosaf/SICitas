@@ -59,7 +59,8 @@ function generarReporteCitasPDF(fechap, citas, evento) {
                 const curp = ((_b = cita.datos_user) === null || _b === void 0 ? void 0 : _b.f_curp) || "Sin curp";
                 const clave = (_d = (_c = cita.datos_user) === null || _c === void 0 ? void 0 : _c.f_clave_issemym) !== null && _d !== void 0 ? _d : "Sin clave";
                 const adscripcion = (_e = cita.adscripcion) !== null && _e !== void 0 ? _e : "Sin adscripción";
-                citasTexto += `• ${nombre} | CURP: ${curp} | Clave ISSEMYM: ${clave} | Adscripción: ${adscripcion} \n\n`;
+                const horas = cita.horas;
+                citasTexto += `• ${nombre} | CURP: ${curp} | Clave ISSEMYM: ${clave} | Adscripción: ${adscripcion} | Cita: ${horas} \n\n`;
             }
             // Calcular altura de la fila ajustada
             const citasWidth = 500;
