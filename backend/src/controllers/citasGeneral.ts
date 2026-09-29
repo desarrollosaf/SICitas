@@ -73,12 +73,23 @@ export const getGeneral = async (req: Request, res: Response): Promise<any> => {
 
     const hoy = new Date().toLocaleDateString('en-CA');
 
-    const eventos = await agendaEventos.findAll({
+    let eventos = await agendaEventos.findAll({
         where: {
             organizador: { [Op.notIn]: ['0', ''] },
             fecha_cita: { [Op.gt]: hoy }
         }
     });
+
+    const solicitante = await dp_fum_datos_generales.findOne({
+        where: { f_rfc: rfc },
+        attributes: ['f_sexo']
+    });
+
+    const sexo = solicitante?.f_sexo;
+
+    if (sexo === 'H' || sexo === 'M') {
+        eventos = eventos.filter((evento: any) => !evento.genero || evento.genero === sexo);
+    }
 
     const resultados = {
         'citas': citas,
@@ -184,14 +195,7 @@ console.log('citaExistente ',citaExistente);
         }
     });
     console.log('evento  ',evento);
-    let limite = 1;
 
-    if(evento?.limite_horario){
-        limite = evento?.limite_horario;
-    }
-    
-    console.log('limite ', limite)
-    
     if (citaExistente) {
       return res.status(400).json({
         status: 400,
@@ -199,20 +203,40 @@ console.log('citaExistente ',citaExistente);
       });
     }
 
-    const cantidadCitas = await CitasGeneral.count({
-      where: {
-        horario_id: body.horario_id,
-        evento_id: body.evento
-      }
-    });
+    if (evento?.horarios === true) {
+        const limite = evento?.limite_horario || 1;
 
-    console.log('cantidadCitas ',cantidadCitas)
+        const cantidadCitas = await CitasGeneral.count({
+          where: {
+            horario_id: body.horario_id,
+            evento_id: body.evento
+          }
+        });
 
-    if (cantidadCitas >= limite) {
-      return res.status(400).json({
-        status: 400,
-        msg: "Este horario ya no tiene ocupo para la fecha seleccionada"
-      });
+        console.log('cantidadCitas por horario ', cantidadCitas, 'limite ', limite);
+
+        if (cantidadCitas >= limite) {
+          return res.status(400).json({
+            status: 400,
+            msg: "Este horario ya no tiene cupo para la fecha seleccionada"
+          });
+        }
+    } else if (evento?.total_citas_dia) {
+        const cantidadCitasDia = await CitasGeneral.count({
+          where: {
+            fecha_cita: body.fecha_cita,
+            evento_id: body.evento
+          }
+        });
+
+        console.log('cantidadCitasDia ', cantidadCitasDia, 'total_citas_dia ', evento.total_citas_dia);
+
+        if (cantidadCitasDia >= evento.total_citas_dia) {
+          return res.status(400).json({
+            status: 400,
+            msg: "Ya no hay lugares disponibles para la fecha seleccionada"
+          });
+        }
     }
 
 
@@ -278,7 +302,11 @@ export const acuse = async (req: Request, res: Response) => {
       where: { id: id },
       include:{
         model: agendaEventos,
-        as: 'mEvento'
+        as: 'mEvento',
+        include: [{
+          model: Sede,
+          as: 'mSede'
+        }]
       }
     });
 
@@ -290,7 +318,6 @@ export const acuse = async (req: Request, res: Response) => {
     if (!Validacion) {
       throw new Error("No se encontró información para el RFC proporcionado");
     }
-    const sede2 = (await Sede.findOne({ where: { id: cita?.mEvento?.sede } }))?.sede || "";
     const nombreCompleto = [
       Validacion.f_nombre,
       Validacion.f_primer_apellido,

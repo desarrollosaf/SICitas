@@ -78,9 +78,16 @@
                         <div class="mb-4">
                             <h6 class="fw-bold">Indicaciones para la cita</h6>
                             <p>
-                                En caso de presentarse alguna duda, error o requerir asistencia relacionada con el acceso, comunícate 
+                                En caso de presentarse alguna duda, error o requerir asistencia relacionada con el acceso, comunícate
                                 a las extensiones 5506 y 5517 del Departamento de Desarrollo y Actualización Tecnológica.
                             </p>
+
+                            <div *ngFor="let bloque of getIndicacionesEvento(personaSeleccionada?.evento)" class="mb-2">
+                                <span class="badge bg-secondary mb-1">{{ bloque.titulo }}</span>
+                                <ul class="mb-0">
+                                    <li *ngFor="let item of bloque.items">{{ item }}</li>
+                                </ul>
+                            </div>
                         </div>
 
                         <!-- Formulario en filas de 2 columnas -->
