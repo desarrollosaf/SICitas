@@ -4,6 +4,7 @@ import Dependencia from "./models/saf/t_dependencia"
 import Direccion from "./models/saf/t_direccion"
 import Server from "./models/server"
 import sesion from "./models/sesion_cuestionario"
+import './models/asocioaciones';
 
 const server =  new Server()
 

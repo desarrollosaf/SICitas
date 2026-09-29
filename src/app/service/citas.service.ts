@@ -36,14 +36,14 @@ export class CitasService {
     return this.http.get<string>(`${this.myAppUrl}${this.myAPIUrl}/getcitasfecha/${fecha}/${rfc}`)
   }
 
-   generarPDF(fecha:string, sedeID: number): Observable<Blob> {
-    return this.http.get(`${this.myAppUrl}${this.myAPIUrl}/pdf/${fecha}/${sedeID}`, {
+   generarPDF(id: number): Observable<Blob> {
+    return this.http.get(`${this.myAppUrl}${this.myAPIUrl}/pdf/${id}`, {
       responseType: 'blob',
     });
   }
 
-  generarEXCEL(fecha:string, sedeID: number): Observable<Blob> {
-    return this.http.get(`${this.myAppUrl}${this.myAPIUrl}/exel/${fecha}/${sedeID}`, {
+  generarEXCEL(id: number): Observable<Blob> {
+    return this.http.get(`${this.myAppUrl}${this.myAPIUrl}/exel/${id}`, {
       responseType: 'blob',
     });
   }

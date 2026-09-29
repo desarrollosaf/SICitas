@@ -5,7 +5,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const sequelize_1 = require("sequelize");
 const cuestionariosConnection_1 = __importDefault(require("../database/cuestionariosConnection"));
-const eventos_1 = __importDefault(require("./eventos"));
 class CitasGeneral extends sequelize_1.Model {
 }
 CitasGeneral.init({
@@ -45,5 +44,4 @@ CitasGeneral.init({
     tableName: 'citas_general',
     timestamps: true,
 });
-CitasGeneral.belongsTo(eventos_1.default, { foreignKey: "evento_id", as: "mEvento" });
 exports.default = CitasGeneral;

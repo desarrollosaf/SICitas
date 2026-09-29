@@ -76,7 +76,7 @@ export class ReportesComponent {
   tpendientes: any;
   tatendidos: any;
   visibleHorarios: { [key: string]: boolean } = {};
-
+evento_id: number;
   descargandoPDF: number | null = null;
   descargandoExcel: number | null = null;
   highlightedDates: string[] = [new Date().toISOString().split('T')[0]];
@@ -300,6 +300,7 @@ export class ReportesComponent {
       this.data = {
         horarios: response.horarios[0]
       };
+      this.evento_id = response.horarios[0].evento_id;
     },
     error: (e: HttpErrorResponse) => {
       const msg = e.error?.msg || 'Error desconocido';
@@ -471,10 +472,10 @@ export class ReportesComponent {
     });
   }
 
-  descargarPDF(sedeID: number) {
-  this.descargandoPDF = sedeID; // Inicia spinner
+  descargarPDF() {
+  this.descargandoPDF = 1; // Inicia spinner
 
-  this._citasService.generarPDF(this.fechaFormat, sedeID).subscribe(
+  this._citasService.generarPDF(this.evento_id).subscribe(
     (res: Blob) => {
       const blob = new Blob([res], { type: 'application/pdf' });
       const url = window.URL.createObjectURL(blob);
@@ -492,12 +493,10 @@ export class ReportesComponent {
   );
 }
 
+descargarExcel() {
+  this.descargandoExcel = 1; // Inicia spinner
 
-
-descargarExcel(sedeID: number) {
-  this.descargandoExcel = sedeID; // Inicia spinner
-
-  this._citasService.generarEXCEL(this.fechaFormat, sedeID).subscribe(
+  this._citasService.generarEXCEL(this.evento_id).subscribe(
     (res: Blob) => {
       const blob = new Blob([res], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
       const url = window.URL.createObjectURL(blob);
@@ -515,50 +514,26 @@ descargarExcel(sedeID: number) {
   );
 }
 
-
 getEventos(){
   this._citasService.getEventos().subscribe({
       next: (response: any) => {
         response.eventos.forEach((cita: any) => {
-            let totalRegistros = 0;
-            let esSalud = false;
-            let totalAntigeno = 0;
-            let totalPapanicolau = 0;
-
-            if( cita.evento === 'Credencialización' && cita.m_citasI){
-              totalRegistros = cita.m_citasI.length;
-            }
-            if( cita.evento === 'Licencias' && cita.m_citasL){
-              totalRegistros = cita.m_citasL.length;
-            }
-            if( cita.evento === 'Salud' && cita.m_citasS){
-              esSalud = true;
-              totalRegistros = cita.m_citasS.length;
-              totalAntigeno = cita.m_citasS.filter((c: any) => c.antigeno_prostatico).length;
-              totalPapanicolau = cita.m_citasS.filter((c: any) => c.papanicolau).length;
-            }
-            if( cita.evento === 'Credencialización y Actualización de Carta Testamentaria' && cita.m_citasSep){
-              esSalud = false;
-              totalRegistros = cita.m_citasSep.length;
-            }
-
+            let totalRegistros = cita.m_citasG.length;
             const fechaHora = `${cita.fecha_cita}T00:00:00`;
             const nuevoEvento = {
-              title: esSalud
-                ? `${totalRegistros} Salud (A:${totalAntigeno} P:${totalPapanicolau})`
-                : `${totalRegistros} Citas ${cita.evento}`,
+              title: `${totalRegistros} Citas ${cita.evento}`,
               start: fechaHora,
               allDay: true,
               backgroundColor: '#a54b54',  // Rojo
               borderColor: '#bd2130',
               textColor: '#fff',
-              extendedProps: esSalud ? {
-                esSalud: true,
-                total: totalRegistros,
-                antigeno: totalAntigeno,
-                papanicolau: totalPapanicolau,
-                detalle: `Total citas: ${totalRegistros}\nAntígeno prostático: ${totalAntigeno}\nPapanicolau: ${totalPapanicolau}`
-              } : {}
+              // extendedProps: cita.evento.m_tramites?.length > 0 ? {
+              //   esSalud: true,
+              //   total: totalRegistros,
+              //   antigeno: totalAntigeno,
+              //   papanicolau: totalPapanicolau,
+              //   detalle: `Total citas: ${totalRegistros}\nAntígeno prostático: ${totalAntigeno}\nPapanicolau: ${totalPapanicolau}`
+              // } : {}
             };
             if (Array.isArray(this.calendarOptions.events)) {
               this.calendarOptions.events = [...this.calendarOptions.events, nuevoEvento];

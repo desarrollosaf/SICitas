@@ -58,7 +58,6 @@ CitasGeneral.init(
   }
 );
 
-CitasGeneral.belongsTo(agendaEventos, { foreignKey: "evento_id", as: "mEvento" });
 
 
 
