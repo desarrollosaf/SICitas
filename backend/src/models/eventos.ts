@@ -87,35 +87,4 @@ agendaEventos.init(
   }
 );
 
-// agendaEventos.hasMany(citasIssemym,{
-//     foreignKey: "fecha_cita",
-//     sourceKey: "fecha_cita",
-//     as: "m_citasI"
-// });
-
-// agendaEventos.hasMany(citasLicencia,{
-//     foreignKey: "fecha_cita",
-//     sourceKey: "fecha_cita",
-//     as: "m_citasL"
-// });
-
-// agendaEventos.hasMany(citasSalud,{
-//     foreignKey: "fecha_cita",
-//     sourceKey: "fecha_cita",
-//     as: "m_citasS"
-// });
-
-// agendaEventos.hasMany(CitaSep,{
-//     foreignKey: "fecha_cita",
-//     sourceKey: "fecha_cita",
-//     as: "m_citasSep"
-// });
-
-// agendaEventos.hasMany(Tramites,{
-//     foreignKey: "evento_id",
-//     as: "m_tramites"
-// });
-
-// agendaEventos.belongsTo(Sede, { foreignKey: "sede", as: "mSede" });
-
 export default agendaEventos;
