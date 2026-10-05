@@ -100,6 +100,7 @@ export const getGeneral = async (req: Request, res: Response): Promise<any> => {
 }
 
 export const getEvento = async (req: Request, res: Response): Promise<any> => {
+  console.log('llega a controller funcion getEvento');
     const { fecha } = req.params; 
     const resultado: any[] = [];
     const evento = await agendaEventos.findOne({
@@ -111,6 +112,8 @@ export const getEvento = async (req: Request, res: Response): Promise<any> => {
             as: 'm_tramites'
         }
     });
+
+     console.log('trae eventos ', evento);
 
     const citas = await CitasGeneral.count({
         where: { 
