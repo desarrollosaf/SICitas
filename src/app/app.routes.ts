@@ -29,6 +29,11 @@ export const routes: Routes = [
     loadComponent: () => import('./views/pages/salud/salud.component').then(c => c.SaludComponent)
   },
   {
+    path: 'vacunacion',
+    loadComponent: () => import('./views/pages/salud/salud.component').then(c => c.SaludComponent),
+    data: { tipo: 'vacunacion' }
+  },
+  {
     path: 'salud/:tipo',
     loadComponent: () => import('./views/pages/salud/salud.component').then(c => c.SaludComponent)
   },

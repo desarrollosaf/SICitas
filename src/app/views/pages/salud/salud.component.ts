@@ -11,10 +11,15 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 export class SaludComponent {
   mostrarMasculina = true;
   mostrarMastografias = true;
+  mostrarVacunacion = false;
 
   constructor(private route: ActivatedRoute) {
-    const tipo = this.route.snapshot.paramMap.get('tipo');
-    if (tipo === 'masculina') {
+    const tipo = this.route.snapshot.paramMap.get('tipo') ?? this.route.snapshot.data['tipo'];
+    if (tipo === 'vacunacion') {
+      this.mostrarMasculina = false;
+      this.mostrarMastografias = false;
+      this.mostrarVacunacion = true;
+    } else if (tipo === 'masculina') {
       this.mostrarMastografias = false;
     } else if (tipo === 'mastografias') {
       this.mostrarMasculina = false;
