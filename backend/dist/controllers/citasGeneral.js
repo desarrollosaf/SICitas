@@ -84,9 +84,47 @@ const getGeneral = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     return res.json({ resultados });
 });
 exports.getGeneral = getGeneral;
+const normalizaTramite = (texto) => String(texto !== null && texto !== void 0 ? texto : '').normalize('NFD').replace(/[̀-ͯ]/g, '').trim().toLowerCase();
+// Un evento de varios días (ej. Jornada de Vacunación 11 y 12 de nov) son varios agenda_eventos con el
+// mismo nombre y cada uno con sus propios tramites; se comparan por nombre del trámite.
+// Regresa los trámites que el RFC ya agendó en los otros días del mismo evento.
+const tramitesRegistradosOtrosDias = (rfc, evento) => __awaiter(void 0, void 0, void 0, function* () {
+    if (!rfc || !evento)
+        return [];
+    const eventosMismoNombre = yield eventos_1.default.findAll({
+        where: {
+            evento: evento.evento,
+            id: { [sequelize_1.Op.ne]: evento.id }
+        },
+        attributes: ['id']
+    });
+    if (eventosMismoNombre.length === 0)
+        return [];
+    const citas = yield citas_general_1.default.findAll({
+        where: {
+            rfc_solicitante: rfc,
+            evento_id: eventosMismoNombre.map((e) => e.id)
+        }
+    });
+    const registrados = [];
+    for (const cita of citas) {
+        if (!cita.tramite)
+            continue;
+        const tramites = yield tramites_1.default.findAll({
+            where: { id: String(cita.tramite).split(',').map(Number) }
+        });
+        tramites.forEach((t) => registrados.push({
+            tramite: t.tramite,
+            fecha_cita: new Date(cita.fecha_cita).toISOString().slice(0, 10)
+        }));
+    }
+    return registrados;
+});
 const getEvento = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b;
+    var _a, _b, _c;
+    console.log('llega a controller funcion getEvento');
     const { fecha } = req.params;
+    const rfc = String((_a = req.query.rfc) !== null && _a !== void 0 ? _a : '');
     const resultado = [];
     const evento = yield eventos_1.default.findOne({
         where: {
@@ -97,6 +135,7 @@ const getEvento = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             as: 'm_tramites'
         }
     });
+    console.log('trae eventos ', evento);
     const citas = yield citas_general_1.default.count({
         where: {
             fecha_cita: fecha,
@@ -112,8 +151,8 @@ const getEvento = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const horariosDisponibles = yield modeloHorarios.findAll({
             order: [['id', 'ASC']]
         });
-        const horaInicioEvento = (_a = evento.hora_inicio) === null || _a === void 0 ? void 0 : _a.slice(0, 5);
-        const horaTerminoEvento = (_b = evento.hora_termino) === null || _b === void 0 ? void 0 : _b.slice(0, 5);
+        const horaInicioEvento = (_b = evento.hora_inicio) === null || _b === void 0 ? void 0 : _b.slice(0, 5);
+        const horaTerminoEvento = (_c = evento.hora_termino) === null || _c === void 0 ? void 0 : _c.slice(0, 5);
         const horariosEnRango = horariosDisponibles.filter((h) => {
             if (!horaInicioEvento || !horaTerminoEvento)
                 return true;
@@ -142,13 +181,15 @@ const getEvento = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     }
     const respuesta = {
         'horarios': resultado,
-        'evento': evento
+        'evento': evento,
+        'tramites_registrados': yield tramitesRegistradosOtrosDias(rfc, evento)
     };
     console.log('********** respuesta ', respuesta);
     return res.json(respuesta);
 });
 exports.getEvento = getEvento;
 const savecita = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     try {
         const { body } = req;
         console.log('** body ', body);
@@ -162,6 +203,10 @@ const savecita = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const evento = yield eventos_1.default.findOne({
             where: {
                 'id': body.evento
+            },
+            include: {
+                model: tramites_1.default,
+                as: 'm_tramites'
             }
         });
         console.log('evento  ', evento);
@@ -170,6 +215,24 @@ const savecita = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 status: 400,
                 msg: "Ya existe una cita registrada con ese RFC"
             });
+        }
+        const tramitesEvento = (_a = evento === null || evento === void 0 ? void 0 : evento.m_tramites) !== null && _a !== void 0 ? _a : [];
+        if (tramitesEvento.length > 0) {
+            const seleccionados = tramitesEvento.filter((t) => { var _a; return ((_a = body.tramite) !== null && _a !== void 0 ? _a : []).map(Number).includes(t.id); });
+            if (seleccionados.length === 0) {
+                return res.status(400).json({
+                    status: 400,
+                    msg: "Debes seleccionar al menos una opción"
+                });
+            }
+            const registrados = yield tramitesRegistradosOtrosDias(body.rfc, evento);
+            const repetidos = seleccionados.filter((t) => registrados.some(r => normalizaTramite(r.tramite) === normalizaTramite(t.tramite)));
+            if (repetidos.length > 0) {
+                return res.status(400).json({
+                    status: 400,
+                    msg: `Ya tienes cita registrada para: ${repetidos.map((t) => t.tramite).join(', ')} en otro día de este evento`
+                });
+            }
         }
         if ((evento === null || evento === void 0 ? void 0 : evento.horarios) === true) {
             const limite = (evento === null || evento === void 0 ? void 0 : evento.limite_horario) || 1;
@@ -296,11 +359,10 @@ const acuse = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         }
         let tramites;
         if (cita.tramite != null && cita.tramite != '') {
-            tramites = cita.tramite.split(',').map((tramite) => {
-                const id = Number(tramite.trim());
-                const tram = tramites_1.default.findByPk(id);
-                return tram.tramite;
-            }).filter((tramite) => tramite !== undefined);
+            const listaTramites = yield tramites_1.default.findAll({
+                where: { id: cita.tramite.split(',').map((tramite) => Number(tramite.trim())) }
+            });
+            tramites = listaTramites.map((tramite) => tramite.tramite).join(', ');
         }
         else {
             tramites = (_a = cita.mEvento) === null || _a === void 0 ? void 0 : _a.evento;

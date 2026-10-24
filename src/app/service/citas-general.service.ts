@@ -20,8 +20,8 @@ export class CitasGeneralService {
     return this.http.get<any>(`${this.myAppUrl}${this.myAPIUrl}/getGeneral/${rfc}`)
   }
 
-  getEvento(fecha: String): Observable<any> {
-    return this.http.get<any>(`${this.myAppUrl}${this.myAPIUrl}/getEvento/${fecha}`)
+  getEvento(fecha: String, rfc: String = ''): Observable<any> {
+    return this.http.get<any>(`${this.myAppUrl}${this.myAPIUrl}/getEvento/${fecha}`, { params: { rfc: String(rfc) } })
   }
 
   saveCita(data:any): Observable<string> {

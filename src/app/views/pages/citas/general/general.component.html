@@ -114,25 +114,35 @@
                             </div>
 
                             <div class="col-md-4 mb-3" *ngIf="tramites.length > 0">
-                                <label for="hora" class="form-label">Trámite (Puede seleccionar una o ambas opciones).</label> 
-                                <div *ngFor="let tramite of tramites" class="form-check">
-                                    <input
-                                        class="form-check-input"
-                                        type="checkbox"
-                                        [id]="'tramite' + tramite.id"
-                                        [checked]="tramitesSeleccionados.includes(tramite.id)"
-                                        (change)="seleccionarTramite(tramite.id, $event)"
-                                    >
-
-                                    <label class="form-check-label" [for]="'tramite' + tramite.id">
-                                        {{ tramite.tramite }}
+                                <label class="form-label">Trámite (Puede seleccionar una o varias opciones).</label>
+                                <div class="tramites-lista">
+                                    <label *ngFor="let tramite of tramites" class="tramite-opcion"
+                                        [class.seleccionado]="tramitesSeleccionados.includes(tramite.id)"
+                                        [class.registrado]="tramite.registradoEn"
+                                        [for]="'tramite' + tramite.id">
+                                        <input
+                                            class="form-check-input"
+                                            type="checkbox"
+                                            [id]="'tramite' + tramite.id"
+                                            [disabled]="tramite.registradoEn"
+                                            [checked]="tramitesSeleccionados.includes(tramite.id)"
+                                            (change)="seleccionarTramite(tramite.id, $event)"
+                                        >
+                                        <span class="tramite-nombre">{{ tramite.tramite }}</span>
+                                        <span class="tramite-registrado" *ngIf="tramite.registradoEn">
+                                            <i class="bi bi-check-circle-fill"></i> Agendada el {{ tramite.registradoEn }}
+                                        </span>
                                     </label>
+                                </div>
+                                <div class="alert alert-info tramites-aviso mt-2 mb-0" *ngIf="tramitesDisponibles.length === 0">
+                                    <i class="bi bi-info-circle"></i>
+                                    Ya tienes agendadas todas las opciones de este evento en otro día.
                                 </div>
                             </div>
                         </div>
 
                         <button class="btn btn-primary mt-3" (click)="guardarSeleccion()"
-                             [disabled]="horarios.length > 0 && (!horaSeleccionada2 || !tramitesSeleccionados || !sedeSeleccionada ||  enviandoRegistro === 1)">
+                             [disabled]="enviandoRegistro === 1 || (tramites.length > 0 && tramitesSeleccionados.length === 0) || (horarios.length > 0 && (!horaSeleccionada2 || !sedeSeleccionada))">
                             <ng-container *ngIf="enviandoRegistro === 1; else iconoGuardar">
                                 <span class="spinner-border spinner-border-sm me-1" role="status"></span>
                                 Registrando

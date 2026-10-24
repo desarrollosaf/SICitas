@@ -153,12 +153,22 @@ export class GeneralComponent {
       year: 'numeric'
     });
 
-    this._citasService.getEvento(fechaStr).subscribe({
+    this._citasService.getEvento(fechaStr, this.currentUser?.rfc).subscribe({
       next: (response: any) => {
         this.abrirModal(response.evento);
         this.evento_id = response.evento.id;
         this.horarios = response.horarios;
-        this.tramites = response.evento.m_tramites;
+        this.tramitesSeleccionados = [];
+        const registrados: { tramite: string; fecha_cita: string }[] = response.tramites_registrados || [];
+        this.tramites = (response.evento.m_tramites || []).map((tramite: any) => {
+          const previo = registrados.find(r => this.normalizaTramite(r.tramite) === this.normalizaTramite(tramite.tramite));
+          return {
+            ...tramite,
+            registradoEn: previo
+              ? new Date(`${previo.fecha_cita}T00:00:00`).toLocaleDateString('es-MX', { day: 'numeric', month: 'long' })
+              : null
+          };
+        });
         if (response.evento.sede) {
           this.horaSeleccionada2 = null;
           this.sedeSeleccionada = response.evento.sede;
@@ -425,6 +435,14 @@ export class GeneralComponent {
       textLink: '',
       descripcion: ''
     });
+  }
+
+  normalizaTramite(texto: string): string {
+    return String(texto ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').trim().toLowerCase();
+  }
+
+  get tramitesDisponibles(): any[] {
+    return this.tramites.filter(tramite => !tramite.registradoEn);
   }
 
   seleccionarTramite(id: number, event: Event) {

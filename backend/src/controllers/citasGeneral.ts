@@ -99,9 +99,49 @@ export const getGeneral = async (req: Request, res: Response): Promise<any> => {
     return res.json({resultados });
 }
 
+const normalizaTramite = (texto: string) =>
+    String(texto ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').trim().toLowerCase();
+
+// Un evento de varios días (ej. Jornada de Vacunación 11 y 12 de nov) son varios agenda_eventos con el
+// mismo nombre y cada uno con sus propios tramites; se comparan por nombre del trámite.
+// Regresa los trámites que el RFC ya agendó en los otros días del mismo evento.
+const tramitesRegistradosOtrosDias = async (rfc: string, evento: any) => {
+    if (!rfc || !evento) return [];
+
+    const eventosMismoNombre = await agendaEventos.findAll({
+        where: {
+            evento: evento.evento,
+            id: { [Op.ne]: evento.id }
+        },
+        attributes: ['id']
+    });
+    if (eventosMismoNombre.length === 0) return [];
+
+    const citas = await CitasGeneral.findAll({
+        where: {
+            rfc_solicitante: rfc,
+            evento_id: eventosMismoNombre.map((e: any) => e.id)
+        }
+    });
+
+    const registrados: { tramite: string; fecha_cita: string }[] = [];
+    for (const cita of citas) {
+        if (!cita.tramite) continue;
+        const tramites = await Tramites.findAll({
+            where: { id: String(cita.tramite).split(',').map(Number) }
+        });
+        tramites.forEach((t: any) => registrados.push({
+            tramite: t.tramite,
+            fecha_cita: new Date(cita.fecha_cita).toISOString().slice(0, 10)
+        }));
+    }
+    return registrados;
+}
+
 export const getEvento = async (req: Request, res: Response): Promise<any> => {
   console.log('llega a controller funcion getEvento');
-    const { fecha } = req.params; 
+    const { fecha } = req.params;
+    const rfc = String(req.query.rfc ?? '');
     const resultado: any[] = [];
     const evento = await agendaEventos.findOne({
         where:{
@@ -173,7 +213,8 @@ export const getEvento = async (req: Request, res: Response): Promise<any> => {
   
     const respuesta = {
         'horarios': resultado,
-        'evento':evento
+        'evento':evento,
+        'tramites_registrados': await tramitesRegistradosOtrosDias(rfc, evento)
     }
 
     console.log('********** respuesta ', respuesta)
@@ -195,6 +236,10 @@ console.log('citaExistente ',citaExistente);
     const evento = await agendaEventos.findOne({
         where:{
             'id': body.evento
+        },
+        include:{
+            model: Tramites,
+            as: 'm_tramites'
         }
     });
     console.log('evento  ',evento);
@@ -204,6 +249,28 @@ console.log('citaExistente ',citaExistente);
         status: 400,
         msg: "Ya existe una cita registrada con ese RFC"
       });
+    }
+
+    const tramitesEvento: any[] = (evento as any)?.m_tramites ?? [];
+    if (tramitesEvento.length > 0) {
+        const seleccionados = tramitesEvento.filter((t: any) => (body.tramite ?? []).map(Number).includes(t.id));
+        if (seleccionados.length === 0) {
+          return res.status(400).json({
+            status: 400,
+            msg: "Debes seleccionar al menos una opción"
+          });
+        }
+
+        const registrados = await tramitesRegistradosOtrosDias(body.rfc, evento);
+        const repetidos = seleccionados.filter((t: any) =>
+            registrados.some(r => normalizaTramite(r.tramite) === normalizaTramite(t.tramite))
+        );
+        if (repetidos.length > 0) {
+          return res.status(400).json({
+            status: 400,
+            msg: `Ya tienes cita registrada para: ${repetidos.map((t: any) => t.tramite).join(', ')} en otro día de este evento`
+          });
+        }
     }
 
     if (evento?.horarios === true) {
@@ -347,11 +414,10 @@ export const acuse = async (req: Request, res: Response) => {
     }
     let tramites;
     if(cita.tramite != null && cita.tramite != ''){
-        tramites = cita.tramite.split(',').map((tramite: string): string | undefined => {
-        const id = Number(tramite.trim());
-            const tram = Tramites.findByPk(id);
-            return tram.tramite;
-        }).filter((tramite): tramite is string => tramite !== undefined);
+        const listaTramites = await Tramites.findAll({
+            where: { id: cita.tramite.split(',').map((tramite: string) => Number(tramite.trim())) }
+        });
+        tramites = listaTramites.map((tramite: any) => tramite.tramite).join(', ');
     }else{
         tramites = cita.mEvento?.evento;
     }
