@@ -163,6 +163,22 @@ evento_id: number;
 
     eventContent: (arg) => {
       const props = arg.event.extendedProps;
+      if (props?.['conteoTramites']) {
+        const conteo: { tramite: string; total: number }[] = props['conteoTramites'];
+        const wrapper = document.createElement('div');
+        wrapper.className = 'fc-salud-event';
+        const total = document.createElement('div');
+        total.className = 'fc-salud-total';
+        total.textContent = `${props['total']}${props['cupo'] ? ' / ' + props['cupo'] : ''} citas · ${props['evento']}`;
+        wrapper.appendChild(total);
+        conteo.forEach(c => {
+          const badge = document.createElement('span');
+          badge.className = 'fc-badge fc-badge-tramite';
+          badge.textContent = `${c.tramite}: ${c.total}`;
+          wrapper.appendChild(badge);
+        });
+        return { domNodes: [wrapper] };
+      }
       if (!props?.['esSalud']) {
         return true; // deja el render por default para los demás tipos de evento
       }
@@ -314,6 +330,18 @@ evento_id: number;
   verEnviarLink(row: any) {
     this.selectedRow = row;
     this.viewState = 'enviar-link';
+  }
+
+  formatoFechaCorta(fecha: string): string {
+    return new Date(`${fecha}T00:00:00`).toLocaleDateString('es-MX', { day: 'numeric', month: 'short' });
+  }
+
+  totalDosisFecha(conteo: any, fecha: string): number {
+    return conteo.tramites.reduce((suma: number, fila: any) => suma + (fila.por_fecha[fecha] || 0), 0);
+  }
+
+  totalDosisJornada(conteo: any): number {
+    return conteo.tramites.reduce((suma: number, fila: any) => suma + fila.total, 0);
   }
 
   toggleHorario(horario: string): void {
@@ -520,6 +548,13 @@ getEventos(){
         response.eventos.forEach((cita: any) => {
             let totalRegistros = cita.m_citasG.length;
             const fechaHora = `${cita.fecha_cita}T00:00:00`;
+            const tramitesEvento: any[] = cita.m_tramites ?? [];
+            const conteoTramites = tramitesEvento.map((tramite: any) => ({
+              tramite: tramite.tramite,
+              total: cita.m_citasG.filter((c: any) =>
+                String(c.tramite ?? '').split(',').map(Number).includes(tramite.id)
+              ).length
+            }));
             const nuevoEvento = {
               title: `${totalRegistros} Citas ${cita.evento}`,
               start: fechaHora,
@@ -527,6 +562,13 @@ getEventos(){
               backgroundColor: '#a54b54',  // Rojo
               borderColor: '#bd2130',
               textColor: '#fff',
+              extendedProps: tramitesEvento.length > 0 ? {
+                conteoTramites,
+                total: totalRegistros,
+                cupo: cita.total_citas_dia,
+                evento: cita.evento,
+                detalle: `Total citas: ${totalRegistros}\n` + conteoTramites.map(c => `${c.tramite}: ${c.total}`).join('\n')
+              } : {},
               // extendedProps: cita.evento.m_tramites?.length > 0 ? {
               //   esSalud: true,
               //   total: totalRegistros,

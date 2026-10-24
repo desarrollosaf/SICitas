@@ -214,6 +214,7 @@ export const getEvento = async (req: Request, res: Response): Promise<any> => {
     const respuesta = {
         'horarios': resultado,
         'evento':evento,
+        'lugares_disponibles': evento?.total_citas_dia ? Math.max(evento.total_citas_dia - citas, 0) : null,
         'tramites_registrados': await tramitesRegistradosOtrosDias(rfc, evento)
     }
 
@@ -273,43 +274,6 @@ console.log('citaExistente ',citaExistente);
         }
     }
 
-    if (evento?.horarios === true) {
-        const limite = evento?.limite_horario || 1;
-
-        const cantidadCitas = await CitasGeneral.count({
-          where: {
-            horario_id: body.horario_id,
-            evento_id: body.evento
-          }
-        });
-
-        console.log('cantidadCitas por horario ', cantidadCitas, 'limite ', limite);
-
-        if (cantidadCitas >= limite) {
-          return res.status(400).json({
-            status: 400,
-            msg: "Este horario ya no tiene cupo para la fecha seleccionada"
-          });
-        }
-    } else if (evento?.total_citas_dia) {
-        const cantidadCitasDia = await CitasGeneral.count({
-          where: {
-            fecha_cita: body.fecha_cita,
-            evento_id: body.evento
-          }
-        });
-
-        console.log('cantidadCitasDia ', cantidadCitasDia, 'total_citas_dia ', evento.total_citas_dia);
-
-        if (cantidadCitasDia >= evento.total_citas_dia) {
-          return res.status(400).json({
-            status: 400,
-            msg: "Ya no hay lugares disponibles para la fecha seleccionada"
-          });
-        }
-    }
-
-
     const folio: number = Math.floor(10000000 + Math.random() * 90000000);
     console.log('folio ',folio)
     let tramites = '';
@@ -317,14 +281,63 @@ console.log('citaExistente ',citaExistente);
           tramites = body.tramite.join(',');
     }
 
-    const cita = await CitasGeneral.create({
-        rfc_solicitante: body.rfc,
-        evento_id: body.evento,
-        fecha_cita: body.fecha_cita,
-        horario_id: body.horario_id,
-        folio: folio,
-        tramite: tramites
+    // Se bloquea la fila del evento para que dos registros simultáneos no rebasen el cupo del día/horario
+    const sinCupo = await sequelizeCuestionarios.transaction(async (t) => {
+        await agendaEventos.findOne({
+            where: { id: body.evento },
+            lock: t.LOCK.UPDATE,
+            transaction: t
+        });
+
+        if (evento?.total_citas_dia) {
+            const cantidadCitasDia = await CitasGeneral.count({
+              where: { evento_id: body.evento },
+              transaction: t
+            });
+
+            console.log('cantidadCitasDia ', cantidadCitasDia, 'total_citas_dia ', evento.total_citas_dia);
+
+            if (cantidadCitasDia >= evento.total_citas_dia) {
+              return "Ya no hay lugares disponibles para la fecha seleccionada";
+            }
+        }
+
+        if (evento?.horarios === true) {
+            const limite = evento?.limite_horario || 1;
+
+            const cantidadCitas = await CitasGeneral.count({
+              where: {
+                horario_id: body.horario_id,
+                evento_id: body.evento
+              },
+              transaction: t
+            });
+
+            console.log('cantidadCitas por horario ', cantidadCitas, 'limite ', limite);
+
+            if (cantidadCitas >= limite) {
+              return "Este horario ya no tiene cupo para la fecha seleccionada";
+            }
+        }
+
+        await CitasGeneral.create({
+            rfc_solicitante: body.rfc,
+            evento_id: body.evento,
+            fecha_cita: body.fecha_cita,
+            horario_id: body.horario_id,
+            folio: folio,
+            tramite: tramites
+        }, { transaction: t });
+
+        return null;
     });
+
+    if (sinCupo) {
+      return res.status(400).json({
+        status: 400,
+        msg: sinCupo
+      });
+    }
 
     const Validacion = await dp_fum_datos_generales.findOne({
       where: { f_rfc: body.rfc },

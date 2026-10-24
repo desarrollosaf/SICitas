@@ -44,4 +44,81 @@ hr {
   .fc-badge-papanicolau {
     background-color: #a2216e;
   }
+
+  .fc-badge-tramite {
+    background-color: rgba(255, 255, 255, 0.92);
+    color: #7b1f3a;
+  }
+}
+
+.resumen-tramites {
+  border: 1px solid #eee0e5;
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  background: #fff;
+
+  .resumen-titulo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #7b1f3a;
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+
+  .cupo-texto {
+    font-size: 0.85rem;
+    margin-bottom: 4px;
+  }
+
+  .progress {
+    height: 10px;
+    border-radius: 10px;
+    background: #fbe6ec;
+    margin-bottom: 14px;
+
+    .progress-bar {
+      background: #7b1f3a;
+    }
+
+    .progress-bar.lleno {
+      background: #dc3545;
+    }
+  }
+
+  table {
+    margin-bottom: 0;
+    font-size: 0.86rem;
+
+    thead th {
+      background: #7b1f3a;
+      color: #fff;
+      border: none;
+      text-align: center;
+    }
+
+    td {
+      text-align: center;
+    }
+
+    td:first-child,
+    th:first-child {
+      text-align: left;
+    }
+
+    .dia-actual {
+      background: #fbe6ec;
+      font-weight: 700;
+    }
+
+    .total-col {
+      font-weight: 700;
+    }
+
+    tfoot td {
+      font-weight: 700;
+      border-top: 2px solid #7b1f3a;
+    }
+  }
 }

@@ -36,6 +36,45 @@ import sequelizeCuestionarios from "../database/cuestionariosConnection";
 dp_datospersonales.initModel(sequelizefun);
 dp_fum_datos_generales.initModel(sequelizefun);
 
+const nombresTramitesCita = (cita: any, tramitesEvento: any[]): string[] => {
+  if (!cita?.tramite) return [];
+  const ids = String(cita.tramite).split(',').map(Number);
+  return tramitesEvento.filter((t: any) => ids.includes(t.id)).map((t: any) => t.tramite);
+};
+
+// Conteo de trámites (vacunas) del evento de ese día y de toda la jornada: un evento de varios días
+// son varios agenda_eventos con el mismo nombre, cada uno con sus propios tramites.
+const conteoTramitesJornada = async (evento: any) => {
+  const eventos = await agendaEventos.findAll({
+    where: { evento: evento.evento },
+    include: [
+      { model: Tramites, as: 'm_tramites' },
+      { model: CitasGeneral, as: 'm_citasG' }
+    ],
+    order: [['fecha_cita', 'ASC']]
+  });
+
+  const fechas = eventos.map((e: any) => e.fecha_cita);
+  const filas: Record<string, { tramite: string; dia: number; por_fecha: Record<string, number>; total: number }> = {};
+
+  for (const e of eventos as any[]) {
+    for (const t of e.m_tramites ?? []) {
+      const clave = String(t.tramite).normalize('NFD').replace(/[̀-ͯ]/g, '').trim().toLowerCase();
+      filas[clave] ??= { tramite: t.tramite, dia: 0, por_fecha: Object.fromEntries(fechas.map(f => [f, 0])), total: 0 };
+    }
+    for (const cita of e.m_citasG ?? []) {
+      for (const nombre of nombresTramitesCita(cita, e.m_tramites ?? [])) {
+        const clave = String(nombre).normalize('NFD').replace(/[̀-ͯ]/g, '').trim().toLowerCase();
+        filas[clave].por_fecha[e.fecha_cita]++;
+        filas[clave].total++;
+        if (e.id === evento.id) filas[clave].dia++;
+      }
+    }
+  }
+
+  return { fechas, tramites: Object.values(filas) };
+};
+
 export const getHorariosDisponibles = async (req: Request, res: Response): Promise<any> => {
   try {
     const { fecha } = req.params;
@@ -339,17 +378,22 @@ export const getcitasFecha = async (req: Request, res: Response): Promise<any> =
     const evento = await agendaEventos.findOne({
       where:{
         fecha_cita: fecha
-      }, 
+      },
+      include: { model: Tramites, as: 'm_tramites' }
     })
+    const tramitesEvento: any[] = (evento as any)?.m_tramites ?? [];
 
     let resultado: any[] = [];
-    let horarios = [] as any[];  
-    let personas = [] as any[];   
-    let obj = {
+    let horarios = [] as any[];
+    let personas = [] as any[];
+    let obj: any = {
       'evento_id': evento?.id,
       'evento': evento?.evento,
       'fecha': evento?.fecha_cita,
-      horarios: horarios, 
+      'cupo': evento?.total_citas_dia ?? null,
+      'total_citas': await CitasGeneral.count({ where: { evento_id: evento?.id } }),
+      'conteo_tramites': tramitesEvento.length > 0 && evento ? await conteoTramitesJornada(evento) : null,
+      horarios: horarios,
       'citas': personas,
     };
 
@@ -401,8 +445,9 @@ export const getcitasFecha = async (req: Request, res: Response): Promise<any> =
                     nombre: `${datosg?.f_nombre ?? ''} ${datosg?.f_primer_apellido ?? ''} ${datosg?.f_segundo_apellido ?? ''}`.trim(),
                     rfc: datosg?.f_rfc ?? '',
                     issemym: datosg?.f_clave_issemym ?? '', 
-                    adscripcion: adscripcion?.departamento?.nombre_completo, 
-                }) 
+                    adscripcion: adscripcion?.departamento?.nombre_completo,
+                    tramites: nombresTramitesCita(cita, tramitesEvento).join(', '),
+                })
             }
           }
           obj.horarios.push({
@@ -439,8 +484,9 @@ export const getcitasFecha = async (req: Request, res: Response): Promise<any> =
                 nombre: `${datosg?.f_nombre ?? ''} ${datosg?.f_primer_apellido ?? ''} ${datosg?.f_segundo_apellido ?? ''}`.trim(),
                 rfc: datosg?.f_rfc ?? '',
                 issemym: datosg?.f_clave_issemym ?? '', 
-                adscripcion: adscripcion?.departamento?.nombre_completo, 
-              }) 
+                adscripcion: adscripcion?.departamento?.nombre_completo,
+                tramites: nombresTramitesCita(cita, tramitesEvento).join(', '),
+              })
           }
         }
     }
@@ -781,12 +827,17 @@ export const generarExcelCitas = async (req: Request, res: Response) => {
       }, 
       include:[
         {
-          model:CitasGeneral, 
+          model:CitasGeneral,
           as:'m_citasG',
+        },
+        {
+          model: Tramites,
+          as: 'm_tramites'
         },
       ]
     })
-   
+    const tramitesEvento: any[] = (eve as any)?.m_tramites ?? [];
+
     citas = eve?.m_citasG;
     sedeNombre = eve?.mSede?.sede || "SIN SEDE";
     
@@ -862,7 +913,8 @@ export const generarExcelCitas = async (req: Request, res: Response) => {
     titleRow.font = { size: 14, bold: true };
     let headers = [];
     headers = ["Nombre", "Clave ISSEMYM", "Adscripción", "Cita"];
-  
+    if (tramitesEvento.length > 0) headers.push("Trámites");
+
     const ultimaColumna = String.fromCharCode(64 + headers.length);
     sheet.mergeCells(`A1:${ultimaColumna}1`); // Unir las columnas para el título
     titleRow.alignment = { horizontal: "center" };
@@ -871,8 +923,7 @@ export const generarExcelCitas = async (req: Request, res: Response) => {
     sheet.addRow([]);
 
     // Encabezados
-    sheet.addRow(headers);
-    const headerRow = sheet.getRow(2); // Fila 3 porque hay título y fila vacía
+    const headerRow = sheet.addRow(headers);
     headerRow.font = { bold: true };
     headerRow.alignment = { horizontal: "center" };
 
@@ -880,12 +931,30 @@ export const generarExcelCitas = async (req: Request, res: Response) => {
     for (const cita of citas) {
       const nombre =
         (cita as any).datos_user?.nombre_completo || "Nombre desconocido";
-      const clave = cita.datos_user.f_clave_issemym ?? "Sin clave";
+      const clave = cita.datos_user?.f_clave_issemym ?? "Sin clave";
       const adscripcion = cita.adscripcion ?? "Sin adscripción";
       const horario = cita.horario;
       let fila = [nombre, clave, adscripcion, horario];
-    
+      if (tramitesEvento.length > 0) fila.push(nombresTramitesCita(cita, tramitesEvento).join(', '));
+
       sheet.addRow(fila);
+    }
+
+    if (tramitesEvento.length > 0 && eve) {
+      const conteo = await conteoTramitesJornada(eve);
+      const resumen = workbook.addWorksheet("Resumen");
+      const encabezado = resumen.addRow(["Trámite", ...conteo.fechas, "Total"]);
+      encabezado.font = { bold: true };
+      for (const fila of conteo.tramites) {
+        resumen.addRow([fila.tramite, ...conteo.fechas.map(f => fila.por_fecha[f]), fila.total]);
+      }
+      const totales = resumen.addRow([
+        "Total",
+        ...conteo.fechas.map(f => conteo.tramites.reduce((s, fila) => s + fila.por_fecha[f], 0)),
+        conteo.tramites.reduce((s, fila) => s + fila.total, 0)
+      ]);
+      totales.font = { bold: true };
+      resumen.columns.forEach(column => { column.width = 18; });
     }
       
     // Ajustar ancho columnas automáticamente

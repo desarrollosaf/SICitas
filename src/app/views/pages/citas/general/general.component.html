@@ -73,6 +73,14 @@
                         <div class="p-2 text-white text-muted bg-light">
                             <strong>Generar cita para {{personaSeleccionada.evento}} {{personaSeleccionada.fecha_cita}}</strong>
                         </div>
+                        <div *ngIf="lugaresDisponibles !== null" class="mt-2">
+                            <span *ngIf="lugaresDisponibles > 0" class="badge lugares-badge">
+                                <i class="bi bi-people-fill"></i> Quedan {{ lugaresDisponibles }} lugares para este día
+                            </span>
+                            <div *ngIf="lugaresDisponibles === 0" class="alert alert-warning mb-0">
+                                <i class="bi bi-exclamation-triangle-fill"></i> Ya no hay lugares disponibles para este día.
+                            </div>
+                        </div>
                         <br>
                         <!-- Indicaciones -->
                         <div class="mb-4">
@@ -142,7 +150,7 @@
                         </div>
 
                         <button class="btn btn-primary mt-3" (click)="guardarSeleccion()"
-                             [disabled]="enviandoRegistro === 1 || (tramites.length > 0 && tramitesSeleccionados.length === 0) || (horarios.length > 0 && (!horaSeleccionada2 || !sedeSeleccionada))">
+                             [disabled]="enviandoRegistro === 1 || lugaresDisponibles === 0 || (tramites.length > 0 && tramitesSeleccionados.length === 0) || (horarios.length > 0 && (!horaSeleccionada2 || !sedeSeleccionada))">
                             <ng-container *ngIf="enviandoRegistro === 1; else iconoGuardar">
                                 <span class="spinner-border spinner-border-sm me-1" role="status"></span>
                                 Registrando

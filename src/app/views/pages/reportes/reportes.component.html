@@ -49,7 +49,55 @@
             <button type="button" class="btn-close" (click)="modal.close('by: close icon')" aria-label="Close"></button>
         </div>
         <div class="modal-body w-100">
-            <div *ngFor="let hora of eventos.horarios" class="border rounded p-2 mb-2"> 
+            <div *ngIf="eventos.conteo_tramites as conteo" class="resumen-tramites">
+                <div class="resumen-titulo">
+                    <i class="bi bi-clipboard-data"></i> Resumen de {{ eventos.evento }}
+                </div>
+
+                <ng-container *ngIf="eventos.cupo">
+                    <div class="cupo-texto">
+                        <strong>{{ eventos.total_citas }}</strong> de {{ eventos.cupo }} citas registradas este día
+                        ({{ eventos.cupo - eventos.total_citas }} lugares disponibles)
+                    </div>
+                    <div class="progress">
+                        <div class="progress-bar" role="progressbar"
+                            [class.lleno]="eventos.total_citas >= eventos.cupo"
+                            [style.width.%]="(eventos.total_citas / eventos.cupo) * 100"></div>
+                    </div>
+                </ng-container>
+
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle">
+                        <thead>
+                            <tr>
+                                <th>Trámite</th>
+                                <th *ngFor="let fecha of conteo.fechas">{{ formatoFechaCorta(fecha) }}</th>
+                                <th>Total jornada</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let fila of conteo.tramites">
+                                <td>{{ fila.tramite }}</td>
+                                <td *ngFor="let fecha of conteo.fechas" [class.dia-actual]="fecha === eventos.fecha">
+                                    {{ fila.por_fecha[fecha] }}
+                                </td>
+                                <td class="total-col">{{ fila.total }}</td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td>Total de dosis</td>
+                                <td *ngFor="let fecha of conteo.fechas" [class.dia-actual]="fecha === eventos.fecha">
+                                    {{ totalDosisFecha(conteo, fecha) }}
+                                </td>
+                                <td class="total-col">{{ totalDosisJornada(conteo) }}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <div *ngFor="let hora of eventos.horarios" class="border rounded p-2 mb-2">
                 {{hora.rango}}
                 <div *ngFor="let sp of hora.personas"> 
                     <div class="border rounded p-2 mb-2">

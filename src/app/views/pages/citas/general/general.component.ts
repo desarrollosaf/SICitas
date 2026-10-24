@@ -69,6 +69,7 @@ export class GeneralComponent {
   sedeSeleccionada: number | null = null;
   sedesDisponibles2: Array<{ sede_id: number; sede_texto: string }> = [];
   enviandoRegistro: number | null = null;
+  lugaresDisponibles: number | null = null;
 
   public _citasService = inject(CitasGeneralService);
 
@@ -159,6 +160,7 @@ export class GeneralComponent {
         this.evento_id = response.evento.id;
         this.horarios = response.horarios;
         this.tramitesSeleccionados = [];
+        this.lugaresDisponibles = response.lugares_disponibles ?? null;
         const registrados: { tramite: string; fecha_cita: string }[] = response.tramites_registrados || [];
         this.tramites = (response.evento.m_tramites || []).map((tramite: any) => {
           const previo = registrados.find(r => this.normalizaTramite(r.tramite) === this.normalizaTramite(tramite.tramite));
