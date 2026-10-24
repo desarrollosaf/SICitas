@@ -38,6 +38,43 @@ const tramites_1 = __importDefault(require("../models/tramites"));
 const cuestionariosConnection_1 = __importDefault(require("../database/cuestionariosConnection"));
 dp_datospersonales_1.dp_datospersonales.initModel(fun_1.default);
 dp_fum_datos_generales_1.dp_fum_datos_generales.initModel(fun_1.default);
+const nombresTramitesCita = (cita, tramitesEvento) => {
+    if (!(cita === null || cita === void 0 ? void 0 : cita.tramite))
+        return [];
+    const ids = String(cita.tramite).split(',').map(Number);
+    return tramitesEvento.filter((t) => ids.includes(t.id)).map((t) => t.tramite);
+};
+// Conteo de trámites (vacunas) del evento de ese día y de toda la jornada: un evento de varios días
+// son varios agenda_eventos con el mismo nombre, cada uno con sus propios tramites.
+const conteoTramitesJornada = (evento) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b, _c, _d;
+    const eventos = yield eventos_1.default.findAll({
+        where: { evento: evento.evento },
+        include: [
+            { model: tramites_1.default, as: 'm_tramites' },
+            { model: citas_general_1.default, as: 'm_citasG' }
+        ],
+        order: [['fecha_cita', 'ASC']]
+    });
+    const fechas = eventos.map((e) => e.fecha_cita);
+    const filas = {};
+    for (const e of eventos) {
+        for (const t of (_a = e.m_tramites) !== null && _a !== void 0 ? _a : []) {
+            const clave = String(t.tramite).normalize('NFD').replace(/[̀-ͯ]/g, '').trim().toLowerCase();
+            (_b = filas[clave]) !== null && _b !== void 0 ? _b : (filas[clave] = { tramite: t.tramite, dia: 0, por_fecha: Object.fromEntries(fechas.map(f => [f, 0])), total: 0 });
+        }
+        for (const cita of (_c = e.m_citasG) !== null && _c !== void 0 ? _c : []) {
+            for (const nombre of nombresTramitesCita(cita, (_d = e.m_tramites) !== null && _d !== void 0 ? _d : [])) {
+                const clave = String(nombre).normalize('NFD').replace(/[̀-ͯ]/g, '').trim().toLowerCase();
+                filas[clave].por_fecha[e.fecha_cita]++;
+                filas[clave].total++;
+                if (e.id === evento.id)
+                    filas[clave].dia++;
+            }
+        }
+    }
+    return { fechas, tramites: Object.values(filas) };
+});
 const getHorariosDisponibles = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { fecha } = req.params;
@@ -291,7 +328,7 @@ const getCita = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 });
 exports.getCita = getCita;
 const getcitasFecha = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p;
     try {
         const { fecha, rfc } = req.params;
         //tabla de citas
@@ -299,7 +336,9 @@ const getcitasFecha = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             where: {
                 fecha_cita: fecha
             },
+            include: { model: tramites_1.default, as: 'm_tramites' }
         });
+        const tramitesEvento = (_a = evento === null || evento === void 0 ? void 0 : evento.m_tramites) !== null && _a !== void 0 ? _a : [];
         let resultado = [];
         let horarios = [];
         let personas = [];
@@ -307,6 +346,9 @@ const getcitasFecha = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             'evento_id': evento === null || evento === void 0 ? void 0 : evento.id,
             'evento': evento === null || evento === void 0 ? void 0 : evento.evento,
             'fecha': evento === null || evento === void 0 ? void 0 : evento.fecha_cita,
+            'cupo': (_b = evento === null || evento === void 0 ? void 0 : evento.total_citas_dia) !== null && _b !== void 0 ? _b : null,
+            'total_citas': yield citas_general_1.default.count({ where: { evento_id: evento === null || evento === void 0 ? void 0 : evento.id } }),
+            'conteo_tramites': tramitesEvento.length > 0 && evento ? yield conteoTramitesJornada(evento) : null,
             horarios: horarios,
             'citas': personas,
         };
@@ -345,10 +387,11 @@ const getcitasFecha = (req, res) => __awaiter(void 0, void 0, void 0, function* 
                             ]
                         });
                         personas.push({
-                            nombre: `${(_a = datosg === null || datosg === void 0 ? void 0 : datosg.f_nombre) !== null && _a !== void 0 ? _a : ''} ${(_b = datosg === null || datosg === void 0 ? void 0 : datosg.f_primer_apellido) !== null && _b !== void 0 ? _b : ''} ${(_c = datosg === null || datosg === void 0 ? void 0 : datosg.f_segundo_apellido) !== null && _c !== void 0 ? _c : ''}`.trim(),
-                            rfc: (_d = datosg === null || datosg === void 0 ? void 0 : datosg.f_rfc) !== null && _d !== void 0 ? _d : '',
-                            issemym: (_e = datosg === null || datosg === void 0 ? void 0 : datosg.f_clave_issemym) !== null && _e !== void 0 ? _e : '',
-                            adscripcion: (_f = adscripcion === null || adscripcion === void 0 ? void 0 : adscripcion.departamento) === null || _f === void 0 ? void 0 : _f.nombre_completo,
+                            nombre: `${(_c = datosg === null || datosg === void 0 ? void 0 : datosg.f_nombre) !== null && _c !== void 0 ? _c : ''} ${(_d = datosg === null || datosg === void 0 ? void 0 : datosg.f_primer_apellido) !== null && _d !== void 0 ? _d : ''} ${(_e = datosg === null || datosg === void 0 ? void 0 : datosg.f_segundo_apellido) !== null && _e !== void 0 ? _e : ''}`.trim(),
+                            rfc: (_f = datosg === null || datosg === void 0 ? void 0 : datosg.f_rfc) !== null && _f !== void 0 ? _f : '',
+                            issemym: (_g = datosg === null || datosg === void 0 ? void 0 : datosg.f_clave_issemym) !== null && _g !== void 0 ? _g : '',
+                            adscripcion: (_h = adscripcion === null || adscripcion === void 0 ? void 0 : adscripcion.departamento) === null || _h === void 0 ? void 0 : _h.nombre_completo,
+                            tramites: nombresTramitesCita(cita, tramitesEvento).join(', '),
                         });
                     }
                 }
@@ -383,10 +426,11 @@ const getcitasFecha = (req, res) => __awaiter(void 0, void 0, void 0, function* 
                         ]
                     });
                     personas.push({
-                        nombre: `${(_g = datosg === null || datosg === void 0 ? void 0 : datosg.f_nombre) !== null && _g !== void 0 ? _g : ''} ${(_h = datosg === null || datosg === void 0 ? void 0 : datosg.f_primer_apellido) !== null && _h !== void 0 ? _h : ''} ${(_j = datosg === null || datosg === void 0 ? void 0 : datosg.f_segundo_apellido) !== null && _j !== void 0 ? _j : ''}`.trim(),
-                        rfc: (_k = datosg === null || datosg === void 0 ? void 0 : datosg.f_rfc) !== null && _k !== void 0 ? _k : '',
-                        issemym: (_l = datosg === null || datosg === void 0 ? void 0 : datosg.f_clave_issemym) !== null && _l !== void 0 ? _l : '',
-                        adscripcion: (_m = adscripcion === null || adscripcion === void 0 ? void 0 : adscripcion.departamento) === null || _m === void 0 ? void 0 : _m.nombre_completo,
+                        nombre: `${(_j = datosg === null || datosg === void 0 ? void 0 : datosg.f_nombre) !== null && _j !== void 0 ? _j : ''} ${(_k = datosg === null || datosg === void 0 ? void 0 : datosg.f_primer_apellido) !== null && _k !== void 0 ? _k : ''} ${(_l = datosg === null || datosg === void 0 ? void 0 : datosg.f_segundo_apellido) !== null && _l !== void 0 ? _l : ''}`.trim(),
+                        rfc: (_m = datosg === null || datosg === void 0 ? void 0 : datosg.f_rfc) !== null && _m !== void 0 ? _m : '',
+                        issemym: (_o = datosg === null || datosg === void 0 ? void 0 : datosg.f_clave_issemym) !== null && _o !== void 0 ? _o : '',
+                        adscripcion: (_p = adscripcion === null || adscripcion === void 0 ? void 0 : adscripcion.departamento) === null || _p === void 0 ? void 0 : _p.nombre_completo,
+                        tramites: nombresTramitesCita(cita, tramitesEvento).join(', '),
                     });
                 }
             }
@@ -649,7 +693,7 @@ const generarPdfAcuse = (req, res) => __awaiter(void 0, void 0, void 0, function
 });
 exports.generarPdfAcuse = generarPdfAcuse;
 const generarExcelCitas = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c, _d, _e, _f;
+    var _a, _b, _c, _d, _e, _f, _g, _h;
     try {
         const { id } = req.params;
         let citas;
@@ -664,10 +708,15 @@ const generarExcelCitas = (req, res) => __awaiter(void 0, void 0, void 0, functi
                     model: citas_general_1.default,
                     as: 'm_citasG',
                 },
+                {
+                    model: tramites_1.default,
+                    as: 'm_tramites'
+                },
             ]
         });
+        const tramitesEvento = (_a = eve === null || eve === void 0 ? void 0 : eve.m_tramites) !== null && _a !== void 0 ? _a : [];
         citas = eve === null || eve === void 0 ? void 0 : eve.m_citasG;
-        sedeNombre = ((_a = eve === null || eve === void 0 ? void 0 : eve.mSede) === null || _a === void 0 ? void 0 : _a.sede) || "SIN SEDE";
+        sedeNombre = ((_b = eve === null || eve === void 0 ? void 0 : eve.mSede) === null || _b === void 0 ? void 0 : _b.sede) || "SIN SEDE";
         for (const cita of citas) {
             if ((eve === null || eve === void 0 ? void 0 : eve.horarios) == true) {
                 const modeloHorarios = cuestionariosConnection_1.default.models[eve.table_horarios];
@@ -719,7 +768,7 @@ const generarExcelCitas = (req, res) => __awaiter(void 0, void 0, void 0, functi
                 cita.setDataValue("dependencia", usuario);
             }
             if (ads) {
-                cita.adscripcion = (_b = ads === null || ads === void 0 ? void 0 : ads.departamento) === null || _b === void 0 ? void 0 : _b.nombre_completo;
+                cita.adscripcion = (_c = ads === null || ads === void 0 ? void 0 : ads.departamento) === null || _c === void 0 ? void 0 : _c.nombre_completo;
             }
         }
         const workbook = new exceljs_1.default.Workbook();
@@ -731,27 +780,46 @@ const generarExcelCitas = (req, res) => __awaiter(void 0, void 0, void 0, functi
         titleRow.font = { size: 14, bold: true };
         let headers = [];
         headers = ["Nombre", "Clave ISSEMYM", "Adscripción", "Cita"];
+        if (tramitesEvento.length > 0)
+            headers.push("Trámites");
         const ultimaColumna = String.fromCharCode(64 + headers.length);
         sheet.mergeCells(`A1:${ultimaColumna}1`); // Unir las columnas para el título
         titleRow.alignment = { horizontal: "center" };
         // Dejar una fila vacía
         sheet.addRow([]);
         // Encabezados
-        sheet.addRow(headers);
-        const headerRow = sheet.getRow(2); // Fila 3 porque hay título y fila vacía
+        const headerRow = sheet.addRow(headers);
         headerRow.font = { bold: true };
         headerRow.alignment = { horizontal: "center" };
         // Datos
         for (const cita of citas) {
-            const nombre = ((_c = cita.datos_user) === null || _c === void 0 ? void 0 : _c.nombre_completo) || "Nombre desconocido";
-            const clave = (_d = cita.datos_user.f_clave_issemym) !== null && _d !== void 0 ? _d : "Sin clave";
-            const adscripcion = (_e = cita.adscripcion) !== null && _e !== void 0 ? _e : "Sin adscripción";
+            const nombre = ((_d = cita.datos_user) === null || _d === void 0 ? void 0 : _d.nombre_completo) || "Nombre desconocido";
+            const clave = (_f = (_e = cita.datos_user) === null || _e === void 0 ? void 0 : _e.f_clave_issemym) !== null && _f !== void 0 ? _f : "Sin clave";
+            const adscripcion = (_g = cita.adscripcion) !== null && _g !== void 0 ? _g : "Sin adscripción";
             const horario = cita.horario;
             let fila = [nombre, clave, adscripcion, horario];
+            if (tramitesEvento.length > 0)
+                fila.push(nombresTramitesCita(cita, tramitesEvento).join(', '));
             sheet.addRow(fila);
         }
+        if (tramitesEvento.length > 0 && eve) {
+            const conteo = yield conteoTramitesJornada(eve);
+            const resumen = workbook.addWorksheet("Resumen");
+            const encabezado = resumen.addRow(["Trámite", ...conteo.fechas, "Total"]);
+            encabezado.font = { bold: true };
+            for (const fila of conteo.tramites) {
+                resumen.addRow([fila.tramite, ...conteo.fechas.map(f => fila.por_fecha[f]), fila.total]);
+            }
+            const totales = resumen.addRow([
+                "Total",
+                ...conteo.fechas.map(f => conteo.tramites.reduce((s, fila) => s + fila.por_fecha[f], 0)),
+                conteo.tramites.reduce((s, fila) => s + fila.total, 0)
+            ]);
+            totales.font = { bold: true };
+            resumen.columns.forEach(column => { column.width = 18; });
+        }
         // Ajustar ancho columnas automáticamente
-        (_f = sheet.columns) === null || _f === void 0 ? void 0 : _f.forEach(column => {
+        (_h = sheet.columns) === null || _h === void 0 ? void 0 : _h.forEach(column => {
             if (column && typeof column.eachCell === "function") {
                 let maxLength = 0;
                 column.eachCell({ includeEmpty: true }, cell => {

@@ -39,7 +39,7 @@ export class ReportesComponent {
   personaSeleccionada: any = null;
   modalRef: NgbModalRef;
   accordionOpen = true;
-  data: { horarios: Record<string, any[]> } = { horarios: {} };
+  data: { horarios: any } = { horarios: {} };
   chartOptions: ChartConfiguration['options'] = {
     responsive: true,
     animation: {

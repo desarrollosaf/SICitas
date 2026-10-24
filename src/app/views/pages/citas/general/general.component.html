@@ -74,7 +74,7 @@
                             <strong>Generar cita para {{personaSeleccionada.evento}} {{personaSeleccionada.fecha_cita}}</strong>
                         </div>
                         <div *ngIf="lugaresDisponibles !== null" class="mt-2">
-                            <span *ngIf="lugaresDisponibles > 0" class="badge lugares-badge">
+                            <span *ngIf="(lugaresDisponibles ?? 0) > 0" class="badge lugares-badge">
                                 <i class="bi bi-people-fill"></i> Quedan {{ lugaresDisponibles }} lugares para este día
                             </span>
                             <div *ngIf="lugaresDisponibles === 0" class="alert alert-warning mb-0">

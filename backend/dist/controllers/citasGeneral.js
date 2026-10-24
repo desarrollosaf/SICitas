@@ -182,6 +182,7 @@ const getEvento = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const respuesta = {
         'horarios': resultado,
         'evento': evento,
+        'lugares_disponibles': (evento === null || evento === void 0 ? void 0 : evento.total_citas_dia) ? Math.max(evento.total_citas_dia - citas, 0) : null,
         'tramites_registrados': yield tramitesRegistradosOtrosDias(rfc, evento)
     };
     console.log('********** respuesta ', respuesta);
@@ -234,51 +235,59 @@ const savecita = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 });
             }
         }
-        if ((evento === null || evento === void 0 ? void 0 : evento.horarios) === true) {
-            const limite = (evento === null || evento === void 0 ? void 0 : evento.limite_horario) || 1;
-            const cantidadCitas = yield citas_general_1.default.count({
-                where: {
-                    horario_id: body.horario_id,
-                    evento_id: body.evento
-                }
-            });
-            console.log('cantidadCitas por horario ', cantidadCitas, 'limite ', limite);
-            if (cantidadCitas >= limite) {
-                return res.status(400).json({
-                    status: 400,
-                    msg: "Este horario ya no tiene cupo para la fecha seleccionada"
-                });
-            }
-        }
-        else if (evento === null || evento === void 0 ? void 0 : evento.total_citas_dia) {
-            const cantidadCitasDia = yield citas_general_1.default.count({
-                where: {
-                    fecha_cita: body.fecha_cita,
-                    evento_id: body.evento
-                }
-            });
-            console.log('cantidadCitasDia ', cantidadCitasDia, 'total_citas_dia ', evento.total_citas_dia);
-            if (cantidadCitasDia >= evento.total_citas_dia) {
-                return res.status(400).json({
-                    status: 400,
-                    msg: "Ya no hay lugares disponibles para la fecha seleccionada"
-                });
-            }
-        }
         const folio = Math.floor(10000000 + Math.random() * 90000000);
         console.log('folio ', folio);
         let tramites = '';
         if (body.tramite) {
             tramites = body.tramite.join(',');
         }
-        const cita = yield citas_general_1.default.create({
-            rfc_solicitante: body.rfc,
-            evento_id: body.evento,
-            fecha_cita: body.fecha_cita,
-            horario_id: body.horario_id,
-            folio: folio,
-            tramite: tramites
-        });
+        // Se bloquea la fila del evento para que dos registros simultáneos no rebasen el cupo del día/horario
+        const sinCupo = yield cuestionariosConnection_1.default.transaction((t) => __awaiter(void 0, void 0, void 0, function* () {
+            yield eventos_1.default.findOne({
+                where: { id: body.evento },
+                lock: t.LOCK.UPDATE,
+                transaction: t
+            });
+            if (evento === null || evento === void 0 ? void 0 : evento.total_citas_dia) {
+                const cantidadCitasDia = yield citas_general_1.default.count({
+                    where: { evento_id: body.evento },
+                    transaction: t
+                });
+                console.log('cantidadCitasDia ', cantidadCitasDia, 'total_citas_dia ', evento.total_citas_dia);
+                if (cantidadCitasDia >= evento.total_citas_dia) {
+                    return "Ya no hay lugares disponibles para la fecha seleccionada";
+                }
+            }
+            if ((evento === null || evento === void 0 ? void 0 : evento.horarios) === true) {
+                const limite = (evento === null || evento === void 0 ? void 0 : evento.limite_horario) || 1;
+                const cantidadCitas = yield citas_general_1.default.count({
+                    where: {
+                        horario_id: body.horario_id,
+                        evento_id: body.evento
+                    },
+                    transaction: t
+                });
+                console.log('cantidadCitas por horario ', cantidadCitas, 'limite ', limite);
+                if (cantidadCitas >= limite) {
+                    return "Este horario ya no tiene cupo para la fecha seleccionada";
+                }
+            }
+            yield citas_general_1.default.create({
+                rfc_solicitante: body.rfc,
+                evento_id: body.evento,
+                fecha_cita: body.fecha_cita,
+                horario_id: body.horario_id,
+                folio: folio,
+                tramite: tramites
+            }, { transaction: t });
+            return null;
+        }));
+        if (sinCupo) {
+            return res.status(400).json({
+                status: 400,
+                msg: sinCupo
+            });
+        }
         const Validacion = yield dp_fum_datos_generales_1.dp_fum_datos_generales.findOne({
             where: { f_rfc: body.rfc },
             attributes: ["f_nombre", "f_primer_apellido", "f_segundo_apellido", "f_sexo", "f_fecha_nacimiento"]
